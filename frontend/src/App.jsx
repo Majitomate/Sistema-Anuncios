@@ -20,6 +20,7 @@ function App() {
         </a>
         <span>Carlos Alberto Soto Coronado</span>
           <span>Alexia Maria Felix Hernandez</span>
+          <span>María José Hernández Moreno</span>
 
           <a href="https://react.dev" target="_blank">
           <img src={reactLogo} className="logo react" alt="React logo" />
