@@ -6,11 +6,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('Backend funcionando :)');
-});
+const anunciosRoutes = require('./routes/anuncios.routes');
 
-const testRoutes = require('./routes/test.routes');
-app.use(testRoutes);
+app.use('/anuncios', anunciosRoutes);
 
 module.exports = app;
