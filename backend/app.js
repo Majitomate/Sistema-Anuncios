@@ -10,4 +10,7 @@ const anunciosRoutes = require('./routes/anuncios.routes');
 
 app.use('/anuncios', anunciosRoutes);
 
+app.get('/', (req, res) => {
+  res.send('API funcionando');
+});
 module.exports = app;

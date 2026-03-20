@@ -1,0 +1,102 @@
+/* --- Navegación --- */
+.navbar-left-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.back-icon-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.back-icon-button:hover {
+    transform: translateX(-4px);
+}
+
+/* --- Botón Naranja (+ Nuevo Anuncio) --- */
+.boton-nuevo-anuncio-naranja {
+    background-color: #ff6224;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.boton-nuevo-anuncio-naranja:hover {
+    background-color: #e5561f;
+    box-shadow: 0 4px 10px rgba(255, 98, 36, 0.3);
+}
+
+/* --- Tabla de Gestión --- */
+.gestion-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.gestion-title {
+    color: #1b5e20;
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+}
+
+.tabla-gestion {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-gestion th {
+    text-align: left;
+    color: #888;
+    font-size: 13px;
+    padding: 12px;
+    border-bottom: 2px solid #f5f5f5;
+}
+.tabla-gestion td {
+    padding: 16px 12px;
+    border-bottom: 1px solid #f9f9f9;
+    font-size: 14px;
+}
+
+.td-titulo { font-weight: 600; color: #333; }
+
+.badge-tipo {
+    background: #f0f4f0;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #666;
+}
+
+.badge-prioridad {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+.badge-prioridad.urgente { background: #ffebee; color: #c62828; }
+.badge-prioridad.alta { background: #fff3e0; color: #e65100; }
+
+.status-on { color: #2e7d32; font-weight: bold; }
+.status-off { color: #888; }
+
+.acciones-group { display: flex; gap: 12px; }
+.btn-edit { color: #1b5e20; background: none; border: none; cursor: pointer; font-weight: 600; }
+.btn-delete { color: #d32f2f; background: none; border: none; cursor: pointer; font-weight: 600; }

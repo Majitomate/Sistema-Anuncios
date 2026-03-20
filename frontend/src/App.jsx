@@ -1,46 +1,55 @@
-import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect, useCallback } from 'react';
+import './App.css';
+import DashboardLayout from './pages/DashboardLayout';
+import PanelControl from './pages/PanelControl';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+    const [anuncios, setAnuncios] = useState([]);
+    const [view, setView] = useState('dashboard');
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch('http://localhost:3001/')
-      .then(res => res.text())
-      .then(data => console.log(data));
-  }, []);
+    const fetchAnuncios = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('http://localhost:3001/anuncios');
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <span>Carlos Alberto Soto Coronado</span>
-          <span>Alexia Maria Felix Hernandez</span>
-          <span>María José Hernández Moreno</span>
+            const data = await response.json();
+            setAnuncios(data);
+        } catch (err) {
+            console.error("Error al obtener anuncios:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-          <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    useEffect(() => {fetchAnuncios();},[fetchAnuncios]);
+    if (loading && anuncios.length === 0) {
+        return (
+            <div className="loading-container">
+                <div className="spinner"></div>
+                <p>Cargando sistema de anuncios...</p>
+            </div>
+        );
+    }
 
+    return (
+        <div className="app-container">
+            {view === 'dashboard' ? (
+                <DashboardLayout
+                    anuncios={anuncios}
+                    onAnuncioCreado={fetchAnuncios}
+                    onIrAPanel={() => setView('panel')}
+                />
+            ) : (
+                <PanelControl
+                    anuncios={anuncios}
+                    onRegresar={() => setView('dashboard')}
+                    onActualizar={fetchAnuncios}
+                />
+            )}
+        </div>
+    );
+};
 
-}
-export default App
+export default App;
