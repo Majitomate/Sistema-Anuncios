@@ -1,13 +1,20 @@
 const express = require('express');
 const multer = require('multer');
 const { validarCreacionAnuncio } = require('../middlewares/validarAnuncio');
-const { listar, crear, obtenerPorId, actualizar } = require('../controllers/anuncios.controller');
+const {
+  listar,
+  crear,
+  obtenerPorId,
+  actualizar,
+  eliminar
+} = require('../controllers/anuncios.controller');
 
 const router = express.Router();
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+// Ruta para crear anuncio
 router.post(
   '/',
   upload.fields([
@@ -18,8 +25,10 @@ router.post(
   crear,
 );
 
+// Ruta para obtener anuncios
 router.get('/', listar);
 
+// Ruta para obtener un anuncio
 router.get('/:id', obtenerPorId);
 
 // Ruta para editar un anuncio  
@@ -32,5 +41,8 @@ router.put(
   validarCreacionAnuncio,
   actualizar
 );
+
+// Ruta para eliminar un anuncio
+router.delete('/:id', eliminar);
 
 module.exports = router;

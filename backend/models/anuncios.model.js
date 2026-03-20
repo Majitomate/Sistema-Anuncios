@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 
+// Crear anuncio
 const crearAnuncio = async (datos, imagen, documento) => {
   const query = `
     INSERT INTO anuncios 
@@ -30,6 +31,8 @@ const crearAnuncio = async (datos, imagen, documento) => {
   return result.rows[0];
 };
 
+
+// Obtener anuncios
 const obtenerAnuncios = async () => {
   const result = await pool.query(`
     SELECT
@@ -93,4 +96,18 @@ const editarAnuncio = async (id, datos, imagen, documento) => {
   return result.rows[0];
 };
 
-module.exports = { crearAnuncio, obtenerAnuncios, obtenerAnuncioPorId, editarAnuncio };
+
+// Eliminar anuncio
+const eliminarAnuncio = async (id) => {
+  const query = 'DELETE FROM anuncios WHERE id = $1';
+  const result = await pool.query(query, [id]);
+  return result.rowCount;
+};
+
+module.exports = {
+  crearAnuncio,
+  obtenerAnuncios,
+  obtenerAnuncioPorId,
+  editarAnuncio,
+  eliminarAnuncio
+};

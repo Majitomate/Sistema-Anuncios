@@ -1,4 +1,10 @@
-const { crearAnuncio, obtenerAnuncios, editarAnuncio, obtenerAnuncioPorId } = require('../models/anuncios.model');
+const { 
+  crearAnuncio, 
+  obtenerAnuncios, 
+  editarAnuncio, 
+  obtenerAnuncioPorId, 
+  eliminarAnuncio 
+} = require('../models/anuncios.model');
 
 // Obtener todos los anuncios
 const listar = async (req, res) => {
@@ -26,6 +32,7 @@ const crear = async (req, res) => {
   }
 };
 
+// Obtener un anuncio
 const obtenerPorId = async (req, res) => {
   try {
     const { id } = req.params;
@@ -38,6 +45,7 @@ const obtenerPorId = async (req, res) => {
   }
 };
 
+// Editar anuncio
 const actualizar = async (req, res) => {
   try {
     const { id } = req.params;
@@ -55,4 +63,27 @@ const actualizar = async (req, res) => {
   }
 };
 
-module.exports = { crear, listar, obtenerPorId, actualizar };
+// Eliminar anuncio
+const eliminar = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const filas = await eliminarAnuncio(id);
+
+    if (filas === 0) {
+      return res.status(404).json({ error: 'Anuncio no encontrado' });
+    }
+
+    return res.status(200).json({ mensaje: 'Anuncio eliminado permanentemente', id });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error eliminando anuncio' });
+  }
+};
+
+module.exports = { 
+  crear, 
+  listar, 
+  obtenerPorId, 
+  actualizar, 
+  eliminar 
+};
