@@ -1,4 +1,4 @@
-/* Contenedor principal (fondo oscuro flotante) */
+/* Contenedor principal */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -45,7 +45,7 @@
   font-weight: 600;
 }
 
-/* Botón Cerrar X */
+/* Botón Cerrar */
 .modalCloseBtn {
   background-color: #ef4444;
   color: white;
@@ -62,7 +62,7 @@
   background-color: #dc2626;
 }
 
-/* El visor iframe */
+/* Visor iframe */
 .modalIframe {
   flex: 1;
   width: 100%;

@@ -1,48 +1,42 @@
 const express = require('express');
-const multer = require('multer');
-const { validarCreacionAnuncio } = require('../middlewares/validarAnuncio');
+const multer  = require('multer');
+const { validarCreacionAnuncio, validarEdicionAnuncio } = require('../middlewares/validarAnuncio');
 const {
   listar,
   crear,
   obtenerPorId,
+  descargarImagen,
+  descargarDocumento,
   actualizar,
-  eliminar
+  eliminar,
 } = require('../controllers/anuncios.controller');
 
-const router = express.Router();
-
+const router  = express.Router();
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload  = multer({ storage });
 
-// Ruta para crear anuncio
-router.post(
-  '/',
-  upload.fields([
-    { name: 'imagen', maxCount: 1 },
-    { name: 'documento', maxCount: 1 },
-  ]),
-  validarCreacionAnuncio,
-  crear,
-);
+const archivos = upload.fields([
+  { name: 'imagen',    maxCount: 1 },
+  { name: 'documento', maxCount: 1 },
+]);
 
-// Ruta para obtener anuncios
+// Obtener todos los anuncios
 router.get('/', listar);
 
-// Ruta para obtener un anuncio
+// Obtener un anuncio por id
 router.get('/:id', obtenerPorId);
 
-// Ruta para editar un anuncio  
-router.put(
-  '/:id',
-  upload.fields([
-    { name: 'imagen', maxCount: 1 },
-    { name: 'documento', maxCount: 1 }
-  ]),
-  validarCreacionAnuncio,
-  actualizar
-);
+// Descargar imagen / documento
+router.get('/:id/imagen',    descargarImagen);
+router.get('/:id/documento', descargarDocumento);
 
-// Ruta para eliminar un anuncio
+// Crear anuncio
+router.post('/', archivos, validarCreacionAnuncio, crear);
+
+// Editar anuncio — usa validarEdicionAnuncio (fechas opcionales)
+router.put('/:id', archivos, validarEdicionAnuncio, actualizar);
+
+// Eliminar anuncio
 router.delete('/:id', eliminar);
 
 module.exports = router;

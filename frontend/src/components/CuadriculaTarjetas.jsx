@@ -2,7 +2,8 @@ import React from 'react';
 import styles from '../styles/dashboard.module.css';
 import TarjetaAnuncio from './TarjetaAnuncio';
 
-const CuadriculaTarjetas = ({ anuncios, onEditar, onEliminar, onAbrirDocumento }) => (
+// 1. Recibimos 'puedeEditar'
+const CuadriculaTarjetas = ({ anuncios, onEditar, onEliminar, onAbrirDocumento, puedeEditar }) => (
   <section className={styles.announcementsGrid}>
     {anuncios.map((anuncio) => (
       <TarjetaAnuncio
@@ -16,6 +17,7 @@ const CuadriculaTarjetas = ({ anuncios, onEditar, onEliminar, onAbrirDocumento }
         onEditar={() => onEditar(anuncio)}
         onEliminar={() => onEliminar(anuncio.id)}
         onAbrirDocumento={onAbrirDocumento}
+        puedeEditar={puedeEditar}
       />
     ))}
   </section>

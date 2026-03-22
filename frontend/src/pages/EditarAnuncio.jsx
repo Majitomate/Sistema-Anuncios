@@ -1,251 +1,243 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/NuevoAnuncio.css';
+import Swal from 'sweetalert2';
+import s from '../styles/NuevoAnuncio.module.css';
 import { IconoRegresar } from '../components/NuevoAnuncio/Icons.jsx';
 import FormInfo from '../components/NuevoAnuncio/FormInfo.jsx';
 import FormFechas from '../components/NuevoAnuncio/FormFechas.jsx';
 import Archivos from '../components/NuevoAnuncio/Archivos.jsx';
-import ModalDocumento from '../components/ModalDocumento.jsx'; // Asegúrate de ajustar esta ruta si guardaste el archivo en otra carpeta
+import ModalDocumento from '../components/ModalDocumento.jsx';
 import { useAnuncios } from '../hooks/useAnuncios';
 import { obtenerAnuncioPorId } from '../services/anuncios.services';
 
-// Helper para dividir un timestamp en fecha y hora sin problemas de zona horaria
 const splitDateTime = (timestamp) => {
   if (!timestamp) return { date: '', time: '' };
-  
-  const dateObj = new Date(timestamp);
-  if (isNaN(dateObj.getTime())) return { date: '', time: '' };
-  
-  const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  const hours = String(dateObj.getHours()).padStart(2, '0');
-  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-
-  return { 
-    date: `${year}-${month}-${day}`, 
-    time: `${hours}:${minutes}`      
+  const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return { date: '', time: '' };
+  return {
+    date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+    time: `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,
   };
 };
 
-// Helper optimizado usando Blob para renderizar archivos (consume menos memoria)
-const bufferToUrl = (bufferObj, mimeType) => {
-  if (!bufferObj || !bufferObj.data) return null;
-  const bytes = new Uint8Array(bufferObj.data);
-  const blob = new Blob([bytes], { type: mimeType });
-  return URL.createObjectURL(blob);
+const mapErroresToFields = (erroresArray) => {
+  const fieldMap = {
+    'título': 'titulo',
+    'descripción corta': 'subtitulo',
+    'contenido': 'contenido',
+    'prioridad': 'prioridad',
+    'tipo': 'tipo',
+    'fecha de inicio': ['fechaInicio', 'horaInicio'],
+    'fecha de fin': ['fechaFin', 'horaFin'],
+  };
+  const erroresObj = {};
+  erroresArray.forEach(msg => {
+    const lowerMsg = msg.toLowerCase();
+    for (const [key, fields] of Object.entries(fieldMap)) {
+      if (lowerMsg.includes(key)) {
+        if (Array.isArray(fields)) {
+          fields.forEach(field => erroresObj[field] = true);
+        } else {
+          erroresObj[fields] = true;
+        }
+        break;
+      }
+    }
+  });
+  return erroresObj;
 };
 
 const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
   const { updateAnuncio } = useAnuncios();
-
-  // Dividir fecha_inicio y fecha_fin en fecha + hora
   const inicio = splitDateTime(anuncio.fecha_inicio);
-  const fin = splitDateTime(anuncio.fecha_fin);
+  const fin    = splitDateTime(anuncio.fecha_fin);
+
+  useEffect(() => {
+    const tituloAnterior = document.title;
+    document.title = `Editar — ${anuncio.titulo} | SUTUS`;
+    return () => { document.title = tituloAnterior; };
+  }, [anuncio.titulo]);
 
   const [formData, setFormData] = useState({
-    titulo: anuncio.titulo || '',
-    tipo: anuncio.tipo || '',
-    prioridad: anuncio.prioridad || '',
-    subtitulo: anuncio.subtitulo || '',
+    titulo: anuncio.titulo || '', tipo: anuncio.tipo || '',
+    prioridad: anuncio.prioridad || '', subtitulo: anuncio.subtitulo || '',
     contenido: anuncio.contenido || '',
-    fechaInicio: inicio.date,
-    horaInicio: inicio.time,
-    fechaFin: fin.date,
-    horaFin: fin.time,
+    fechaInicio: inicio.date, horaInicio: inicio.time,
+    fechaFin: fin.date,     horaFin: fin.time,
     esPermanente: anuncio.es_permanente || false,
+    estado: anuncio.estado || false,
   });
 
   const [errores, setErrores] = useState({});
   const [archivos, setArchivos] = useState([]);
-  
-  // Estado para guardar las URLs de los archivos que ya están en la Base de Datos
-  const [archivosActuales, setArchivosActuales] = useState({
-    imagenUrl: null,
-    documentoUrl: null
-  });
-
-  // Estado para controlar qué documento se abre en el Modal
+  const [archivosActuales, setArchivosActuales] = useState({ imagenUrl: null, documentoUrl: null });
   const [documentoAbierto, setDocumentoAbierto] = useState(null);
 
-  // Cargar los archivos desde la base de datos al abrir el modo edición
   useEffect(() => {
-    const cargarArchivosBD = async () => {
+    const cargarDatosBD = async () => {
       try {
-        const anuncioCompleto = await obtenerAnuncioPorId(anuncio.id);
-        
+        const data = await obtenerAnuncioPorId(anuncio.id);
         setArchivosActuales({
-          imagenUrl: anuncioCompleto.imagen 
-            ? bufferToUrl(anuncioCompleto.imagen, anuncioCompleto.imagen_tipo) 
-            : null,
-          documentoUrl: anuncioCompleto.documento 
-            ? bufferToUrl(anuncioCompleto.documento, anuncioCompleto.documento_tipo) 
-            : null
+          imagenUrl: data.imagen_tipo ? `http://localhost:3001/anuncios/${data.id}/imagen` : null,
+          documentoUrl: data.documento_tipo ? `http://localhost:3001/anuncios/${data.id}/documento` : null,
         });
-      } catch (error) {
-        console.error("Error al cargar archivos de la BD:", error);
+      } catch (err) {
+        console.error('Error al cargar archivos:', err);
       }
     };
-
-    cargarArchivosBD();
+    cargarDatosBD();
   }, [anuncio.id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-    if (errores[name]) {
-      setErrores((prev) => ({ ...prev, [name]: false }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    if (errores[name]) setErrores((prev) => ({ ...prev, [name]: false }));
   };
 
   const agregarArchivos = (nuevos) => {
-    const archivosNuevos = Array.from(nuevos);
-    
-    // Validación para no permitir más de 1 imagen y 1 documento a la vez
-    const totalImagenes = archivos.filter(a => a.type.includes('image')).length + archivosNuevos.filter(a => a.type.includes('image')).length;
-    const totalDocumentos = archivos.filter(a => !a.type.includes('image')).length + archivosNuevos.filter(a => !a.type.includes('image')).length;
-
-    if (totalImagenes > 1) return alert('Solo puedes subir una imagen por anuncio.');
-    if (totalDocumentos > 1) return alert('Solo puedes subir un documento por anuncio.');
-
-    setArchivos((prev) => [...prev, ...archivosNuevos]);
+    const arr = Array.from(nuevos);
+    const totalImg = archivos.filter(a => a.type.includes('image')).length + arr.filter(a => a.type.includes('image')).length;
+    const totalDoc = archivos.filter(a => !a.type.includes('image')).length + arr.filter(a => !a.type.includes('image')).length;
+    if (totalImg > 1) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Solo puedes subir una imagen por anuncio.' });
+    if (totalDoc > 1) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Solo puedes subir un documento por anuncio.' });
+    setArchivos((prev) => [...prev, ...arr]);
   };
 
-  const eliminarArchivo = (index) => {
-    setArchivos((prev) => prev.filter((_, i) => i !== index));
-  };
+  const eliminarArchivo = (index) => setArchivos((prev) => prev.filter((_, i) => i !== index));
 
   const handleEditarAnuncio = async () => {
     try {
       const payload = new FormData();
+      const inicioVal = formData.fechaInicio && formData.horaInicio
+        ? `${formData.fechaInicio}T${formData.horaInicio}` : formData.fechaInicio || null;
+      const finVal = formData.fechaFin && formData.horaFin
+        ? `${formData.fechaFin}T${formData.horaFin}` : formData.fechaFin || null;
 
-      // Combinar fecha y hora para enviarlo en formato ISO
-      const inicio = formData.fechaInicio && formData.horaInicio
-        ? `${formData.fechaInicio}T${formData.horaInicio}`
-        : formData.fechaInicio || null;
+      if (!formData.esPermanente) {
+        if (inicioVal) payload.append('fechaInicio', inicioVal);
+        if (finVal)    payload.append('fechaFin', finVal);
+      }
 
-      const fin = formData.fechaFin && formData.horaFin
-        ? `${formData.fechaFin}T${formData.horaFin}`
-        : formData.fechaFin || null;
-
-      if (inicio) payload.append('fechaInicio', inicio);
-      if (fin) payload.append('fechaFin', fin);
-
-      // Agregar el resto de campos, excluyendo las fechas sueltas
       Object.entries(formData).forEach(([key, value]) => {
         if (!['fechaInicio', 'horaInicio', 'fechaFin', 'horaFin'].includes(key)) {
           payload.append(key, value);
         }
       });
 
-      // Agregar los archivos nuevos
       archivos.forEach((archivo) => {
-        payload.append(
-          archivo.type.includes('image') ? 'imagen' : 'documento',
-          archivo,
-        );
+        payload.append(archivo.type.includes('image') ? 'imagen' : 'documento', archivo);
       });
 
       await updateAnuncio(anuncio.id, payload);
-      alert('¡Anuncio actualizado con éxito!');
+
+      Swal.fire({
+        toast: true, position: 'top-end', icon: 'success',
+        title: 'Cambios guardados', showConfirmButton: false,
+        timer: 3000, timerProgressBar: true,
+      });
+
       if (onActualizado) onActualizado();
       alCerrar();
     } catch (err) {
-      console.error('Error en la petición:', err);
-      alert('Error al actualizar anuncio');
+      const erroresArray = err.message.split('\n').filter(msg => msg.trim());
+      const erroresObj = mapErroresToFields(erroresArray);
+      setErrores(erroresObj);
+
+      const htmlErrores = erroresArray.length > 0
+        ? `<ul style="text-align: left; margin: 0; padding-left: 20px;">${erroresArray.map(msg => `<li>${msg}</li>`).join('')}</ul>`
+        : 'Verifica los campos obligatorios.';
+
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudieron guardar los cambios',
+        html: htmlErrores,
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#d33',
+      });
     }
   };
 
   return (
-    <div className="pagina-nuevo-anuncio">
-      <header className="header-principal-verde">
-        <button type="button" className="boton-regresar-blanco" onClick={alCerrar}>
+    <div className={s.paginaNuevoAnuncio}>
+      <header className={s.headerPrincipalVerde}>
+        <button type="button" className={s.botonRegresarBlanco} onClick={alCerrar}>
           <IconoRegresar />
         </button>
-        <h1 className="titulo-header-blanco">Editar Anuncio</h1>
+        <div className={s.headerInfo}>
+          <h1 className={s.tituloHeaderBlanco}>Editar Anuncio</h1>
+          <p className={s.subtituloHeaderBlanco}>{anuncio.titulo}</p>
+        </div>
       </header>
 
-      <main className="contenido-formulario-referencia">
-        <div className="grid-layout-referencia">
-          <div className="seccion-principal">
-            <FormInfo
-              formData={formData}
-              errores={errores}
-              onChange={handleChange}
-            />
+      <main className={s.contenidoFormularioReferencia}>
+        <div className={s.gridLayoutReferencia}>
+          <div>
+            <FormInfo formData={formData} errores={errores} onChange={handleChange} modoEdicion />
           </div>
 
-          <div className="columna-derecha-grid">
-            <FormFechas
-              formData={formData}
-              esPermanente={formData.esPermanente}
-              onChange={handleChange}
-            />
-            
-            {/* Contenedor de Previsualización de archivos existentes */}
-            {(archivosActuales.imagenUrl || archivosActuales.documentoUrl) && (
-              <div className="archivos-actuales" style={{ padding: '15px', backgroundColor: '#f1f5f9', borderRadius: '8px', marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '14px', marginBottom: '10px', color: '#334155' }}>Archivos Actualmente Guardados</h3>
-                
-                {archivosActuales.imagenUrl && (
-                  <div style={{ marginBottom: '10px' }}>
-                    <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '5px' }}>Imagen:</span>
-                    <img 
-                      src={archivosActuales.imagenUrl} 
-                      alt="Actual" 
-                      style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '6px' }} 
-                    />
-                  </div>
-                )}
+          <div className={s.columnaDerecha}>
+            <FormFechas formData={formData} esPermanente={formData.esPermanente} onChange={handleChange} errores={errores} />
 
-                {archivosActuales.documentoUrl && (
-                  <div>
-                    <span style={{ fontSize: '12px', color: '#64748b', marginRight: '8px' }}>Documento:</span>
-                    <button 
-                      type="button"
-                      onClick={() => setDocumentoAbierto(archivosActuales.documentoUrl)}
-                      style={{ 
-                        background: 'none', border: 'none', color: '#0ea5e9', 
-                        textDecoration: 'underline', fontSize: '13px', 
-                        fontWeight: 'bold', cursor: 'pointer', padding: 0 
-                      }}
-                    >
-                      Ver documento 👁️
-                    </button>
-                  </div>
-                )}
-                
-                <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '10px' }}>
-                  * Si subes un nuevo archivo abajo, reemplazará al actual. Si lo dejas vacío, se conservará.
+            {/* Archivos actualmente guardados */}
+            {(archivosActuales.imagenUrl || archivosActuales.documentoUrl) && (
+              <section className="tarjeta-referencia">
+                <div className="archivos-actuales-header">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1b5e20" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                  <h3>Archivos guardados</h3>
+                </div>
+                <div className="archivos-actuales-cuerpo">
+                  {archivosActuales.imagenUrl && (
+                    <div>
+                      <span className="archivo-actual-label">Imagen actual</span>
+                      <img src={archivosActuales.imagenUrl} alt="Imagen actual" className="archivo-actual-imagen" />
+                    </div>
+                  )}
+                  {archivosActuales.documentoUrl && (
+                    <div>
+                      <span className="archivo-actual-label">Documento actual</span>
+                      <button
+                        type="button"
+                        className="archivo-actual-doc"
+                        onClick={() => setDocumentoAbierto(archivosActuales.documentoUrl)}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Ver documento
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="archivos-actuales-aviso">
+                  Si subes un nuevo archivo reemplazará al actual. Si lo dejas vacío, se conservará.
                 </p>
-              </div>
+              </section>
             )}
 
-            <Archivos
-              archivos={archivos}
-              onAgregar={agregarArchivos}
-              onEliminar={eliminarArchivo}
-            />
+            <Archivos archivos={archivos} onAgregar={agregarArchivos} onEliminar={eliminarArchivo} />
+
+            {/* Footer integrado */}
+            <div className={s.footerAcciones}>
+              <button type="button" className={s.botonCancelar} onClick={alCerrar}>
+                Cancelar
+              </button>
+              <button type="button" className={s.botonCrearNaranja} onClick={handleEditarAnuncio}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Guardar Cambios
+              </button>
+            </div>
           </div>
         </div>
       </main>
 
-      <footer className="footer-acciones-fijo">
-        <button type="button" className="boton-cancelar" onClick={alCerrar}>
-          Cancelar
-        </button>
-        <button type="button" className="boton-crear-naranja" onClick={handleEditarAnuncio}>
-          Guardar Cambios
-        </button>
-      </footer>
-
-      {/* Uso del nuevo componente ModalDocumento */}
-      <ModalDocumento 
-        urlDocumento={documentoAbierto} 
-        alCerrar={() => setDocumentoAbierto(null)} 
-      />
+      <ModalDocumento urlDocumento={documentoAbierto} alCerrar={() => setDocumentoAbierto(null)} />
     </div>
   );
 };

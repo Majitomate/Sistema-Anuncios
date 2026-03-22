@@ -63,6 +63,38 @@ const actualizar = async (req, res) => {
   }
 };
 
+// Descargar imagen
+const descargarImagen = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const anuncio = await obtenerAnuncioPorId(id);
+    if (!anuncio || !anuncio.imagen) {
+      return res.status(404).json({ error: 'Imagen no encontrada' });
+    }
+    res.set('Content-Type', anuncio.imagen_tipo || 'image/jpeg');
+    res.send(anuncio.imagen);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error descargando imagen' });
+  }
+};
+
+// Descargar documento
+const descargarDocumento = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const anuncio = await obtenerAnuncioPorId(id);
+    if (!anuncio || !anuncio.documento) {
+      return res.status(404).json({ error: 'Documento no encontrado' });
+    }
+    res.set('Content-Type', anuncio.documento_tipo || 'application/pdf');
+    res.send(anuncio.documento);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error descargando documento' });
+  }
+};
+
 // Eliminar anuncio
 const eliminar = async (req, res) => {
   try {
@@ -83,7 +115,9 @@ const eliminar = async (req, res) => {
 module.exports = { 
   crear, 
   listar, 
-  obtenerPorId, 
+  obtenerPorId,
+  descargarImagen,
+  descargarDocumento,
   actualizar, 
   eliminar 
 };

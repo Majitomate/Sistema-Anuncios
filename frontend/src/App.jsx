@@ -1,55 +1,64 @@
 import { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import DashboardLayout from './pages/DashboardLayout';
-import PanelControl from './pages/PanelControl';
+
+const ROLES = [
+  { value: 'editor',       label: 'Editor — CRUD completo'        },
+  { value: 'revisor',      label: 'Revisor — editar, sin eliminar' },
+  { value: 'visualizador', label: 'Visualizador — solo lectura'    },
+];
 
 const App = () => {
-    const [anuncios, setAnuncios] = useState([]);
-    const [view, setView] = useState('dashboard');
-    const [loading, setLoading] = useState(true);
+  const [anuncios, setAnuncios]       = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [rolSimulado, setRolSimulado] = useState('editor');
 
-    const fetchAnuncios = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await fetch('http://localhost:3001/anuncios');
-            if (!response.ok) throw new Error('Error en la respuesta del servidor');
-
-            const data = await response.json();
-            setAnuncios(data);
-        } catch (err) {
-            console.error("Error al obtener anuncios:", err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {fetchAnuncios();},[fetchAnuncios]);
-    if (loading && anuncios.length === 0) {
-        return (
-            <div className="loading-container">
-                <div className="spinner"></div>
-                <p>Cargando sistema de anuncios...</p>
-            </div>
-        );
+  const fetchAnuncios = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:3001/anuncios');
+      if (!response.ok) throw new Error('Error en la respuesta del servidor');
+      setAnuncios(await response.json());
+    } catch (err) {
+      console.error('Error al obtener anuncios:', err);
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    return (
-        <div className="app-container">
-            {view === 'dashboard' ? (
-                <DashboardLayout
-                    anuncios={anuncios}
-                    onAnuncioCreado={fetchAnuncios}
-                    onIrAPanel={() => setView('panel')}
-                />
-            ) : (
-                <PanelControl
-                    anuncios={anuncios}
-                    onRegresar={() => setView('dashboard')}
-                    onActualizar={fetchAnuncios}
-                />
-            )}
-        </div>
-    );
+  useEffect(() => { fetchAnuncios(); }, [fetchAnuncios]);
+
+  useEffect(() => {
+    document.title = 'SUTUS — Sistema de Anuncios';
+  }, []);
+
+  return (
+    <div className="app-container">
+
+      {/* Banner de simulación de roles — solo para el Sprint 1 demo */}
+      <div className="rol-simulador-banner">
+        <span className="rol-simulador-label">
+          🔧 Simulador de permisos (Sprint 1 demo)
+        </span>
+        <select
+          className="rol-simulador-select"
+          value={rolSimulado}
+          onChange={(e) => setRolSimulado(e.target.value)}
+        >
+          {ROLES.map((r) => (
+            <option key={r.value} value={r.value}>{r.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <DashboardLayout
+        anuncios={anuncios}
+        onAnuncioCreado={fetchAnuncios}
+        rolUsuario={rolSimulado}
+        loading={loading}
+      />
+    </div>
+  );
 };
 
 export default App;

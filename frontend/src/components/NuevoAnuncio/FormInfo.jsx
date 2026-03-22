@@ -1,135 +1,179 @@
 import React from 'react';
+import SelectCustom from './SelectCustom';
 
-const estiloError = {
-  color: '#d32f2f',
-  fontSize: '11px',
-  fontWeight: '600',
-  marginTop: '4px',
-};
+const OPCIONES_TIPO = [
+  { value: 'general',      label: 'General'      },
+  { value: 'evento',       label: 'Evento'        },
+  { value: 'convocatoria', label: 'Convocatoria'  },
+  { value: 'votacion',     label: 'Votación'      },
+  { value: 'resultado',    label: 'Resultado'     },
+];
 
-const FormInfo = ({ formData, errores, onChange }) => (
-  <section className="tarjeta-referencia">
-    <header className="tarjeta-header-referencia">
-      <h2>Información Principal</h2>
-    </header>
+const OPCIONES_PRIORIDAD = [
+  { value: '1', label: 'Baja'  },
+  { value: '2', label: 'Media' },
+  { value: '3', label: 'Alta'  },
+];
 
-    <div className="tarjeta-cuerpo-referencia">
-      {/* Título */}
-      <div className="campo-referencia">
-        <label htmlFor="titulo">Título del Anuncio</label>
-        <input
-          id="titulo"
-          name="titulo"
-          type="text"
-          placeholder="Ingrese un titulo"
-          value={formData.titulo}
-          onChange={onChange}
-          className={errores.titulo ? 'input-error' : ''}
-        />
-        {errores.titulo && (
-          <span style={estiloError}>Este campo es obligatorio</span>
-        )}
-      </div>
+const FormInfo = ({ formData, errores, onChange, modoEdicion = false }) => {
+  const contTitulo = (formData.titulo || '').length;
+  const contSubtitulo = (formData.subtitulo || '').length;
 
-      {/* Tipo + Prioridad */}
-      <div className="fila-doble-referencia">
-        <div className="campo-referencia">
-          <label htmlFor="tipo">Tipo</label>
-          <select
-            id="tipo"
-            name="tipo"
-            value={formData.tipo}
-            onChange={onChange}
-            className={errores.tipo ? 'input-error' : ''}
-          >
-            <option value="">Seleccione una opcion</option>
-            <option value="general">General</option>
-            <option value="evento">Evento</option>
-            <option value="convocatoria">Convocatoria</option>
-            <option value="votacion">Votación</option>
-            <option value="resultado">Resultado</option>
-          </select>
-          {errores.tipo && (
-            <span style={estiloError}>Selecciona un tipo</span>
-          )}
+  return (
+    <section className="tarjeta-referencia">
+      <header className="tarjeta-header-referencia">
+        <div className="tarjeta-header-icono" style={{ backgroundColor: '#e6f4ea' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1b5e20" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
         </div>
+        <h2>Información Principal</h2>
+      </header>
 
+      <div className="tarjeta-cuerpo-referencia">
+
+        {/* Título */}
         <div className="campo-referencia">
-          <label htmlFor="prioridad">Prioridad</label>
-          <select
-            id="prioridad"
-            name="prioridad"
-            value={formData.prioridad}
-            onChange={onChange}
-            className={errores.prioridad ? 'input-error' : ''}
-          >
-            <option value="">Seleccione una opcion</option>
-            <option value="1">Baja</option>
-            <option value="2">Media</option>
-            <option value="3">Alta</option>
-          </select>
-          {errores.prioridad && (
-            <span style={estiloError}>Selecciona prioridad</span>
-          )}
-        </div>
-      </div>
-
-      {/* Subtítulo */}
-      <div className="campo-referencia">
-        <label htmlFor="subtitulo">Subtítulo</label>
-        <input
-          id="subtitulo"
-          name="subtitulo"
-          type="text"
-          placeholder="Subtitulo"
-          value={formData.subtitulo}
-          onChange={onChange}
-          className={errores.subtitulo ? 'input-error' : ''}
-        />
-        {errores.subtitulo && (
-          <span style={estiloError}>Este campo es obligatorio</span>
-        )}
-      </div>
-
-      {/* Contenido */}
-      <div className="campo-referencia">
-        <label htmlFor="contenido">Contenido</label>
-        <textarea
-          id="contenido"
-          name="contenido"
-          placeholder="Descripción..."
-          value={formData.contenido}
-          onChange={onChange}
-          className={errores.contenido ? 'input-error' : ''}
-        />
-        {errores.contenido && (
-          <span style={estiloError}>El contenido es obligatorio</span>
-        )}
-      </div>
-
-      {/* Switch permanente */}
-      <div className="switch-container">
-        <label className="switch">
+          <label htmlFor="titulo">
+            Título del anuncio <span className="campo-req">*</span>
+          </label>
           <input
-            name="esPermanente"
-            type="checkbox"
-            checked={formData.esPermanente}
+            id="titulo"
+            name="titulo"
+            type="text"
+            placeholder="Ej. Inscripciones Abiertas 2026"
+            value={formData.titulo}
             onChange={onChange}
+            maxLength={150}
+            className={errores.titulo ? 'input-error' : ''}
           />
-          <span className="slider-toggle" />
-        </label>
-        <span
-          style={{
-            fontSize: '0.9rem',
-            fontWeight: '600',
-            color: '#1b5e20',
-          }}
-        >
-          Anuncio Permanente
-        </span>
+          <span className={`campo-contador${contTitulo >= 120 ? ' campo-contador-warn' : ''}`}>
+            {contTitulo} / 150
+          </span>
+          {errores.titulo && <span className="campo-error-msg">Este campo es obligatorio</span>}
+        </div>
+
+        {/* Tipo + Prioridad */}
+        <div className="fila-doble-referencia">
+          <div className="campo-referencia">
+            <label htmlFor="tipo">
+              Tipo <span className="campo-req">*</span>
+            </label>
+            <SelectCustom
+              id="tipo"
+              name="tipo"
+              value={formData.tipo}
+              onChange={onChange}
+              options={OPCIONES_TIPO}
+              placeholder="Selecciona un tipo"
+              className={errores.tipo ? 'input-error' : ''}
+            />
+            {errores.tipo && <span className="campo-error-msg">Selecciona un tipo</span>}
+          </div>
+
+          <div className="campo-referencia">
+            <label htmlFor="prioridad">
+              Prioridad <span className="campo-req">*</span>
+            </label>
+            <SelectCustom
+              id="prioridad"
+              name="prioridad"
+              value={formData.prioridad}
+              onChange={onChange}
+              options={OPCIONES_PRIORIDAD}
+              placeholder="Selecciona prioridad"
+              className={errores.prioridad ? 'input-error' : ''}
+            />
+            {errores.prioridad && <span className="campo-error-msg">Selecciona prioridad</span>}
+          </div>
+        </div>
+
+        {/* Subtítulo */}
+        <div className="campo-referencia">
+          <label htmlFor="subtitulo">Subtítulo</label>
+          <input
+            id="subtitulo"
+            name="subtitulo"
+            type="text"
+            placeholder="Descripción breve del anuncio"
+            value={formData.subtitulo}
+            onChange={onChange}
+            maxLength={150}
+            className={errores.subtitulo ? 'input-error' : ''}
+          />
+          <span className={`campo-contador${contSubtitulo >= 120 ? ' campo-contador-warn' : ''}`}>
+            {contSubtitulo} / 150
+          </span>
+          {errores.subtitulo && <span className="campo-error-msg">Este campo es obligatorio</span>}
+        </div>
+
+        {/* Contenido */}
+        <div className="campo-referencia">
+          <label htmlFor="contenido">
+            Contenido <span className="campo-req">*</span>
+          </label>
+          <textarea
+            id="contenido"
+            name="contenido"
+            placeholder="Describe el anuncio con detalle…"
+            value={formData.contenido}
+            onChange={onChange}
+            className={errores.contenido ? 'input-error' : ''}
+          />
+          {errores.contenido && <span className="campo-error-msg">El contenido es obligatorio</span>}
+        </div>
+
+        {/* Switch — Anuncio Permanente */}
+        <div className="switch-container">
+          <div className="switch-info">
+            <span className="switch-label">Anuncio permanente</span>
+            <span className="switch-desc">Sin fecha de expiración</span>
+          </div>
+          <label className="switch">
+            <input
+              name="esPermanente"
+              type="checkbox"
+              checked={formData.esPermanente}
+              onChange={onChange}
+            />
+            <span className="slider-toggle" />
+          </label>
+        </div>
+
+        {formData.esPermanente && (
+          <div className="alerta-info alerta-azul">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+            </svg>
+            <span>Los anuncios permanentes comparten el carrusel en formato reducido. Evita mantener demasiados activos simultáneamente.</span>
+          </div>
+        )}
+
+        {/* Switch — Estado solo esta disponible para editar */}
+        {modoEdicion && (
+          <div className="switch-container">
+            <div className="switch-info">
+              <span className="switch-label">Estado del anuncio</span>
+              <span className={`switch-desc ${formData.estado ? 'switch-desc-activo' : 'switch-desc-inactivo'}`}>
+                {formData.estado ? 'Activo — visible en pantallas' : 'Inactivo — oculto'}
+              </span>
+            </div>
+            <label className="switch">
+              <input
+                name="estado"
+                type="checkbox"
+                checked={formData.estado}
+                onChange={onChange}
+              />
+              <span className="slider-toggle" />
+            </label>
+          </div>
+        )}
+
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default FormInfo;

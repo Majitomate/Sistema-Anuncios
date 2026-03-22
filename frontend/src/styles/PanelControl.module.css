@@ -1,0 +1,624 @@
+/* ─── Variables ──── */
+:root {
+  --pc-verde:         #1b5e20;
+  --pc-verde-medio:   #2e7d32;
+  --pc-naranja:       #ff6224;
+  --pc-naranja-hover: #e5561f;
+  --pc-fondo:         #f0f2f0;
+  --pc-fondo-card:    #ffffff;
+  --pc-borde:         #e4e7e4;
+  --pc-texto:         #1a1a1a;
+  --pc-texto-suave:   #5f6b5f;
+  --pc-texto-muted:   #8a9a8a;
+  --pc-t:             0.18s ease;
+}
+
+/* ─── Layout raíz ──── */
+.dashboardLayout {
+  font-family: 'DM Sans', 'Segoe UI', Arial, sans-serif;
+  background-color: var(--pc-fondo);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: var(--pc-texto);
+}
+
+/* ─── Navbar ─── */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--pc-verde);
+  padding: 0 32px;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08), 0 4px 16px rgba(0,0,0,0.20);
+  flex-shrink: 0;
+}
+
+.navbarTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbarLogo {
+  height: 48px;
+  width: 48px;
+  object-fit: contain;
+  border-radius: 6px;
+  background-color: rgba(255,255,255,0.12);
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.navbarTitle {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  opacity: 0.95;
+}
+
+.navbarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backButtonSimple {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.85);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color var(--pc-t), transform var(--pc-t);
+}
+.backButtonSimple:hover {
+  color: #ffffff;
+  transform: translateX(-3px);
+}
+
+/* ─── Contenido principal ──── */
+.mainContent {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 28px 48px;
+}
+
+/* ─── BotonEstado ─── */
+.botonEstado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  letter-spacing: 0.2px;
+}
+
+.botonEstado:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.botonEstado:not(:disabled):hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+.botonEstado:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Estado activo — verde */
+.botonEstadoActivo {
+  background-color: rgba(46, 125, 50, 0.12);
+  color: #1b5e20;
+  border: 1.5px solid rgba(46, 125, 50, 0.30);
+}
+.botonEstadoActivo:not(:disabled):hover {
+  background-color: rgba(46, 125, 50, 0.20);
+  border-color: rgba(46, 125, 50, 0.50);
+}
+
+/* Estado inactivo — gris */
+.botonEstadoInactivo {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #666;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+}
+.botonEstadoInactivo:not(:disabled):hover {
+  background-color: rgba(0, 0, 0, 0.09);
+  border-color: rgba(0, 0, 0, 0.20);
+}
+
+/* Punto indicador dentro del botón */
+.botonEstadoPunto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.botonEstadoActivo .botonEstadoPunto {
+  background-color: #2e7d32;
+}
+
+.botonEstadoInactivo .botonEstadoPunto {
+  background-color: #bdbdbd;
+}
+
+/* ─── Modal overlay ─── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+  animation: fadeOverlay 0.2s ease;
+}
+
+@keyframes fadeOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Modal contenido ─── */
+.modalContenido {
+  background-color: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  animation: slideModal 0.22s ease;
+}
+
+@keyframes slideModal {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Modal header ─── */
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid #e8ece8;
+  background-color: #1b5e20;
+  border-radius: 16px 16px 0 0;
+}
+
+.modalHeaderTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modalTitulo {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.modalCerrarBtn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.30);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+.modalCerrarBtn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ─── Modal cuerpo ─── */
+.modalCuerpo {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+.modalSubtitulo {
+  font-size: 14.5px;
+  color: #4a5a4a;
+  margin: 0;
+  line-height: 1.5;
+  padding: 12px 16px;
+  background-color: #f8faf8;
+  border-radius: 8px;
+  border-left: 3px solid #2e7d32;
+  font-style: italic;
+}
+
+.modalBadgesRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Badge estado dentro del modal */
+.modalBadgeEstado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.modalBadgeActivo {
+  background-color: rgba(46, 125, 50, 0.12);
+  color: #1b5e20;
+  border: 1.5px solid rgba(46, 125, 50, 0.25);
+}
+
+.modalBadgeInactivo {
+  background-color: rgba(0, 0, 0, 0.06);
+  color: #666;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+}
+
+.modalBadgePermanente {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  background-color: rgba(13, 71, 161, 0.10);
+  color: #0d47a1;
+  border: 1.5px solid rgba(13, 71, 161, 0.20);
+}
+
+/* Divisor visual entre secciones */
+.modalDivisor {
+  height: 1px;
+  background-color: #e8ece8;
+  margin: 2px 0;
+}
+
+.modalSeccion {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.modalEtiqueta {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #8a9a8a;
+}
+
+.modalTexto {
+  font-size: 14px;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.modalFilaDoble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ─── Imagen en el modal ─── */
+.modalImagenWrap {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e8ece8;
+  background-color: #f0f2f0;
+  aspect-ratio: 16 / 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalImagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* ─── Documento en el modal ─── */
+.modalDocumentoBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: #eef2ff;
+  color: #0d47a1;
+  border: 1.5px solid rgba(13, 71, 161, 0.25);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  width: fit-content;
+}
+.modalDocumentoBtn:hover {
+  background-color: #dce6ff;
+  border-color: rgba(13, 71, 161, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Skeleton de carga */
+.modalSkeleton {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f2f0 25%, #e4e7e4 50%, #f0f2f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Modal footer ─── */
+.modalFooter {
+  padding: 16px 24px;
+  border-top: 1px solid #e8ece8;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #fafbfa;
+  border-radius: 0 0 16px 16px;
+}
+
+.modalBtnCerrar {
+  background-color: transparent;
+  color: #4a5a4a;
+  border: 1.5px solid #e0e6e0;
+  padding: 9px 22px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.modalBtnCerrar:hover {
+  background-color: #f0f2f0;
+  border-color: #c8d0c8;
+}
+/* ─── Tabla de Gestión ──── */
+.gestionContainer {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-top: 20px;
+  border: 1px solid #e4e7e4;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.gestionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.gestionTitle {
+  color: #1b5e20;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.1px;
+}
+
+.botonNuevoAnuncio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ff6224;
+  color: white;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13.5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+.botonNuevoAnuncio:hover {
+  background-color: #e5561f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255,98,36,0.35);
+}
+
+.tablaScroll {
+  overflow-x: auto;
+}
+
+.tablaGestion {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.tablaGestion th {
+  text-align: left;
+  color: #8a9a8a;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e8ece8;
+  background-color: #fafbfa;
+  white-space: nowrap;
+}
+
+.tablaGestion td {
+  padding: 14px;
+  border-bottom: 1px solid #f2f4f2;
+  color: #1a1a1a;
+  vertical-align: middle;
+}
+
+.tablaGestion tbody tr {
+  transition: background-color 0.15s ease;
+}
+.tablaGestion tbody tr:hover td {
+  background-color: #f6f9f6;
+}
+.tablaGestion tr:last-child td { border-bottom: none; }
+
+.tdTitulo {
+  font-weight: 600;
+  color: #1a1a1a;
+  max-width: 200px;
+}
+
+.tdFecha {
+  font-size: 13px;
+  color: #5f6b5f;
+  white-space: nowrap;
+}
+
+/* ─── Badges de tipo ─── */
+.badgeTipo {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background-color: #edf2ed;
+  color: #4a6a4a;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.badgesGroup {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ─── Badges de prioridad ─── */
+.badgePrioridad {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.prioridadBaja    { background: rgba(56,142,60,0.10);  color: #2e7d32; }
+.prioridadMedia   { background: rgba(245,124,0,0.12);  color: #e65100; }
+.prioridadAlta    { background: rgba(230,81,0,0.12);   color: #bf360c; }
+.prioridadUrgente { background: rgba(183,28,28,0.12);  color: #b71c1c; }
+
+/* ─── Estado indicador ──── */
+.estadoIndicador {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.estadoActivo {
+  background-color: rgba(46, 125, 50, 0.12);
+  color: #1b5e20;
+  border: 1.5px solid rgba(46, 125, 50, 0.25);
+}
+
+.estadoInactivo {
+  background-color: rgba(0, 0, 0, 0.06);
+  color: #666;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Botones de acción ─── */
+.accionesGroup {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btnAccion {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 6px 12px;
+  white-space: nowrap;
+  transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btnAccion:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+}
+.btnAccion:active { transform: translateY(0); }
+
+.btnVer    { background-color: #0d47a1; color: #ffffff; }
+.btnEditar { background-color: #1b5e20; color: #ffffff; }
+.btnEliminar { background-color: #c62828; color: #ffffff; }
+
+/* Variantes de tipo */
+.tipoGeneral      { background: #e8f0fe; color: #1a56b0; }
+.tipoEvento       { background: #fce8e6; color: #c5221f; }
+.tipoConvocatoria { background: #e6f4ea; color: #1e7e34; }
+.tipoVotacion     { background: #fff3e0; color: #e65100; }
+.tipoResultado    { background: #f3e8fd; color: #7b1fa2; }

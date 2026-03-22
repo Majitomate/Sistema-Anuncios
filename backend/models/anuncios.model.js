@@ -32,7 +32,7 @@ const crearAnuncio = async (datos, imagen, documento) => {
 };
 
 
-// Obtener anuncios
+// Obtener anuncios — excluye BYTEA (imagen, documento) para respuestas ligeras
 const obtenerAnuncios = async () => {
   const result = await pool.query(`
     SELECT
@@ -71,9 +71,15 @@ const editarAnuncio = async (id, datos, imagen, documento) => {
       fecha_fin = $10, 
       prioridad = $11, 
       es_permanente = $12,
+      estado = $13,
       fecha_actualizacion = CURRENT_TIMESTAMP
-    WHERE id = $13
-    RETURNING *;
+    WHERE id = $14
+    RETURNING
+      id, titulo, subtitulo, contenido, tipo,
+      imagen_tipo, documento_tipo,
+      estado, es_permanente,
+      fecha_inicio, fecha_fin, prioridad,
+      fecha_creacion, fecha_actualizacion;
   `;
 
   const values = [
@@ -89,6 +95,7 @@ const editarAnuncio = async (id, datos, imagen, documento) => {
     datos.fechaFin || null,
     datos.prioridad || 1,
     datos.esPermanente === 'true',
+    datos.estado === 'true' || datos.estado === true,
     id,
   ];
 
