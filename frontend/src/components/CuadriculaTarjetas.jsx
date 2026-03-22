@@ -1,0 +1,26 @@
+import React from 'react';
+import styles from '../styles/dashboard.module.css';
+import TarjetaAnuncio from './TarjetaAnuncio';
+
+// 1. Recibimos 'puedeEditar'
+const CuadriculaTarjetas = ({ anuncios, onEditar, onEliminar, onAbrirDocumento, puedeEditar }) => (
+  <section className={styles.announcementsGrid}>
+    {anuncios.map((anuncio) => (
+      <TarjetaAnuncio
+        key={anuncio.id}
+        id={anuncio.id}
+        titulo={anuncio.titulo}
+        tipo={anuncio.tipo}
+        subtitulo={anuncio.subtitulo}
+        prioridad={anuncio.prioridad}
+        estado={anuncio.estado}
+        onEditar={() => onEditar(anuncio)}
+        onEliminar={() => onEliminar(anuncio.id)}
+        onAbrirDocumento={onAbrirDocumento}
+        puedeEditar={puedeEditar}
+      />
+    ))}
+  </section>
+);
+
+export default CuadriculaTarjetas;

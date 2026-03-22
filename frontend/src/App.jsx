@@ -1,46 +1,64 @@
-import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect, useCallback } from 'react';
+import './App.css';
+import DashboardLayout from './pages/DashboardLayout';
 
-function App() {
-  const [count, setCount] = useState(0)
+const ROLES = [
+  { value: 'editor',       label: 'Editor — CRUD completo'        },
+  { value: 'revisor',      label: 'Revisor — editar, sin eliminar' },
+  { value: 'visualizador', label: 'Visualizador — solo lectura'    },
+];
+
+const App = () => {
+  const [anuncios, setAnuncios]       = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [rolSimulado, setRolSimulado] = useState('editor');
+
+  const fetchAnuncios = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:3001/anuncios');
+      if (!response.ok) throw new Error('Error en la respuesta del servidor');
+      setAnuncios(await response.json());
+    } catch (err) {
+      console.error('Error al obtener anuncios:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchAnuncios(); }, [fetchAnuncios]);
 
   useEffect(() => {
-    fetch('http://localhost:3001/')
-      .then(res => res.text())
-      .then(data => console.log(data));
+    document.title = 'SUTUS — Sistema de Anuncios';
   }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <span>Carlos Alberto Soto Coronado</span>
-          <span>Alexia Maria Felix Hernandez</span>
-          <span>María José Hernández Moreno</span>
+    <div className="app-container">
 
-          <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      {/* Banner de simulación de roles — solo para el Sprint 1 demo */}
+      <div className="rol-simulador-banner">
+        <span className="rol-simulador-label">
+          🔧 Simulador de permisos (Sprint 1 demo)
+        </span>
+        <select
+          className="rol-simulador-select"
+          value={rolSimulado}
+          onChange={(e) => setRolSimulado(e.target.value)}
+        >
+          {ROLES.map((r) => (
+            <option key={r.value} value={r.value}>{r.label}</option>
+          ))}
+        </select>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
 
+      <DashboardLayout
+        anuncios={anuncios}
+        onAnuncioCreado={fetchAnuncios}
+        rolUsuario={rolSimulado}
+        loading={loading}
+      />
+    </div>
+  );
+};
 
-}
-export default App
+export default App;
