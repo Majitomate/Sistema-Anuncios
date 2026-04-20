@@ -3,8 +3,7 @@ import './App.css';
 import DashboardLayout from './pages/DashboardLayout';
 
 const ROLES = [
-  { value: 'editor',       label: 'Editor — CRUD completo'        },
-  { value: 'revisor',      label: 'Revisor — editar, sin eliminar' },
+  { value: 'editor',       label: 'Editor o Revisor — CRUD completo'        },
   { value: 'visualizador', label: 'Visualizador — solo lectura'    },
 ];
 

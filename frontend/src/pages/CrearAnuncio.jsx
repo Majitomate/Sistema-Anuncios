@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 import s from '../styles/NuevoAnuncio.module.css';
 import { IconoRegresar } from '../components/NuevoAnuncio/Icons';
@@ -6,6 +6,7 @@ import FormInfo from '../components/NuevoAnuncio/FormInfo';
 import FormFechas from '../components/NuevoAnuncio/FormFechas';
 import Archivos from '../components/NuevoAnuncio/Archivos';
 import { useAnuncios } from '../hooks/useAnuncios';
+import { validarRegla10Dias } from '../utils/validarRegla10Dias';
 
 const FORM_INICIAL = {
   titulo: '', tipo: '', prioridad: '', subtitulo: '',
@@ -46,12 +47,6 @@ const CrearAnuncio = ({ alCerrar, onActualizado }) => {
   const [errores, setErrores] = useState({});
   const [archivos, setArchivos] = useState([]);
 
-  useEffect(() => {
-    const tituloAnterior = document.title;
-    document.title = 'Crear Anuncio — SUTUS';
-    return () => { document.title = tituloAnterior; };
-  }, []);
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
@@ -62,6 +57,18 @@ const CrearAnuncio = ({ alCerrar, onActualizado }) => {
   const eliminarArchivo = (index) => setArchivos((prev) => prev.filter((_, i) => i !== index));
 
   const handleCrearAnuncio = async () => {
+    /* Validación de 10 días hábiles en el frontend */
+    const errorRegla = validarRegla10Dias(formData);
+    if (errorRegla) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Regla del Sindicato',
+        text: errorRegla,
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#e65100',
+      });
+    }
+
     try {
       const payload = new FormData();
 
