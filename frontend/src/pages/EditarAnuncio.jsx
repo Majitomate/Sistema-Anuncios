@@ -8,6 +8,7 @@ import Archivos from '../components/NuevoAnuncio/Archivos.jsx';
 import ModalDocumento from '../components/ModalDocumento.jsx';
 import { useAnuncios } from '../hooks/useAnuncios';
 import { obtenerAnuncioPorId } from '../services/anuncios.services';
+import { validarRegla10Dias } from '../utils/validarRegla10Dias';
 
 const splitDateTime = (timestamp) => {
   if (!timestamp) return { date: '', time: '' };
@@ -50,12 +51,6 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
   const { updateAnuncio } = useAnuncios();
   const inicio = splitDateTime(anuncio.fecha_inicio);
   const fin    = splitDateTime(anuncio.fecha_fin);
-
-  useEffect(() => {
-    const tituloAnterior = document.title;
-    document.title = `Editar — ${anuncio.titulo} | SUTUS`;
-    return () => { document.title = tituloAnterior; };
-  }, [anuncio.titulo]);
 
   const [formData, setFormData] = useState({
     titulo: anuncio.titulo || '', tipo: anuncio.tipo || '',
@@ -105,6 +100,18 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
   const eliminarArchivo = (index) => setArchivos((prev) => prev.filter((_, i) => i !== index));
 
   const handleEditarAnuncio = async () => {
+    /* Validación de 10 días hábiles en el frontend */
+    const errorRegla = validarRegla10Dias(formData);
+    if (errorRegla) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Regla del Sindicato',
+        text: errorRegla,
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#e65100',
+      });
+    }
+
     try {
       const payload = new FormData();
       const inicioVal = formData.fechaInicio && formData.horaInicio

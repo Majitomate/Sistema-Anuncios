@@ -31,7 +31,45 @@ const reglasBase = [
     .isBoolean().withMessage('esPermanente debe ser booleano'),
 ];
 
-/* ── Regla de fechas para creación (ambas obligatorias si no es permanente) */
+/* ── Helper: días hábiles entre dos fechas ───────────────────────────────── */
+const diasHabilesEntre = (inicio, fin) => {
+  let count = 0;
+  const actual = new Date(inicio);
+  actual.setHours(0, 0, 0, 0);
+  const limite = new Date(fin);
+  limite.setHours(0, 0, 0, 0);
+
+  while (actual <= limite) {
+    const dia = actual.getDay(); // 0=Dom, 6=Sáb
+    if (dia !== 0 && dia !== 6) count++;
+    actual.setDate(actual.getDate() + 1);
+  }
+  return count;
+};
+
+/* ── Regla de 10 días hábiles (votación o prioridad alta) ────────────────── */
+const regla10DiasHabiles = [
+  check('fechaFin').custom((value, { req }) => {
+    const esPermanente =
+      req.body.esPermanente === 'true' || req.body.esPermanente === true;
+
+    if (esPermanente || !value || !req.body.fechaInicio) return true;
+
+    const tipo      = String(req.body.tipo || '').toLowerCase();
+    const prioridad = String(req.body.prioridad || '');
+    const requiere  = tipo === 'votacion' || tipo === 'votación' || prioridad === '3';
+
+    if (!requiere) return true;
+
+    const dias = diasHabilesEntre(req.body.fechaInicio, value);
+    if (dias < 10) {
+      throw new Error(
+        `Los anuncios de votación o prioridad alta requieren al menos 10 días hábiles de vigencia. Vigencia actual: ${dias} día(s) hábil(es).`
+      );
+    }
+    return true;
+  }),
+];
 const reglaFechasCreacion = [
   check('fechaInicio').custom((value, { req }) => {
     const esPermanente =
@@ -76,6 +114,7 @@ const reglaFechasEdicion = [
 const validarCreacionAnuncio = [
   ...reglasBase,
   ...reglaFechasCreacion,
+  ...regla10DiasHabiles,
   ejecutarValidacion,
 ];
 
@@ -86,6 +125,7 @@ const validarCreacionAnuncio = [
 const validarEdicionAnuncio = [
   ...reglasBase,
   ...reglaFechasEdicion,
+  ...regla10DiasHabiles,
   ejecutarValidacion,
 ];
 
