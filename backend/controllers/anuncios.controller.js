@@ -1,13 +1,14 @@
-const { 
-  crearAnuncio, 
-  obtenerAnuncios, 
-  editarAnuncio, 
-  obtenerAnuncioPorId, 
-  eliminarAnuncio 
-} = require('../models/anuncios.model');
+import {
+  crearAnuncio,
+  obtenerAnuncios,
+  editarAnuncio,
+  obtenerAnuncioPorId,
+  eliminarAnuncio,
+  obtenerAnunciosKiosco, // <-- ¡Nuevo método que deberás agregar a tu modelo!
+} from '../models/anuncios.model.js';
 
-// Obtener todos los anuncios
-const listar = async (req, res) => {
+// Obtener todos los anuncios (Para el Dashboard - Protegido)
+export const listar = async (req, res) => {
   try {
     const anuncios = await obtenerAnuncios();
     return res.json(anuncios);
@@ -17,8 +18,19 @@ const listar = async (req, res) => {
   }
 };
 
+// Obtener anuncios activos y ordenados (Para la Vista Kiosco - Público)
+export const listarKiosco = async (req, res) => {
+  try {
+    const anuncios = await obtenerAnunciosKiosco();
+    return res.status(200).json(anuncios);
+  } catch (error) {
+    console.error('Error al obtener anuncios para el kiosco:', error);
+    return res.status(500).json({ error: 'Error obteniendo anuncios del kiosco' });
+  }
+};
+
 // Crear anuncio
-const crear = async (req, res) => {
+export const crear = async (req, res) => {
   try {
     const datos = req.body;
     const imagen = req.files?.imagen?.[0];
@@ -33,11 +45,15 @@ const crear = async (req, res) => {
 };
 
 // Obtener un anuncio
-const obtenerPorId = async (req, res) => {
+export const obtenerPorId = async (req, res) => {
   try {
     const { id } = req.params;
     const anuncio = await obtenerAnuncioPorId(id);
-    if (!anuncio) return res.status(404).json({ error: 'No encontrado' });
+    
+    if (!anuncio) {
+      return res.status(404).json({ error: 'No encontrado' });
+    }
+    
     return res.json(anuncio);
   } catch (error) {
     console.error(error);
@@ -46,7 +62,7 @@ const obtenerPorId = async (req, res) => {
 };
 
 // Editar anuncio
-const actualizar = async (req, res) => {
+export const actualizar = async (req, res) => {
   try {
     const { id } = req.params;
     const datos = req.body;
@@ -54,7 +70,10 @@ const actualizar = async (req, res) => {
     const documento = req.files?.documento?.[0];
 
     const anuncio = await editarAnuncio(id, datos, imagen, documento);
-    if (!anuncio) return res.status(404).json({ error: 'Anuncio no encontrado' });
+    
+    if (!anuncio) {
+      return res.status(404).json({ error: 'Anuncio no encontrado' });
+    }
 
     return res.json(anuncio);
   } catch (error) {
@@ -64,13 +83,15 @@ const actualizar = async (req, res) => {
 };
 
 // Descargar imagen
-const descargarImagen = async (req, res) => {
+export const descargarImagen = async (req, res) => {
   try {
     const { id } = req.params;
     const anuncio = await obtenerAnuncioPorId(id);
+    
     if (!anuncio || !anuncio.imagen) {
       return res.status(404).json({ error: 'Imagen no encontrada' });
     }
+    
     res.set('Content-Type', anuncio.imagen_tipo || 'image/jpeg');
     res.send(anuncio.imagen);
   } catch (error) {
@@ -80,13 +101,15 @@ const descargarImagen = async (req, res) => {
 };
 
 // Descargar documento
-const descargarDocumento = async (req, res) => {
+export const descargarDocumento = async (req, res) => {
   try {
     const { id } = req.params;
     const anuncio = await obtenerAnuncioPorId(id);
+    
     if (!anuncio || !anuncio.documento) {
       return res.status(404).json({ error: 'Documento no encontrado' });
     }
+    
     res.set('Content-Type', anuncio.documento_tipo || 'application/pdf');
     res.send(anuncio.documento);
   } catch (error) {
@@ -96,7 +119,7 @@ const descargarDocumento = async (req, res) => {
 };
 
 // Eliminar anuncio
-const eliminar = async (req, res) => {
+export const eliminar = async (req, res) => {
   try {
     const { id } = req.params;
     const filas = await eliminarAnuncio(id);
@@ -110,14 +133,4 @@ const eliminar = async (req, res) => {
     console.error(error);
     return res.status(500).json({ error: 'Error eliminando anuncio' });
   }
-};
-
-module.exports = { 
-  crear, 
-  listar, 
-  obtenerPorId,
-  descargarImagen,
-  descargarDocumento,
-  actualizar, 
-  eliminar 
 };

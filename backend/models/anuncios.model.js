@@ -1,7 +1,7 @@
-const pool = require('../config/db');
+import pool from '../config/db.js'; // Asegúrate de ponerle la extensión .js
 
 // Crear anuncio
-const crearAnuncio = async (datos, imagen, documento) => {
+export const crearAnuncio = async (datos, imagen, documento) => {
   // El estado inicial depende de la fecha de inicio:
   // - Si ya llegó la hora de inicio (o es permanente) → TRUE
   // - Si todavía no empieza → FALSE (el cron lo activará cuando llegue la hora)
@@ -43,31 +43,55 @@ const crearAnuncio = async (datos, imagen, documento) => {
   return result.rows[0];
 };
 
-
-// Obtener anuncios
-const obtenerAnuncios = async () => {
+// Obtener todos los anuncios (Para el dashboard)
+export const obtenerAnuncios = async () => {
   const result = await pool.query(`
     SELECT
       id, titulo, subtitulo, contenido, tipo,
-      imagen, imagen_tipo, documento_tipo,
+      imagen_tipo, documento_tipo,
       estado, es_permanente,
       fecha_inicio, fecha_fin, prioridad,
       fecha_creacion, fecha_actualizacion
     FROM anuncios
     ORDER BY id DESC;
   `);
+  // Nota: Quité el buffer de 'imagen' aquí también para que el dashboard cargue rápido. 
+  // El frontend debe usar la ruta de descarga de imagen.
+  return result.rows;
+};
+
+// ==========================================
+// NUEVO: Obtener anuncios para el Kiosco (HU-13)
+// ==========================================
+export const obtenerAnunciosKiosco = async () => {
+  const query = `
+    SELECT
+      id, titulo, subtitulo, contenido, tipo,
+      imagen_tipo, documento_tipo,
+      estado, es_permanente,
+      fecha_inicio, fecha_fin, prioridad
+    FROM anuncios
+    WHERE estado = true
+      AND (
+        es_permanente = true 
+        OR 
+        (CURRENT_DATE >= fecha_inicio AND (fecha_fin IS NULL OR CURRENT_DATE <= fecha_fin))
+      )
+    ORDER BY prioridad DESC, fecha_inicio ASC;
+  `;
+  const result = await pool.query(query);
   return result.rows;
 };
 
 // Obtener anuncio por id
-const obtenerAnuncioPorId = async (id) => {
+export const obtenerAnuncioPorId = async (id) => {
   const query = 'SELECT * FROM anuncios WHERE id = $1';
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };
 
 // Editar anuncio
-const editarAnuncio = async (id, datos, imagen, documento) => {
+export const editarAnuncio = async (id, datos, imagen, documento) => {
   const query = `
     UPDATE anuncios 
     SET 
@@ -110,18 +134,9 @@ const editarAnuncio = async (id, datos, imagen, documento) => {
   return result.rows[0];
 };
 
-
 // Eliminar anuncio
-const eliminarAnuncio = async (id) => {
+export const eliminarAnuncio = async (id) => {
   const query = 'DELETE FROM anuncios WHERE id = $1';
   const result = await pool.query(query, [id]);
   return result.rowCount;
-};
-
-module.exports = {
-  crearAnuncio,
-  obtenerAnuncios,
-  obtenerAnuncioPorId,
-  editarAnuncio,
-  eliminarAnuncio
 };

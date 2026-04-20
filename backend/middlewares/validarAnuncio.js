@@ -1,4 +1,4 @@
-const { check, validationResult } = require('express-validator');
+import { check, validationResult } from 'express-validator';
 
 /* ── Middleware ejecutor ─────────────────────────────────────────────────── */
 const ejecutarValidacion = (req, res, next) => {
@@ -70,6 +70,7 @@ const regla10DiasHabiles = [
     return true;
   }),
 ];
+
 const reglaFechasCreacion = [
   check('fechaInicio').custom((value, { req }) => {
     const esPermanente =
@@ -110,23 +111,17 @@ const reglaFechasEdicion = [
   }),
 ];
 
-/* ── Validador para POST /anuncios ──────────────────────────────────────── */
-const validarCreacionAnuncio = [
+/* ── Validadores exportados ─────────────────────────────────────────────── */
+export const validarCreacionAnuncio = [
   ...reglasBase,
   ...reglaFechasCreacion,
   ...regla10DiasHabiles,
   ejecutarValidacion,
 ];
 
-/* ── Validador para PUT /anuncios/:id ───────────────────────────────────── */
-// Las fechas son opcionales al editar — si no se mandan se conservan las
-// que ya tiene el anuncio en la BD (lógica COALESCE en el modelo).
-// Esto permite cambiar solo el estado sin tener que mandar fechas.
-const validarEdicionAnuncio = [
+export const validarEdicionAnuncio = [
   ...reglasBase,
   ...reglaFechasEdicion,
   ...regla10DiasHabiles,
   ejecutarValidacion,
 ];
-
-module.exports = { validarCreacionAnuncio, validarEdicionAnuncio };

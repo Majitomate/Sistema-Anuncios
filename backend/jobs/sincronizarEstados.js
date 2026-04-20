@@ -1,5 +1,5 @@
-const cron = require('node-cron');
-const pool = require('../config/db');
+import cron from 'node-cron';
+import pool from '../config/db.js'; // <-- IMPORTANTE: Agregar .js
 
 const sincronizarEstados = async () => {
   try {
@@ -45,8 +45,7 @@ const sincronizarEstados = async () => {
   }
 };
 
-
- const iniciarCronEstados = () => {
+export const iniciarCronEstados = () => {
   // Ejecutar inmediatamente al arrancar para corregir estados desde el inicio
   sincronizarEstados();
 
@@ -57,5 +56,3 @@ const sincronizarEstados = async () => {
 
   console.log('[Cron] Job de sincronización de estados iniciado (cada minuto)');
 };
-
-module.exports = { iniciarCronEstados };
