@@ -6,9 +6,6 @@ import LoginPage       from './pages/LoginPage';
 import KioscoLista     from './pages/KioscoLista';
 import KioscoDetalle   from './pages/KioscoDetalle';
 
-// ── Roles ────────────────────────────────────────────────────────────────────
-// admin, editor, revisor → /dashboard
-// visualizador           → /display
 const ROLES_DASHBOARD = ['admin', 'editor', 'revisor'];
 const ROLES_KIOSCO    = ['visualizador'];
 const ROLES_TODOS     = [...ROLES_DASHBOARD, ...ROLES_KIOSCO];
@@ -16,22 +13,28 @@ const ROLES_TODOS     = [...ROLES_DASHBOARD, ...ROLES_KIOSCO];
 const rutaPorRol = (rol) =>
     ROLES_KIOSCO.includes(rol) ? '/display' : '/dashboard';
 
-// ── Guardia de ruta ──────────────────────────────────────────────────────────
 const RutaProtegida = ({ children, rolesPermitidos }) => {
     const token = localStorage.getItem('sutus_token');
     const rol   = localStorage.getItem('sutus_rol');
-
-    if (!token)                                       return <Navigate to="/login" replace />;
+    if (!token) return <Navigate to="/login" replace />;
     if (rolesPermitidos && !rolesPermitidos.includes(rol))
         return <Navigate to={rutaPorRol(rol)} replace />;
-
     return children;
 };
 
-// ── App ──────────────────────────────────────────────────────────────────────
 const App = () => {
-    const [anuncios, setAnuncios] = useState([]);
-    const [loading, setLoading]   = useState(true);
+    const [anuncios,    setAnuncios]    = useState([]);
+    const [loading,     setLoading]     = useState(true);
+    const [rolUsuario,  setRolUsuario]  = useState(
+        () => localStorage.getItem('sutus_rol') ?? 'visualizador'
+    );
+
+    // Re-leer el rol cada vez que el componente monta
+    // (cubre el caso en que se acaba de hacer login y se redirigió aquí)
+    useEffect(() => {
+        const rol = localStorage.getItem('sutus_rol') ?? 'visualizador';
+        setRolUsuario(rol);
+    }, []);
 
     const fetchAnuncios = useCallback(async () => {
         setLoading(true);
@@ -51,13 +54,10 @@ const App = () => {
     useEffect(() => { fetchAnuncios(); }, [fetchAnuncios]);
     useEffect(() => { document.title = 'SUTUS — Sistema de Anuncios'; }, []);
 
-    const rolUsuario = localStorage.getItem('sutus_rol') ?? 'visualizador';
-
     return (
         <BrowserRouter>
             <Routes>
 
-                {/* Raíz: redirige según sesión activa */}
                 <Route
                     path="/"
                     element={
@@ -67,10 +67,8 @@ const App = () => {
                     }
                 />
 
-                {/* Login público */}
                 <Route path="/login" element={<LoginPage />} />
 
-                {/* Dashboard — admin, editor, revisor */}
                 <Route
                     path="/dashboard"
                     element={
@@ -85,7 +83,6 @@ const App = () => {
                     }
                 />
 
-                {/* Kiosco lista — todos los roles autenticados */}
                 <Route
                     path="/display"
                     element={
@@ -95,7 +92,6 @@ const App = () => {
                     }
                 />
 
-                {/* Kiosco detalle — todos los roles autenticados */}
                 <Route
                     path="/display/:id"
                     element={
@@ -105,7 +101,6 @@ const App = () => {
                     }
                 />
 
-                {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
 
             </Routes>

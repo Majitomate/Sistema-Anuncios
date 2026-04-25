@@ -12,7 +12,7 @@ const useAuth = () => {
         setError(null);
 
         try {
-            const res = await fetch(`${API}/auth/login`, {
+            const res = await fetch(`${API}/login`, {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body:    JSON.stringify({ email, password }),
@@ -25,11 +25,11 @@ const useAuth = () => {
             }
 
             localStorage.setItem('sutus_token',   data.token);
-            localStorage.setItem('sutus_rol',     data.rol);
-            localStorage.setItem('sutus_nombre',  data.nombre ?? '');
+            localStorage.setItem('sutus_rol',     data.user.rol);
+            localStorage.setItem('sutus_nombre',  data.user.nombre ?? '');
             localStorage.setItem('sutus_email',   email);
 
-            return data.rol;
+            return data.user.rol;
         } catch (err) {
             setError(err.message);
             throw err;
