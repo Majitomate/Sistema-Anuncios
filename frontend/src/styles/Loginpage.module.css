@@ -1,0 +1,225 @@
+/* ── Paleta institucional ────────────────────────────────────────────────── */
+:root {
+    --verde:       #1b5e20;
+    --verde-medio: #2e7d32;
+    --verde-claro: #43a047;
+    --naranja:     #ff6224;
+    --fondo:       #f0f2f0;
+    --blanco:      #ffffff;
+    --texto:       #1a1a1a;
+    --texto-suave: #5a6a5a;
+    --borde:       #c8d5c8;
+    --error:       #c62828;
+}
+
+.pagina {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--fondo);
+    position: relative;
+    overflow: hidden;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    padding: 24px;
+}
+
+.fondo        { position: absolute; inset: 0; pointer-events: none; }
+
+.fondoCirculo1,
+.fondoCirculo2,
+.fondoCirculo3 {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.07;
+}
+
+.fondoCirculo1 { width: 600px; height: 600px; background: var(--verde);        top: -200px;  left: -150px; }
+.fondoCirculo2 { width: 400px; height: 400px; background: var(--naranja);      bottom: -100px; right: -80px; }
+.fondoCirculo3 { width: 250px; height: 250px; background: var(--verde-claro);  top: 60%;     left: 10%;    }
+
+.tarjeta {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    background: var(--blanco);
+    border-radius: 16px;
+    box-shadow:
+            0 4px 6px rgba(0,0,0,0.04),
+            0 12px 40px rgba(27,94,32,0.12);
+    padding: 40px 36px 32px;
+    border: 1px solid rgba(27,94,32,0.08);
+    animation: slideUp 0.4s ease both;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Encabezado ──────────────────────────────────────────────────────────── */
+.encabezado  { text-align: center; margin-bottom: 28px; }
+
+.logoWrap    { display: flex; justify-content: center; margin-bottom: 12px; }
+.logo        { width: 56px; height: 56px; object-fit: contain; }
+
+.titulo {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--verde);
+    letter-spacing: 0.08em;
+    margin: 0 0 4px;
+    text-transform: uppercase;
+}
+
+.subtitulo {
+    font-size: 0.85rem;
+    color: var(--texto-suave);
+    margin: 0 0 20px;
+    letter-spacing: 0.04em;
+    font-family: system-ui, sans-serif;
+}
+
+.divider {
+    display: block;
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--verde), var(--naranja));
+    border-radius: 2px;
+    margin: 0 auto;
+}
+
+/* ── Formulario ──────────────────────────────────────────────────────────── */
+.form  { display: flex; flex-direction: column; gap: 20px; }
+.campo { display: flex; flex-direction: column; gap: 6px; }
+
+.label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--verde);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-family: system-ui, sans-serif;
+}
+
+.inputWrap   { position: relative; display: flex; align-items: center; }
+
+.inputIcono {
+    position: absolute;
+    left: 12px;
+    display: flex;
+    align-items: center;
+    color: var(--borde);
+    pointer-events: none;
+    transition: color 0.2s;
+}
+.inputIcono svg { width: 16px; height: 16px; }
+
+.input {
+    width: 100%;
+    padding: 11px 40px 11px 38px;
+    font-size: 0.9rem;
+    font-family: system-ui, sans-serif;
+    color: var(--texto);
+    background: #f8faf8;
+    border: 1.5px solid var(--borde);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    box-sizing: border-box;
+}
+
+.input:focus {
+    border-color: var(--verde-medio);
+    background: var(--blanco);
+    box-shadow: 0 0 0 3px rgba(27,94,32,0.1);
+}
+
+.inputWrap:focus-within .inputIcono { color: var(--verde-medio); }
+
+.inputError         { border-color: var(--error); background: #fff8f8; }
+.inputError:focus   { box-shadow: 0 0 0 3px rgba(198,40,40,0.1); }
+
+.botonVerPass {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    color: var(--borde);
+    transition: color 0.2s;
+}
+.botonVerPass:hover { color: var(--verde-medio); }
+.botonVerPass svg   { width: 16px; height: 16px; }
+
+.mensajeError {
+    font-size: 0.75rem;
+    color: var(--error);
+    font-family: system-ui, sans-serif;
+}
+
+/* ── Botón login ─────────────────────────────────────────────────────────── */
+.botonLogin {
+    margin-top: 4px;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--verde), var(--verde-medio));
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: system-ui, sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    box-shadow: 0 4px 14px rgba(27,94,32,0.3);
+}
+
+.botonLogin:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(27,94,32,0.4);
+}
+
+.botonLogin:active:not(:disabled) { transform: translateY(0); }
+.botonLogin:disabled               { opacity: 0.7; cursor: not-allowed; }
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+.spinnerWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: girar 0.7s linear infinite;
+    display: inline-block;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* ── Pie ─────────────────────────────────────────────────────────────────── */
+.pie {
+    margin-top: 28px;
+    text-align: center;
+    border-top: 1px solid var(--borde);
+    padding-top: 16px;
+}
+
+.pie p {
+    font-size: 0.72rem;
+    color: var(--texto-suave);
+    line-height: 1.4;
+    margin: 0;
+    font-family: system-ui, sans-serif;
+}
