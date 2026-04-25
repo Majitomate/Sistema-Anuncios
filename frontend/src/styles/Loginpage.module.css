@@ -42,13 +42,13 @@
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 420px;
+    max-width: 520px;
     background: var(--blanco);
     border-radius: 16px;
     box-shadow:
             0 4px 6px rgba(0,0,0,0.04),
             0 12px 40px rgba(27,94,32,0.12);
-    padding: 40px 36px 32px;
+    padding: 52px 48px 40px;
     border: 1px solid rgba(27,94,32,0.08);
     animation: slideUp 0.4s ease both;
 }
@@ -62,7 +62,7 @@
 .encabezado  { text-align: center; margin-bottom: 28px; }
 
 .logoWrap    { display: flex; justify-content: center; margin-bottom: 12px; }
-.logo        { width: 56px; height: 56px; object-fit: contain; }
+.logo        { width: 88px; height: 88px; object-fit: contain; }
 
 .titulo {
     font-size: 1.75rem;
