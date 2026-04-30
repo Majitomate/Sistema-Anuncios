@@ -29,8 +29,6 @@ const App = () => {
         () => localStorage.getItem('sutus_rol') ?? 'visualizador'
     );
 
-    // Re-leer el rol cada vez que el componente monta
-    // (cubre el caso en que se acaba de hacer login y se redirigió aquí)
     useEffect(() => {
         const rol = localStorage.getItem('sutus_rol') ?? 'visualizador';
         setRolUsuario(rol);
