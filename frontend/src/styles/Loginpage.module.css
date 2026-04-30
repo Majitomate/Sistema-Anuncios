@@ -74,7 +74,7 @@
 }
 
 .subtitulo {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: var(--texto-suave);
     margin: 0 0 20px;
     letter-spacing: 0.04em;
@@ -217,7 +217,7 @@
 }
 
 .pie p {
-    font-size: 0.72rem;
+    font-size: 0.85rem;
     color: var(--texto-suave);
     line-height: 1.4;
     margin: 0;
