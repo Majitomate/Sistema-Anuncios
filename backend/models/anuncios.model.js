@@ -85,7 +85,24 @@ export const obtenerAnunciosKiosco = async () => {
 
 // Obtener anuncio por id
 export const obtenerAnuncioPorId = async (id) => {
-  const query = 'SELECT * FROM anuncios WHERE id = $1';
+  const query = `
+    SELECT 
+      id, titulo, subtitulo, contenido, tipo,
+      imagen_tipo, documento_tipo,
+      estado, es_permanente,
+      fecha_inicio, fecha_fin, prioridad,
+      fecha_creacion, fecha_actualizacion,
+      CASE WHEN imagen IS NOT NULL THEN true ELSE false END AS tiene_imagen,
+      CASE WHEN documento IS NOT NULL THEN true ELSE false END AS tiene_documento
+    FROM anuncios 
+    WHERE id = $1;
+  `;
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
+};
+
+export const obtenerArchivosAnuncio = async (id) => {
+  const query = 'SELECT imagen, imagen_tipo, documento, documento_tipo FROM anuncios WHERE id = $1;';
   const result = await pool.query(query, [id]);
   return result.rows[0];
 };

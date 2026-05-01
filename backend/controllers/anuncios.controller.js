@@ -5,6 +5,7 @@ import {
   obtenerAnuncioPorId,
   eliminarAnuncio,
   obtenerAnunciosKiosco, // <-- ¡Nuevo método que deberás agregar a tu modelo!
+  obtenerArchivosAnuncio,
 } from '../models/anuncios.model.js';
 
 // Obtener todos los anuncios (Para el Dashboard - Protegido)
@@ -86,17 +87,20 @@ export const actualizar = async (req, res) => {
 export const descargarImagen = async (req, res) => {
   try {
     const { id } = req.params;
-    const anuncio = await obtenerAnuncioPorId(id);
+    const archivos = await obtenerArchivosAnuncio(id);
     
-    if (!anuncio || !anuncio.imagen) {
+    if (!archivos || !archivos.imagen) {
       return res.status(404).json({ error: 'Imagen no encontrada' });
     }
     
-    res.set('Content-Type', anuncio.imagen_tipo || 'image/jpeg');
-    res.send(anuncio.imagen);
+    res.set({
+      'Content-Type': archivos.imagen_tipo || 'image/jpeg',
+      'Cache-Control': 'public, max-age=86400', 
+    });
+    return res.send(archivos.imagen);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Error descargando imagen' });
+    console.error('[Error descargarImagen]:', error);
+    return res.status(500).json({ error: 'Error interno descargando imagen' });
   }
 };
 
@@ -104,17 +108,20 @@ export const descargarImagen = async (req, res) => {
 export const descargarDocumento = async (req, res) => {
   try {
     const { id } = req.params;
-    const anuncio = await obtenerAnuncioPorId(id);
+    const archivos = await obtenerArchivosAnuncio(id);
     
-    if (!anuncio || !anuncio.documento) {
+    if (!archivos || !archivos.documento) {
       return res.status(404).json({ error: 'Documento no encontrado' });
     }
     
-    res.set('Content-Type', anuncio.documento_tipo || 'application/pdf');
-    res.send(anuncio.documento);
+    res.set({
+      'Content-Type': archivos.documento_tipo || 'application/pdf',
+      'Content-Disposition': `inline; filename="anuncio_${id}_documento.pdf"`, 
+    });
+    return res.send(archivos.documento);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Error descargando documento' });
+    console.error('[Error descargarDocumento]:', error);
+    return res.status(500).json({ error: 'Error interno descargando documento' });
   }
 };
 

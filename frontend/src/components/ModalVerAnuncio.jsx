@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import s from '../styles/PanelControl.module.css';
 import { obtenerAnuncioPorId } from '../services/anuncios.services';
+import ModalDocumento from '../components/ModalDocumento.jsx';
 
 /* ── Constantes ── */
 const PRIORIDAD_LABELS = { 1: 'Baja', 2: 'Media', 3: 'Alta' };
@@ -11,19 +12,19 @@ const PRIORIDAD_CLASES = {
 };
 
 const TIPO_LABELS = {
-  general:      'General',
-  evento:       'Evento',
+  general: 'General',
+  evento: 'Evento',
   convocatoria: 'Convocatoria',
-  votacion:     'Votación',
-  resultado:    'Resultado',
+  votacion: 'Votación',
+  resultado: 'Resultado',
 };
 
 const TIPO_CLASES = {
-  general:      s.tipoGeneral,
-  evento:       s.tipoEvento,
+  general: s.tipoGeneral,
+  evento: s.tipoEvento,
   convocatoria: s.tipoConvocatoria,
-  votacion:     s.tipoVotacion,
-  resultado:    s.tipoResultado,
+  votacion: s.tipoVotacion,
+  resultado: s.tipoResultado,
 };
 
 /* ── Helpers ── */
@@ -46,37 +47,39 @@ const formatFecha = (timestamp) => {
 const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
   const [archivos, setArchivos] = useState({ imagenUrl: null, documentoUrl: null });
   const [cargandoArchivos, setCargandoArchivos] = useState(false);
+  const [documentoAbierto, setDocumentoAbierto] = useState(null);
+  const API_BASE_URL = 'http://localhost:3001';
 
   useEffect(() => {
     if (!anuncio) {
       setArchivos({ imagenUrl: null, documentoUrl: null });
       return;
     }
+
     const cargar = async () => {
       setCargandoArchivos(true);
       try {
         const data = await obtenerAnuncioPorId(anuncio.id);
+
         setArchivos({
-          imagenUrl: data.imagen
-            ? bufferToUrl(data.imagen, data.imagen_tipo)
-            : null,
-          documentoUrl: data.documento
-            ? bufferToUrl(data.documento, data.documento_tipo)
-            : null,
+          imagenUrl: data.tiene_imagen ? `${API_BASE_URL}/anuncios/${data.id}/imagen` : null,
+          documentoUrl: data.tiene_documento ? `${API_BASE_URL}/anuncios/${data.id}/documento` : null,
         });
-      } catch {
+      } catch (error) {
+        console.error('Error al cargar detalle del anuncio:', error);
         setArchivos({ imagenUrl: null, documentoUrl: null });
       } finally {
         setCargandoArchivos(false);
       }
     };
+
     cargar();
   }, [anuncio?.id]);
 
   if (!anuncio) return null;
 
   const prioridadLabel = PRIORIDAD_LABELS[anuncio.prioridad] || '—';
-  const tipoLabel      = TIPO_LABELS[anuncio.tipo] || anuncio.tipo;
+  const tipoLabel = TIPO_LABELS[anuncio.tipo] || anuncio.tipo;
 
   return (
     <div
@@ -186,20 +189,19 @@ const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
           {!cargandoArchivos && archivos.documentoUrl && (
             <div className={s.modalSeccion}>
               <span className={s.modalEtiqueta}>Documento adjunto</span>
-              <a
-                href={archivos.documentoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button" // Cambiamos <a> por <button> para que sea igual que en Editar
+                onClick={() => setDocumentoAbierto(archivos.documentoUrl)}
                 className={s.modalDocumentoBtn}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/>
-                  <line x1="9" y1="15" x2="15" y2="15"/>
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <line x1="9" y1="15" x2="15" y2="15" />
                 </svg>
                 Ver documento
-              </a>
+              </button>
             </div>
           )}
 
@@ -217,6 +219,10 @@ const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
         </div>
 
       </div>
+      <ModalDocumento
+        urlDocumento={documentoAbierto}
+        alCerrar={() => setDocumentoAbierto(null)}
+      />
     </div>
   );
 };
