@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import s from '../styles/KioscoDetalle.module.css';
 
@@ -23,9 +23,11 @@ const KioscoDetalle = () => {
     const { id }   = useParams();
     const navigate = useNavigate();
 
-    const [anuncio, setAnuncio] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError]     = useState(null);
+    const [anuncio,       setAnuncio]       = useState(null);
+    const [loading,       setLoading]       = useState(true);
+    const [error,         setError]         = useState(null);
+    const [lightboxImg,   setLightboxImg]   = useState(false);
+    const [visorDoc,      setVisorDoc]      = useState(false);
 
     useEffect(() => {
         const cargar = async () => {
@@ -48,16 +50,23 @@ const KioscoDetalle = () => {
         cargar();
     }, [id]);
 
+    // Cerrar lightbox/visor con Escape
+    useEffect(() => {
+        const handler = (e) => {
+            if (e.key === 'Escape') { setLightboxImg(false); setVisorDoc(false); }
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, []);
+
     const handleVolver = () => navigate('/display');
 
-    // ── Loading ──────────────────────────────────────────────────────────────
     if (loading) return (
         <div className={s.pantalla}>
             <div className={s.estadoCentro}><div className={s.spinner} /><p>Cargando...</p></div>
         </div>
     );
 
-    // ── Error ────────────────────────────────────────────────────────────────
     if (error || !anuncio) return (
         <div className={s.pantalla}>
             <div className={s.estadoCentro}>
@@ -76,18 +85,54 @@ const KioscoDetalle = () => {
     return (
         <div className={s.pantalla}>
 
-            {/* ── Panel izquierdo: imagen hero ── */}
-            <aside className={s.panelIzq}>
-                {/* Imagen de fondo con blur */}
-                {imagenUrl && (
-                    <div
-                        className={s.imagenFondo}
-                        style={{ backgroundImage: `url(${imagenUrl})` }}
+            {/* ── Lightbox imagen ── */}
+            {lightboxImg && imagenUrl && (
+                <div className={s.lightboxOverlay} onClick={() => setLightboxImg(false)}>
+                    <button type="button" className={s.lightboxCerrar} onClick={() => setLightboxImg(false)}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <img
+                        src={imagenUrl}
+                        alt={anuncio.titulo}
+                        className={s.lightboxImg}
+                        onClick={(e) => e.stopPropagation()}
                     />
+                </div>
+            )}
+
+            {/* ── Visor documento (iframe) ── */}
+            {visorDoc && documentoUrl && (
+                <div className={`${s.lightboxOverlay} ${s.soloDoc}`}>
+                    <div className={s.visorDocWrap}>
+                        {/* Botón cerrar flotante */}
+                        <button
+                            type="button"
+                            className={s.visorDocCerrarFlotante}
+                            onClick={() => setVisorDoc(false)}
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                            Cerrar
+                        </button>
+                        <iframe
+                            src={documentoUrl}
+                            className={s.visorDocIframe}
+                            title="Documento adjunto"
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* ── Panel izquierdo ── */}
+            <aside className={s.panelIzq}>
+                {imagenUrl && (
+                    <div className={s.imagenFondo} style={{ backgroundImage: `url(${imagenUrl})` }} />
                 )}
                 <div className={s.imagenOverlay} />
 
-                {/* Botón cerrar detalle */}
                 <button type="button" className={s.botonCerrar} onClick={handleVolver}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -96,7 +141,6 @@ const KioscoDetalle = () => {
                     Cerrar detalle
                 </button>
 
-                {/* Texto sobre la imagen */}
                 <div className={s.imagenTexto}>
                     {anuncio.tipo && (
                         <span className={s.imagenTipo}>{TIPO_LABEL[anuncio.tipo] ?? anuncio.tipo}</span>
@@ -108,10 +152,9 @@ const KioscoDetalle = () => {
                 </div>
             </aside>
 
-            {/* ── Panel derecho: contenido ── */}
+            {/* ── Panel derecho ── */}
             <main className={s.panelDer}>
 
-                {/* Fechas */}
                 {(fechaInicio || fechaFin) && (
                     <div className={s.fechasRow}>
                         {fechaInicio && (
@@ -143,12 +186,10 @@ const KioscoDetalle = () => {
                     </div>
                 )}
 
-                {/* Cuerpo del anuncio */}
                 <div className={s.cuerpo}>
                     <p>{anuncio.contenido}</p>
                 </div>
 
-                {/* Archivos adjuntos y galería */}
                 {(imagenUrl || documentoUrl) && (
                     <section className={s.archivos}>
                         <h3 className={s.archivosTitulo}>
@@ -160,35 +201,74 @@ const KioscoDetalle = () => {
                         </h3>
 
                         <div className={s.archivosGrid}>
-                            {/* Imagen */}
+
+                            {/* ── Imagen con lightbox ── */}
                             {imagenUrl && (
-                                <div className={s.imagenThumb}>
+                                <button
+                                    type="button"
+                                    className={s.imagenThumb}
+                                    onClick={() => setLightboxImg(true)}
+                                    title="Clic para ampliar"
+                                >
                                     <img src={imagenUrl} alt={anuncio.titulo} />
+                                    <div className={s.imagenThumbOverlay}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
+                                            <circle cx="11" cy="11" r="8"/>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                            <line x1="11" y1="8" x2="11" y2="14"/>
+                                            <line x1="8" y1="11" x2="14" y2="11"/>
+                                        </svg>
+                                        Ampliar
+                                    </div>
+                                </button>
+                            )}
+
+                            {/* ── Documento con preview + visor ── */}
+                            {documentoUrl && (
+                                <div className={s.docCard}>
+                                    <div className={s.docPreview}>
+                                        <iframe
+                                            src={documentoUrl}
+                                            className={s.docPreviewIframe}
+                                            title="Vista previa"
+                                            scrolling="no"
+                                        />
+                                        <div className={s.docPreviewMask} />
+                                    </div>
+                                    <div className={s.docAcciones}>
+                                        <button
+                                            type="button"
+                                            className={s.docBotonVer}
+                                            onClick={() => setVisorDoc(true)}
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                            Ver documento
+                                        </button>
+                                        <a
+                                            href={documentoUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={s.docBotonAbrir}
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
+                                                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                                                <polyline points="15 3 21 3 21 9"/>
+                                                <line x1="10" y1="14" x2="21" y2="3"/>
+                                            </svg>
+                                            Abrir
+                                        </a>
+                                    </div>
                                 </div>
                             )}
 
-                            {/* Documento */}
-                            {documentoUrl && (
-                                <a
-                                    href={documentoUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={s.docBoton}
-                                >
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                                        <polyline points="14 2 14 8 20 8"/>
-                                    </svg>
-                                    Ver documento adjunto
-                                </a>
-                            )}
                         </div>
                     </section>
                 )}
 
-                {/* Botón de ayuda / volver en móvil */}
                 <button type="button" className={s.botonHelp} onClick={handleVolver} aria-label="Volver">?</button>
-
             </main>
         </div>
     );

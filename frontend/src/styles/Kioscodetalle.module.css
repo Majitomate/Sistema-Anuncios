@@ -126,11 +126,17 @@
 }
 
 .imagenTitulo {
-    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    font-size: clamp(1.2rem, 3vw, 2.2rem);
     font-weight: 900;
     line-height: 1.15;
     margin: 0 0 12px;
     text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
 }
 
 .imagenSubtitulo {
@@ -140,6 +146,12 @@
     line-height: 1.5;
     border-left: 3px solid #1b5e20;
     padding-left: 10px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 /* ── Panel derecho ───────────────────────────────────────────────────────── */
@@ -195,11 +207,15 @@
     line-height: 1.8;
     color: #333;
     margin-bottom: 36px;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .cuerpo p {
     margin: 0;
     white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 /* ── Archivos ────────────────────────────────────────────────────────────── */
@@ -231,12 +247,23 @@
     gap: 14px;
 }
 
+/* ── Imagen thumb con lightbox ───────────────────────────────────────────── */
 .imagenThumb {
+    position: relative;
     width: 220px;
     height: 160px;
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid #e0e8e0;
+    padding: 0;
+    background: none;
+    cursor: zoom-in;
+    transition: transform 0.18s, box-shadow 0.18s;
+}
+
+.imagenThumb:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
 .imagenThumb img {
@@ -244,6 +271,215 @@
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+.imagenThumbOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.imagenThumb:hover .imagenThumbOverlay { opacity: 1; }
+
+/* ── Lightbox ────────────────────────────────────────────────────────────── */
+.lightboxOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    animation: fadeIn 0.2s ease;
+}
+
+/* Visor documento sin overlay oscuro */
+.lightboxOverlay.soloDoc {
+    background: transparent;
+    padding: 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.lightboxImg {
+    max-width: 90vw;
+    max-height: 88vh;
+    border-radius: 8px;
+    object-fit: contain;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+}
+
+.lightboxCerrar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.lightboxCerrar:hover { background: rgba(255,255,255,0.25); }
+.lightboxCerrar svg   { width: 16px; height: 16px; }
+
+/* ── Documento card con preview ──────────────────────────────────────────── */
+.docCard {
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    border-radius: 10px;
+    border: 1px solid #e0e8e0;
+    overflow: hidden;
+    background: #f8faf8;
+}
+
+.docPreview {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.docPreviewIframe {
+    width: 100%;
+    height: 400px;
+    border: none;
+    transform: scale(0.5);
+    transform-origin: top left;
+    pointer-events: none;
+}
+
+.docPreviewMask {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(248,250,248,0.95) 100%);
+}
+
+.docAcciones {
+    display: flex;
+    gap: 6px;
+    padding: 10px;
+    border-top: 1px solid #e0e8e0;
+}
+
+.docBotonVer {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    background: #1b5e20;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.docBotonVer:hover { background: #2e7d32; }
+
+.docBotonAbrir {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    background: #f4f7f4;
+    border: 1px solid #c8d5c8;
+    border-radius: 6px;
+    color: #1b5e20;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.docBotonAbrir:hover { background: #e8f5e9; }
+
+/* ── Visor documento fullscreen ──────────────────────────────────────────── */
+.visorDocWrap {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: #fff;
+    border-radius: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+}
+
+/* visorDocHeader eliminado — reemplazado por botón flotante */
+
+.visorDocCerrar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.visorDocCerrar:hover { background: #e0e0e0; }
+.visorDocCerrar svg   { width: 14px; height: 14px; }
+
+/* Botón cerrar flotante sobre el iframe */
+.visorDocCerrarFlotante {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.visorDocCerrarFlotante:hover { background: rgba(0,0,0,0.85); }
+.visorDocCerrarFlotante svg   { width: 14px; height: 14px; }
+
+.visorDocIframe {
+    flex: 1;
+    width: 100%;
+    border: none;
 }
 
 .docBoton {

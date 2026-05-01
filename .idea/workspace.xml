@@ -6,8 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="64af2504-ebe8-4266-a96c-a97ea53a4e60" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/pages/DashboardLayout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/DashboardLayout.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Kioscodetalle.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/Kioscodetalle.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/Kioscolista.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/Kioscolista.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/styles/Kioscodetalle.module.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/styles/Kioscodetalle.module.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/styles/Kioscolista.module.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/styles/Kioscolista.module.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,7 +79,7 @@
       <workItem from="1776881722802" duration="48000" />
       <workItem from="1776892830297" duration="24000" />
       <workItem from="1777144043940" duration="5047000" />
-      <workItem from="1777564969124" duration="281000" />
+      <workItem from="1777564969124" duration="3231000" />
     </task>
     <servers />
   </component>

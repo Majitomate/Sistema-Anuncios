@@ -16,10 +16,11 @@
 .fondo {
     position: absolute;
     inset: 0;
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 40%, #bf360c 80%, #ff6224 100%);
     background-size: cover;
     background-position: center;
     filter: blur(6px) brightness(0.55);
-    transform: scale(1.06); /* evita bordes blancos del blur */
+    transform: scale(1.06);
     transition: opacity 0.3s ease;
 }
 
@@ -172,23 +173,35 @@
 }
 
 .titulo {
-    font-size: clamp(2rem, 5.5vw, 4rem);
+    font-size: clamp(1.5rem, 4vw, 3.2rem);
     font-weight: 900;
-    line-height: 1.1;
+    line-height: 1.15;
     letter-spacing: -0.01em;
     margin: 0 0 20px;
     text-shadow: 0 2px 20px rgba(0,0,0,0.5);
-    max-width: 900px;
+    max-width: 880px;
+    width: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
 }
 
 .subtitulo {
-    font-size: clamp(0.95rem, 2vw, 1.3rem);
+    font-size: clamp(0.85rem, 1.8vw, 1.15rem);
     font-weight: 400;
     color: rgba(255,255,255,0.82);
     margin: 0;
     max-width: 650px;
+    width: 100%;
     line-height: 1.5;
     text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
 }
 
 /* ── Flechas ─────────────────────────────────────────────────────────────── */
@@ -282,6 +295,19 @@
     text-transform: capitalize;
 }
 
+/* ── Wrapper de múltiples cards próximas ────────────────────────────────── */
+.proximosWrap {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 600px;
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+
 /* ── Card próximo urgente ─────────────────────────────────────────────────── */
 .cardProximo {
     display: flex;
@@ -292,13 +318,32 @@
     border-radius: 10px;
     padding: 10px 14px;
     border: none;
+    border-left: 3px solid transparent;
+    border-bottom: 3px solid transparent;
     cursor: pointer;
     text-align: left;
     max-width: 220px;
-    transition: background 0.2s;
+    transition: background 0.2s, border-color 0.2s;
 }
 
 .cardProximo:hover { background: rgba(0,0,0,0.8); }
+
+.cardProximo.esUrgente {
+    border-left-color:   #ef5350;
+    border-bottom-color: #ef5350;
+    box-shadow: -2px 2px 12px rgba(239, 83, 80, 0.25);
+}
+
+.cardProximo.esAlta {
+    border-left-color:   #ff9800;
+    border-bottom-color: #ff9800;
+    box-shadow: -2px 2px 12px rgba(255, 152, 0, 0.25);
+}
+
+.cardProximo.esNormal {
+    border-left-color:   rgba(255,255,255,0.25);
+    border-bottom-color: rgba(255,255,255,0.25);
+}
 
 .cardProximoLabel {
     font-size: 0.62rem;
@@ -308,6 +353,8 @@
 
 .labelUrgente { color: #ef5350; }
 .labelAlta    { color: #ff9800; }
+.labelNormal  { color: rgba(255,255,255,0.55); }
+.labelNormal  { color: rgba(255,255,255,0.55); }
 
 .cardProximoTitulo {
     font-size: 0.8rem;

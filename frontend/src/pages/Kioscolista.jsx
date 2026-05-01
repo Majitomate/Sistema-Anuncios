@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+
 import s from '../styles/KioscoLista.module.css';
 
 const API = 'http://localhost:3001';
@@ -20,7 +20,7 @@ const formatFechaCorta = (ts) => {
 
 const KioscoLista = () => {
     const navigate   = useNavigate();
-    const { logout } = useAuth();
+
 
     const [anuncios, setAnuncios] = useState([]);
     const [loading, setLoading]   = useState(true);
@@ -39,7 +39,11 @@ const KioscoLista = () => {
             const res     = await fetch(`${API}/anuncios`, { headers });
             if (!res.ok) throw new Error('No se pudieron cargar los anuncios');
             const data = await res.json();
-            setAnuncios(data.filter((a) => a.estado));
+            // Ordenar: prioridad alta (3) primero, luego media (2), luego baja (1)
+            const ordenados = data
+                .filter((a) => a.estado)
+                .sort((a, b) => b.prioridad - a.prioridad);
+            setAnuncios(ordenados);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -69,15 +73,19 @@ const KioscoLista = () => {
     const ir = (idx) => { clearInterval(timerRef.current); cambiarCon(() => idx); };
     const anterior = () => { clearInterval(timerRef.current); cambiarCon((i) => (i - 1 + anuncios.length) % anuncios.length); };
     const siguiente = () => { clearInterval(timerRef.current); cambiarCon((i) => (i + 1) % anuncios.length); };
-    const handleLogout = () => { logout(); navigate('/login', { replace: true }); };
+    const handleVolver = () => {
+        const rol = localStorage.getItem('sutus_rol');
+        const esDashboard = ['admin', 'editor', 'revisor'].includes(rol);
+        navigate(esDashboard ? '/dashboard' : '/login', { replace: true });
+    };
 
     // ── Datos del slide actual ───────────────────────────────────────────────
     const actual    = anuncios[indice];
     const imagenUrl = actual?.imagen_tipo ? `${API}/anuncios/${actual.id}/imagen` : null;
     const prioConf  = actual ? (PRIO_CONFIG[actual.prioridad] ?? PRIO_CONFIG[1]) : null;
 
-    // Próximo urgente/alta que no sea el actual
-    const proximoDestacado = anuncios.find((a, i) => i !== indice && a.prioridad >= 2);
+    // Todos los demás anuncios activos excepto el actual
+    const proximosDestacados = anuncios.filter((_, i) => i !== indice);
 
     // ── Estados de carga ─────────────────────────────────────────────────────
     if (loading) return (
@@ -114,7 +122,7 @@ const KioscoLista = () => {
             {/* ── Header ── */}
             <header className={s.header}>
                 <div className={s.headerIzq}>
-                    <button type="button" className={s.botonVolver} onClick={handleLogout}>
+                    <button type="button" className={s.botonVolver} onClick={handleVolver}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                             <polyline points="15 18 9 12 15 6"/>
                         </svg>
@@ -186,18 +194,23 @@ const KioscoLista = () => {
                         )}
                     </div>
 
-                    {/* Card próximo urgente/alta */}
-                    {proximoDestacado && (
-                        <button
-                            type="button"
-                            className={s.cardProximo}
-                            onClick={() => ir(anuncios.findIndex((a) => a.id === proximoDestacado.id))}
-                        >
-              <span className={`${s.cardProximoLabel} ${proximoDestacado.prioridad === 3 ? s.labelUrgente : s.labelAlta}`}>
-                ● {proximoDestacado.prioridad === 3 ? 'URGENTE' : 'PRÓXIMO'}
-              </span>
-                            <span className={s.cardProximoTitulo}>{proximoDestacado.titulo}</span>
-                        </button>
+                    {/* Cards próximos urgentes/alta */}
+                    {proximosDestacados.length > 0 && (
+                        <div className={s.proximosWrap}>
+                            {proximosDestacados.map((dest) => (
+                                <button
+                                    key={dest.id}
+                                    type="button"
+                                    className={`${s.cardProximo} ${dest.prioridad === 3 ? s.esUrgente : dest.prioridad === 2 ? s.esAlta : s.esNormal}`}
+                                    onClick={() => ir(anuncios.findIndex((a) => a.id === dest.id))}
+                                >
+                  <span className={`${s.cardProximoLabel} ${dest.prioridad === 3 ? s.labelUrgente : dest.prioridad === 2 ? s.labelAlta : s.labelNormal}`}>
+                    ● {dest.prioridad === 3 ? 'URGENTE' : dest.prioridad === 2 ? 'ALTA' : 'PRÓXIMO'}
+                  </span>
+                                    <span className={s.cardProximoTitulo}>{dest.titulo}</span>
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </div>
 
