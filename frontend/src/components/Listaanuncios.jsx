@@ -63,8 +63,8 @@ const ListaAnuncios = ({
                         <tr key={anuncio.id}>
                             <td>
                                 <div className={styles.tdTitulo}>{anuncio.titulo}</div>
-                                {anuncio.subtitulo && (
-                                    <div className={styles.tdSubtitulo}>{anuncio.subtitulo}</div>
+                                {anuncio.descripcion_corta && (
+                                    <div className={styles.tddescripcion_corta}>{anuncio.descripcion_corta}</div>
                                 )}
                             </td>
                             <td>

@@ -66,7 +66,7 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
       const payload = new FormData();
       payload.append('estado', nuevoEstado);
       payload.append('titulo', anuncio.titulo);
-      payload.append('subtitulo', anuncio.subtitulo);
+      payload.append('descripcion_corta', anuncio.descripcion_corta);
       payload.append('contenido', anuncio.contenido);
       payload.append('tipo', anuncio.tipo);
       payload.append('prioridad', anuncio.prioridad);

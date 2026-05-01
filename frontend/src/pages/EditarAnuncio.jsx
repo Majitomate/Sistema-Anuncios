@@ -23,7 +23,7 @@ const splitDateTime = (timestamp) => {
 const mapErroresToFields = (erroresArray) => {
   const fieldMap = {
     'título': 'titulo',
-    'descripción corta': 'subtitulo',
+    'descripción corta': 'descripcion_corta',
     'contenido': 'contenido',
     'prioridad': 'prioridad',
     'tipo': 'tipo',
@@ -54,7 +54,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
 
   const [formData, setFormData] = useState({
     titulo: anuncio.titulo || '', tipo: anuncio.tipo || '',
-    prioridad: anuncio.prioridad || '', subtitulo: anuncio.subtitulo || '',
+    prioridad: anuncio.prioridad || '', descripcion_corta: anuncio.descripcion_corta || '',
     contenido: anuncio.contenido || '',
     fechaInicio: inicio.date, horaInicio: inicio.time,
     fechaFin: fin.date,     horaFin: fin.time,
@@ -171,7 +171,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
         </button>
         <div className={s.headerInfo}>
           <h1 className={s.tituloHeaderBlanco}>Editar Anuncio</h1>
-          <p className={s.subtituloHeaderBlanco}>{anuncio.titulo}</p>
+          <p className={s.descripcion_cortaHeaderBlanco}>{anuncio.titulo}</p>
         </div>
       </header>
 

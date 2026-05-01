@@ -9,7 +9,7 @@ import { useAnuncios } from '../hooks/useAnuncios';
 import { validarRegla10Dias } from '../utils/validarRegla10Dias';
 
 const FORM_INICIAL = {
-  titulo: '', tipo: '', prioridad: '', subtitulo: '',
+  titulo: '', tipo: '', prioridad: '', descripcion_corta: '',
   contenido: '', fechaInicio: '', fechaFin: '',
   horaInicio: '', horaFin: '', esPermanente: false,
 };
@@ -17,7 +17,7 @@ const FORM_INICIAL = {
 const mapErroresToFields = (erroresArray) => {
   const fieldMap = {
     'título': 'titulo',
-    'descripción corta': 'subtitulo',
+    'descripción corta': 'descripcion_corta',
     'contenido': 'contenido',
     'prioridad': 'prioridad',
     'tipo': 'tipo',
@@ -131,7 +131,7 @@ const CrearAnuncio = ({ alCerrar, onActualizado }) => {
         </button>
         <div className={s.headerInfo}>
           <h1 className={s.tituloHeaderBlanco}>Nuevo Anuncio</h1>
-          <p className={s.subtituloHeaderBlanco}>Los campos marcados con * son obligatorios</p>
+          <p className={s.descripcion_cortaHeaderBlanco}>Los campos marcados con * son obligatorios</p>
         </div>
       </header>
 

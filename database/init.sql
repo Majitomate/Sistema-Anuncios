@@ -30,11 +30,9 @@ CREATE TABLE usuarios (
 CREATE TABLE anuncios ( 
   id SERIAL PRIMARY KEY, 
   titulo VARCHAR(150) NOT NULL, 
-  subtitulo VARCHAR(150) NOT NULL, 
+  descripcion_corta VARCHAR(150) NOT NULL, 
   contenido TEXT NOT NULL, 
   tipo VARCHAR(50) NOT NULL, 
-  imagen BYTEA, 
-  imagen_tipo VARCHAR(100), 
   documento BYTEA, 
   documento_tipo VARCHAR(100), 
   estado BOOLEAN NOT NULL DEFAULT TRUE, 
@@ -48,8 +46,15 @@ CREATE TABLE anuncios (
   modificado_por INT REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
+CREATE TABLE anuncios_imagenes (
+  id SERIAL PRIMARY KEY,
+  anuncio_id INT REFERENCES anuncios(id) ON DELETE CASCADE,
+  imagen BYTEA NOT NULL,
+  imagen_tipo VARCHAR(100) NOT NULL
+);
+
 -- =========================================================
--- INSERTAR TU USUARIO ADMINISTRADOR POR DEFECTO
+-- INSERTAR ADMINISTRADOR
 -- =========================================================
 INSERT INTO usuarios (nombre, email, password, rol) 
 VALUES (

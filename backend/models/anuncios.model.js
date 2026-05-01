@@ -1,89 +1,57 @@
-import pool from '../config/db.js'; // Asegúrate de ponerle la extensión .js
+import pool from '../config/db.js';
 
-// Crear anuncio
-export const crearAnuncio = async (datos, imagen, documento) => {
-  // El estado inicial depende de la fecha de inicio:
-  // - Si ya llegó la hora de inicio (o es permanente) → TRUE
-  // - Si todavía no empieza → FALSE (el cron lo activará cuando llegue la hora)
+// Crear anuncio con múltiples imágenes
+export const crearAnuncio = async (datos, imagenes, documento) => {
   const esPermanente = datos.esPermanente === 'true';
   const fechaInicio  = datos.fechaInicio ? new Date(datos.fechaInicio) : null;
   const estadoInicial = esPermanente || !fechaInicio || fechaInicio <= new Date();
 
-  const query = `
-    INSERT INTO anuncios 
-    (titulo, subtitulo, contenido, tipo,
-     imagen, imagen_tipo, 
-     documento, documento_tipo,
-     fecha_inicio, fecha_fin, prioridad, es_permanente, estado)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-    RETURNING id, titulo, subtitulo, contenido, tipo,
-              imagen_tipo, documento_tipo,
-              estado, es_permanente,
-              fecha_inicio, fecha_fin, prioridad,
-              fecha_creacion, fecha_actualizacion;
-  `;
+  // Usamos un 'client' para hacer una transacción segura
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN'); // Iniciar transacción
 
-  const values = [
-    datos.titulo,
-    datos.subtitulo,
-    datos.contenido,
-    datos.tipo,
-    imagen ? imagen.buffer : null,
-    imagen ? imagen.mimetype : null,
-    documento ? documento.buffer : null,
-    documento ? documento.mimetype : null,
-    datos.fechaInicio || null,
-    datos.fechaFin || null,
-    datos.prioridad || 1,
-    esPermanente,
-    estadoInicial,
-  ];
+    // 1. Guardar el anuncio (ya no incluimos las columnas de imagen aquí)
+    const queryAnuncio = `
+      INSERT INTO anuncios 
+      (titulo, descripcion_corta, contenido, tipo,
+       documento, documento_tipo,
+       fecha_inicio, fecha_fin, prioridad, es_permanente, estado)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING *;
+    `;
+    const valuesAnuncio = [
+      datos.titulo, datos.descripcion_corta, datos.contenido, datos.tipo,
+      documento ? documento.buffer : null, documento ? documento.mimetype : null,
+      datos.fechaInicio || null, datos.fechaFin || null,
+      datos.prioridad || 1, esPermanente, estadoInicial
+    ];
+    
+    const resAnuncio = await client.query(queryAnuncio, valuesAnuncio);
+    const anuncioCreado = resAnuncio.rows[0];
 
-  const result = await pool.query(query, values);
-  return result.rows[0];
+    // 2. Guardar las imágenes en la nueva tabla usando un bucle
+    if (imagenes && imagenes.length > 0) {
+      for (const img of imagenes) {
+        await client.query(
+          `INSERT INTO anuncios_imagenes (anuncio_id, imagen, imagen_tipo) VALUES ($1, $2, $3)`,
+          [anuncioCreado.id, img.buffer, img.mimetype]
+        );
+      }
+    }
+
+    await client.query('COMMIT'); // Confirmar si todo salió bien
+    return anuncioCreado;
+  } catch (error) {
+    await client.query('ROLLBACK'); // Deshacer todo si hay error
+    throw error;
+  } finally {
+    client.release();
+  }
 };
 
-// Obtener todos los anuncios (Para el dashboard)
-export const obtenerAnuncios = async () => {
-  const result = await pool.query(`
-    SELECT
-      id, titulo, subtitulo, contenido, tipo,
-      imagen_tipo, documento_tipo,
-      estado, es_permanente,
-      fecha_inicio, fecha_fin, prioridad,
-      fecha_creacion, fecha_actualizacion
-    FROM anuncios
-    ORDER BY id DESC;
-  `);
-  // Nota: Quité el buffer de 'imagen' aquí también para que el dashboard cargue rápido. 
-  // El frontend debe usar la ruta de descarga de imagen.
-  return result.rows;
-};
-
-// ==========================================
-// NUEVO: Obtener anuncios para el Kiosco (HU-13)
-// ==========================================
-export const obtenerAnunciosKiosco = async () => {
-  const query = `
-    SELECT
-      id, titulo, subtitulo, contenido, tipo,
-      imagen_tipo, documento_tipo,
-      estado, es_permanente,
-      fecha_inicio, fecha_fin, prioridad
-    FROM anuncios
-    WHERE estado = true
-      AND (
-        es_permanente = true 
-        OR 
-        (CURRENT_DATE >= fecha_inicio AND (fecha_fin IS NULL OR CURRENT_DATE <= fecha_fin))
-      )
-    ORDER BY prioridad DESC, fecha_inicio ASC;
-  `;
-  const result = await pool.query(query);
-  return result.rows;
-};
-
-// Obtener anuncio por id
+// Obtener anuncio por id (ahora devuelve la lista de IDs de sus imágenes)
 export const obtenerAnuncioPorId = async (id) => {
   const query = `
     SELECT 
@@ -104,56 +72,87 @@ export const obtenerAnuncioPorId = async (id) => {
 export const obtenerArchivosAnuncio = async (id) => {
   const query = 'SELECT imagen, imagen_tipo, documento, documento_tipo FROM anuncios WHERE id = $1;';
   const result = await pool.query(query, [id]);
+  const anuncio = result.rows[0];
+
+  if (anuncio) {
+    // Buscamos qué imágenes le pertenecen a este anuncio
+    const imgResult = await pool.query('SELECT id FROM anuncios_imagenes WHERE anuncio_id = $1', [id]);
+    // Agregamos un arreglo solo con los IDs, ej: [1, 2, 3]
+    anuncio.imagenes_ids = imgResult.rows.map(row => row.id); 
+  }
+  return anuncio;
+};
+
+// NUEVO: Función para buscar una imagen en específico
+export const obtenerImagenPorId = async (idImagen) => {
+  const result = await pool.query('SELECT imagen, imagen_tipo FROM anuncios_imagenes WHERE id = $1', [idImagen]);
   return result.rows[0];
 };
 
-// Editar anuncio
-export const editarAnuncio = async (id, datos, imagen, documento) => {
-  const query = `
-    UPDATE anuncios 
-    SET 
-      titulo = $1, 
-      subtitulo = $2, 
-      contenido = $3, 
-      tipo = $4,
-      imagen = COALESCE($5::bytea, imagen), 
-      imagen_tipo = COALESCE($6::varchar, imagen_tipo), 
-      documento = COALESCE($7::bytea, documento), 
-      documento_tipo = COALESCE($8::varchar, documento_tipo),
-      fecha_inicio = $9, 
-      fecha_fin = $10, 
-      prioridad = $11, 
-      es_permanente = $12,
-      estado = $13,
-      fecha_actualizacion = CURRENT_TIMESTAMP
-    WHERE id = $14
-    RETURNING *;
-  `;
+// Obtener todos los anuncios (Dashboard) - Quitamos imagen_tipo
+export const obtenerAnuncios = async () => {
+  const result = await pool.query(`
+    SELECT
+      id, titulo, descripcion_corta, contenido, tipo,
+      documento_tipo, estado, es_permanente,
+      fecha_inicio, fecha_fin, prioridad,
+      fecha_creacion, fecha_actualizacion,
+      (SELECT id FROM anuncios_imagenes WHERE anuncio_id = anuncios.id LIMIT 1) as id_imagen_principal
+    FROM anuncios ORDER BY id DESC;
+  `);
+  return result.rows;
+};
 
+// Obtener anuncios Kiosco - Quitamos imagen_tipo
+export const obtenerAnunciosKiosco = async () => {
+  const result = await pool.query(`
+    SELECT
+      id, titulo, descripcion_corta, contenido, tipo,
+      documento_tipo, estado, es_permanente,
+      fecha_inicio, fecha_fin, prioridad,
+      (SELECT id FROM anuncios_imagenes WHERE anuncio_id = anuncios.id LIMIT 1) as id_imagen_principal
+    FROM anuncios
+    WHERE estado = true AND (es_permanente = true OR (CURRENT_DATE >= fecha_inicio AND (fecha_fin IS NULL OR CURRENT_DATE <= fecha_fin)))
+    ORDER BY prioridad DESC, fecha_inicio ASC;
+  `);
+  return result.rows;
+};
+
+// Eliminar anuncio (Al tener "ON DELETE CASCADE" en tu SQL, borrará las fotos automáticamente)
+export const eliminarAnuncio = async (id) => {
+  const result = await pool.query('DELETE FROM anuncios WHERE id = $1', [id]);
+  return result.rowCount;
+};
+
+// Editar anuncio (Versión simple: solo actualiza info y agrega nuevas fotos si envían)
+export const editarAnuncio = async (id, datos, imagenes, documento) => {
+  const query = `
+    UPDATE anuncios SET 
+      titulo = $1, descripcion_corta = $2, contenido = $3, tipo = $4,
+      documento = COALESCE($5::bytea, documento), 
+      documento_tipo = COALESCE($6::varchar, documento_tipo),
+      fecha_inicio = $7, fecha_fin = $8, prioridad = $9, 
+      es_permanente = $10, estado = $11, fecha_actualizacion = CURRENT_TIMESTAMP
+    WHERE id = $12 RETURNING *;
+  `;
   const values = [
-    datos.titulo,
-    datos.subtitulo,
-    datos.contenido,
-    datos.tipo,
-    imagen ? imagen.buffer : null,
-    imagen ? imagen.mimetype : null,
-    documento ? documento.buffer : null,
-    documento ? documento.mimetype : null,
-    datos.fechaInicio || null,
-    datos.fechaFin || null,
-    datos.prioridad || 1,
-    datos.esPermanente === 'true',
-    datos.estado === 'true' || datos.estado === true,
-    id,
+    datos.titulo, datos.descripcion_corta, datos.contenido, datos.tipo,
+    documento ? documento.buffer : null, documento ? documento.mimetype : null,
+    datos.fechaInicio || null, datos.fechaFin || null, datos.prioridad || 1,
+    datos.esPermanente === 'true', datos.estado === 'true' || datos.estado === true, id
   ];
 
   const result = await pool.query(query, values);
-  return result.rows[0];
-};
+  const anuncioActualizado = result.rows[0];
 
-// Eliminar anuncio
-export const eliminarAnuncio = async (id) => {
-  const query = 'DELETE FROM anuncios WHERE id = $1';
-  const result = await pool.query(query, [id]);
-  return result.rowCount;
+  // Si mandan nuevas fotos al editar, las agregamos a la galería
+  if (anuncioActualizado && imagenes && imagenes.length > 0) {
+    for (const img of imagenes) {
+      await pool.query(
+        `INSERT INTO anuncios_imagenes (anuncio_id, imagen, imagen_tipo) VALUES ($1, $2, $3)`,
+        [anuncioActualizado.id, img.buffer, img.mimetype]
+      );
+    }
+  }
+  return anuncioActualizado;
 };

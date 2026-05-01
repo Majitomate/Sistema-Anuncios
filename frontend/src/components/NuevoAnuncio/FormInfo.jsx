@@ -17,7 +17,7 @@ const OPCIONES_PRIORIDAD = [
 
 const FormInfo = ({ formData, errores, onChange, modoEdicion = false }) => {
   const contTitulo = (formData.titulo || '').length;
-  const contSubtitulo = (formData.subtitulo || '').length;
+  const contdescripcion_corta = (formData.descripcion_corta || '').length;
 
   return (
     <section className="tarjeta-referencia">
@@ -91,21 +91,21 @@ const FormInfo = ({ formData, errores, onChange, modoEdicion = false }) => {
 
         {/* Subtítulo */}
         <div className="campo-referencia">
-          <label htmlFor="subtitulo">Subtítulo</label>
+          <label htmlFor="descripcion_corta">Subtítulo</label>
           <input
-            id="subtitulo"
-            name="subtitulo"
+            id="descripcion_corta"
+            name="descripcion_corta"
             type="text"
             placeholder="Descripción breve del anuncio"
-            value={formData.subtitulo}
+            value={formData.descripcion_corta}
             onChange={onChange}
             maxLength={150}
-            className={errores.subtitulo ? 'input-error' : ''}
+            className={errores.descripcion_corta ? 'input-error' : ''}
           />
-          <span className={`campo-contador${contSubtitulo >= 120 ? ' campo-contador-warn' : ''}`}>
-            {contSubtitulo} / 150
+          <span className={`campo-contador${contdescripcion_corta >= 120 ? ' campo-contador-warn' : ''}`}>
+            {contdescripcion_corta} / 150
           </span>
-          {errores.subtitulo && <span className="campo-error-msg">Este campo es obligatorio</span>}
+          {errores.descripcion_corta && <span className="campo-error-msg">Este campo es obligatorio</span>}
         </div>
 
         {/* Contenido */}

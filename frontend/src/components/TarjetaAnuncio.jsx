@@ -15,7 +15,7 @@ const bufferToUrl = (bufferObj, mimeType) => {
   return URL.createObjectURL(blob);
 };
 
-const TarjetaAnuncio = ({ id, titulo, tipo, subtitulo, prioridad, estado, onEditar, onEliminar, onAbrirDocumento, puedeEditar }) => {
+const TarjetaAnuncio = ({ id, titulo, tipo, descripcion_corta, prioridad, estado, onEditar, onEliminar, onAbrirDocumento, puedeEditar }) => {
   const estilo = PRIORIDAD_ESTILOS[prioridad] ?? PRIORIDAD_ESTILOS[2];
   const [archivos, setArchivos] = useState({ imagenUrl: null, documentoUrl: null });
 
@@ -58,7 +58,7 @@ const TarjetaAnuncio = ({ id, titulo, tipo, subtitulo, prioridad, estado, onEdit
       <div className={styles.cardBody}>
         <span className={styles.categoria}>{tipo}</span>
         <h3>{titulo}</h3>
-        <p className={styles.descripcion}>{subtitulo}</p>
+        <p className={styles.descripcion}>{descripcion_corta}</p>
 
         <div className={styles.cardFooter}>
           <span className={styles.prioridad} style={{ backgroundColor: estilo.bg, color: estilo.color, borderColor: estilo.border }}>

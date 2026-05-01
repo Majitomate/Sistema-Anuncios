@@ -149,7 +149,7 @@ const KioscoLista = () => {
                 onClick={() => navigate(`/display/${actual.id}`)}
             >
                 <h1 className={s.titulo}>{actual.titulo}</h1>
-                {actual.subtitulo && <p className={s.subtitulo}>{actual.subtitulo}</p>}
+                {actual.descripcion_corta && <p className={s.descripcion_corta}>{actual.descripcion_corta}</p>}
             </button>
 
             {/* ── Flechas de navegación ── */}

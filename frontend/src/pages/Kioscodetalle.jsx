@@ -146,8 +146,8 @@ const KioscoDetalle = () => {
                         <span className={s.imagenTipo}>{TIPO_LABEL[anuncio.tipo] ?? anuncio.tipo}</span>
                     )}
                     <h1 className={s.imagenTitulo}>{anuncio.titulo}</h1>
-                    {anuncio.subtitulo && (
-                        <p className={s.imagenSubtitulo}>{anuncio.subtitulo}</p>
+                    {anuncio.descripcion_corta && (
+                        <p className={s.imagendescripcion_corta}>{anuncio.descripcion_corta}</p>
                     )}
                 </div>
             </aside>

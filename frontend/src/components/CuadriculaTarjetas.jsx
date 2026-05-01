@@ -11,7 +11,7 @@ const CuadriculaTarjetas = ({ anuncios, onEditar, onEliminar, onAbrirDocumento, 
         id={anuncio.id}
         titulo={anuncio.titulo}
         tipo={anuncio.tipo}
-        subtitulo={anuncio.subtitulo}
+        descripcion_corta={anuncio.descripcion_corta}
         prioridad={anuncio.prioridad}
         estado={anuncio.estado}
         onEditar={() => onEditar(anuncio)}

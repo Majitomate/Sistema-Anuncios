@@ -24,7 +24,7 @@ const CarruselAnuncios = ({
                     <div className={styles.carouselText}>
                         <span className={styles.previsualizacionLabel}>PREVISUALIZACIÓN DE ANUNCIOS</span>
                         <h2>{item.titulo}</h2>
-                        <p>{item.subtitulo}</p>
+                        <p>{item.descripcion_corta}</p>
                     </div>
                     <div className={styles.carouselImageArea}>
                         {item.imagen_tipo ? (

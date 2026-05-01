@@ -73,7 +73,7 @@
     text-transform: uppercase;
 }
 
-.subtitulo {
+.descripcion_corta {
     font-size: 0.95rem;
     color: var(--texto-suave);
     margin: 0 0 20px;

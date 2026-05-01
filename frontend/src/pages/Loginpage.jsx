@@ -83,7 +83,7 @@ const LoginPage = () => {
                         />
                     </div>
                     <h1 className={s.titulo}>SUTUS</h1>
-                    <p className={s.subtitulo}>Sistema de Anuncios</p>
+                    <p className={s.descripcion_corta}>Sistema de Anuncios</p>
                     <span className={s.divider} />
                 </header>
 

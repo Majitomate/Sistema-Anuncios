@@ -18,7 +18,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 const archivos = upload.fields([
-  { name: 'imagen', maxCount: 1 },
+  { name: 'imagen', maxCount: 5 },
   { name: 'documento', maxCount: 1 },
 ]);
 
@@ -31,7 +31,7 @@ const archivos = upload.fields([
 router.get('/kiosco', listarKiosco);
 
 // Descargar imagen / documento (Usualmente público para que funcione en etiquetas <img> o <iframe>)
-router.get('/:id/imagen', descargarImagen);
+router.get('/imagenes/:idImagen', descargarImagen);
 router.get('/:id/documento', descargarDocumento);
 
 

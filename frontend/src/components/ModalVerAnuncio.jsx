@@ -117,8 +117,8 @@ const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
         <div className={s.modalCuerpo}>
 
           {/* Subtítulo */}
-          {anuncio.subtitulo && (
-            <p className={s.modalSubtitulo}>{anuncio.subtitulo}</p>
+          {anuncio.descripcion_corta && (
+            <p className={s.modaldescripcion_corta}>{anuncio.descripcion_corta}</p>
           )}
 
           {/* Badges */}

@@ -4,11 +4,15 @@ import {
   editarAnuncio,
   obtenerAnuncioPorId,
   eliminarAnuncio,
+<<<<<<< Updated upstream
   obtenerAnunciosKiosco, // <-- ¡Nuevo método que deberás agregar a tu modelo!
   obtenerArchivosAnuncio,
+=======
+  obtenerAnunciosKiosco,
+>>>>>>> Stashed changes
 } from '../models/anuncios.model.js';
 
-// Obtener todos los anuncios (Para el Dashboard - Protegido)
+// Obtener todos los anuncios
 export const listar = async (req, res) => {
   try {
     const anuncios = await obtenerAnuncios();
@@ -19,7 +23,7 @@ export const listar = async (req, res) => {
   }
 };
 
-// Obtener anuncios activos y ordenados (Para la Vista Kiosco - Público)
+// Obtener anuncios activos y ordenados
 export const listarKiosco = async (req, res) => {
   try {
     const anuncios = await obtenerAnunciosKiosco();
@@ -34,10 +38,10 @@ export const listarKiosco = async (req, res) => {
 export const crear = async (req, res) => {
   try {
     const datos = req.body;
-    const imagen = req.files?.imagen?.[0];
+    const imagenes = req.files?.imagen || [];
     const documento = req.files?.documento?.[0];
 
-    const anuncio = await crearAnuncio(datos, imagen, documento);
+    const anuncio = await crearAnuncio(datos, imagenes, documento);
     return res.status(201).json(anuncio);
   } catch (error) {
     console.error(error);
@@ -67,10 +71,10 @@ export const actualizar = async (req, res) => {
   try {
     const { id } = req.params;
     const datos = req.body;
-    const imagen = req.files?.imagen?.[0];
+    const imagenes = req.files?.imagen || [];
     const documento = req.files?.documento?.[0];
 
-    const anuncio = await editarAnuncio(id, datos, imagen, documento);
+    const anuncio = await editarAnuncio(id, datos, imagenes, documento);
     
     if (!anuncio) {
       return res.status(404).json({ error: 'Anuncio no encontrado' });
@@ -86,6 +90,7 @@ export const actualizar = async (req, res) => {
 // Descargar imagen
 export const descargarImagen = async (req, res) => {
   try {
+<<<<<<< Updated upstream
     const { id } = req.params;
     const archivos = await obtenerArchivosAnuncio(id);
     
@@ -101,6 +106,22 @@ export const descargarImagen = async (req, res) => {
   } catch (error) {
     console.error('[Error descargarImagen]:', error);
     return res.status(500).json({ error: 'Error interno descargando imagen' });
+=======
+    const { idImagen } = req.params; // ¡Ojo! Ahora recibimos el ID de la imagen, no del anuncio
+    
+    // Importa obtenerImagenPorId de tu modelo si no lo has hecho arriba
+    const archivo = await obtenerImagenPorId(idImagen); 
+    
+    if (!archivo || !archivo.imagen) {
+      return res.status(404).json({ error: 'Imagen no encontrada en la galería' });
+    }
+    
+    res.set('Content-Type', archivo.imagen_tipo || 'image/jpeg');
+    res.send(archivo.imagen);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error descargando imagen de la galería' });
+>>>>>>> Stashed changes
   }
 };
 

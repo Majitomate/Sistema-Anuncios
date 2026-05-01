@@ -15,7 +15,7 @@ const reglasBase = [
     .notEmpty().withMessage('El título es obligatorio')
     .isLength({ max: 150 }).withMessage('El título no puede exceder 150 caracteres'),
 
-  check('subtitulo')
+  check('descripcion_corta')
     .notEmpty().withMessage('El subtítulo es obligatorio')
     .isLength({ max: 150 }).withMessage('El subtítulo no puede exceder 150 caracteres'),
 
