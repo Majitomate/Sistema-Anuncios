@@ -4,12 +4,8 @@ import {
   editarAnuncio,
   obtenerAnuncioPorId,
   eliminarAnuncio,
-<<<<<<< Updated upstream
-  obtenerAnunciosKiosco, // <-- ¡Nuevo método que deberás agregar a tu modelo!
-  obtenerArchivosAnuncio,
-=======
   obtenerAnunciosKiosco,
->>>>>>> Stashed changes
+  obtenerArchivosAnuncio,
 } from '../models/anuncios.model.js';
 
 // Obtener todos los anuncios
@@ -90,38 +86,21 @@ export const actualizar = async (req, res) => {
 // Descargar imagen
 export const descargarImagen = async (req, res) => {
   try {
-<<<<<<< Updated upstream
     const { id } = req.params;
     const archivos = await obtenerArchivosAnuncio(id);
-    
+
     if (!archivos || !archivos.imagen) {
       return res.status(404).json({ error: 'Imagen no encontrada' });
     }
-    
+
     res.set({
       'Content-Type': archivos.imagen_tipo || 'image/jpeg',
-      'Cache-Control': 'public, max-age=86400', 
+      'Cache-Control': 'public, max-age=86400',
     });
     return res.send(archivos.imagen);
   } catch (error) {
     console.error('[Error descargarImagen]:', error);
     return res.status(500).json({ error: 'Error interno descargando imagen' });
-=======
-    const { idImagen } = req.params; // ¡Ojo! Ahora recibimos el ID de la imagen, no del anuncio
-    
-    // Importa obtenerImagenPorId de tu modelo si no lo has hecho arriba
-    const archivo = await obtenerImagenPorId(idImagen); 
-    
-    if (!archivo || !archivo.imagen) {
-      return res.status(404).json({ error: 'Imagen no encontrada en la galería' });
-    }
-    
-    res.set('Content-Type', archivo.imagen_tipo || 'image/jpeg');
-    res.send(archivo.imagen);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Error descargando imagen de la galería' });
->>>>>>> Stashed changes
   }
 };
 
