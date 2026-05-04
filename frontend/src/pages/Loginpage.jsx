@@ -8,7 +8,8 @@ import s from '../styles/LoginPage.module.css';
 const rutaPorRol = (rol) =>
     rol === 'visualizador' ? '/display' : '/dashboard';
 
-const LoginPage = () => {
+// Corregimos el nombre aquí (le faltaba la 's' al final)
+const LoginPage = ({ onLoginSuccess }) => {
     const navigate           = useNavigate();
     const { login, loading } = useAuth();
 
@@ -42,6 +43,10 @@ const LoginPage = () => {
 
         try {
             const rol = await login(email.trim(), password);
+            if (onLoginSuccess) {
+                onLoginSuccess();
+            }
+
             navigate(rutaPorRol(rol), { replace: true });
         } catch (err) {
             Swal.fire({
