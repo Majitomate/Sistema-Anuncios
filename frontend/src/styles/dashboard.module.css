@@ -914,78 +914,6 @@
   gap: 8px;
 }
 
-
-@media (max-width: 1024px) {
-  .mainContent { padding: 20px 20px 40px; }
-  .announcementsGrid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .carouselContent { padding: 32px 60px 0; }
-  .announcementsTableContainer { overflow-x: auto; }
-  .announcementsTable { min-width: 640px; }
-}
-
-@media (max-width: 768px) {
-  .navbar { padding: 0 16px; height: 56px; }
-  .navbarTitle { font-size: 13px; }
-  .navbarActions { gap: 6px; }
-  .navbarActionButton { padding: 0 12px; font-size: 12.5px; height: 34px; }
-  .switchBtn { padding: 5px 10px; font-size: 11.5px; }
-  .mainContent { padding: 16px 16px 36px; }
-  .dashboardHeader { gap: 10px; margin-bottom: 16px; }
-  .metricCard { min-width: calc(50% - 5px); flex: 0 0 calc(50% - 5px); }
-  .metricValue { font-size: 24px; }
-  .carouselContainer { min-height: 180px; }
-  .carouselContent { padding: 24px 52px 0; }
-  .carouselText h2 { font-size: 20px; }
-  .carouselNavBtnAnt { left: 10px; }
-  .carouselNavBtnSig { right: 10px; }
-  .announcementsGrid { grid-template-columns: 1fr; gap: 12px; }
-  .announcementsTableContainer { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .announcementsTable { min-width: 580px; }
-  .editButton, .deleteButton, .viewDocButton { padding: 4px 8px; font-size: 11.5px; }
-}
-
-@media (max-width: 480px) {
-  .navbar { padding: 0 12px; height: 52px; }
-  .navbarTitle { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
-  .viewSwitcher { display: none; }
-  .navbarActionButton { padding: 0 10px; font-size: 12px; height: 32px; }
-  .mainContent { padding: 12px 12px 32px; }
-  .dashboardHeader { gap: 8px; margin-bottom: 16px; }
-  .metricCard { min-width: calc(50% - 4px); flex: 0 0 calc(50% - 4px); }
-  .metricContent { padding: 10px 12px; }
-  .metricIcon { width: 20px; height: 20px; margin-bottom: 3px; }
-  .metricIcon svg { width: 10px; height: 10px; }
-  .metricLabel { font-size: 9.5px; letter-spacing: 0.5px; }
-  .metricValue { font-size: 22px; }
-  .carouselContainer { min-height: 160px; border-radius: 12px; margin-bottom: 16px; }
-  .carouselContent { padding: 20px 44px 0; }
-  .carouselText h2 { font-size: 17px; }
-  .carouselText p { font-size: 12px; }
-  .previsualizacionLabel { font-size: 8.5px; padding: 3px 10px; }
-  .carouselNavBtnAnt, .carouselNavBtnSig { width: 30px; height: 30px; font-size: 16px; }
-  .carouselNavBtnAnt { left: 6px; }
-  .carouselNavBtnSig { right: 6px; }
-  .carouselImageArea { max-width: 100%; height: 80px; }
-  .announcementsGrid { gap: 10px; }
-  .cardThumbnail { height: 130px; }
-  .cardBody { padding: 10px 12px 12px; }
-  .announcementCard h3 { font-size: 13.5px; }
-  .acciones { gap: 3px; }
-  .editButton, .deleteButton, .viewDocButton { padding: 4px 7px; font-size: 11px; }
-  .announcementsTable { min-width: 520px; }
-  .listaTitle { font-size: 13px; padding: 14px 14px 12px; }
-  .emptyState { padding: 40px 16px; }
-  .emptyStateIcon { width: 48px; height: 48px; }
-}
-
-@media (max-width: 360px) {
-  .navbarTitle { max-width: 110px; }
-  .metricCard { min-width: 100%; flex: 0 0 100%; }
-  .announcementsGrid { grid-template-columns: 1fr; }
-  .carouselText h2 { font-size: 15px; }
-}
-/* ── Agregar al final de dashboard.module.css ──────────────────────────── */
-
 .navbarUsuarioWrap {
   display: flex;
   align-items: center;
@@ -1002,6 +930,34 @@
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.8);
   white-space: nowrap;
+}
+
+/* ─── Botón Kiosco (navbar) ─── */
+.botonKiosco {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: rgba(255, 98, 36, 0.18);
+  border: 1px solid rgba(255, 98, 36, 0.45);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--t), border-color var(--t), transform var(--t);
+  white-space: nowrap;
+}
+
+.botonKiosco:hover {
+  background: rgba(255, 98, 36, 0.35);
+  border-color: rgba(255, 98, 36, 0.70);
+  transform: translateY(-1px);
+}
+
+.botonKiosco:active {
+  transform: translateY(0);
 }
 
 .botonSalir {
@@ -1022,4 +978,143 @@
 
 .botonSalir:hover {
   background: rgba(255, 255, 255, 0.22);
+}
+
+
+/* ─── Responsive (Optimizado) ─── */
+@media (max-width: 1024px) {
+  .dashboardContainer { padding: 24px; }
+  .carouselOverlay { padding: 30px; }
+  .carouselText h2 { font-size: 26px; }
+  .carouselText p { font-size: 14px; }
+  .announcementsGrid {
+    /* Mantenemos el grid fluido, solo reducimos el mínimo de la tarjeta */
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar { 
+    padding: 0 16px; 
+    height: 60px;
+  }
+  .navbarTitle { font-size: 18px; }
+  
+  .dashboardContainer { padding: 16px; gap: 16px; }
+  .headerActions { flex-direction: column; align-items: stretch; gap: 12px; }
+  
+  /* Scroll horizontal suave en móviles para métricas y pestañas */
+  .statsBar, .contentTabs { 
+    padding-bottom: 4px; 
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+  }
+  
+  .carouselSection { height: 200px; border-radius: 12px; }
+  .carouselText h2 { font-size: 22px; }
+  
+  .contentHeader { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .viewOptions { align-self: flex-end; }
+  
+  .tableContainer {
+    border-radius: var(--radio);
+    /* Aseguramos que la tabla no rompa el diseño */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .emptyState { padding: 60px 20px; }
+}
+
+@media (max-width: 480px) {
+  .dashboardContainer { padding: 12px; gap: 12px; }
+  .navbarTitle { display: none; /* Ocultamos la palabra SUTUS para dar espacio al usuario */ }
+  .navbarLogo { width: 32px; height: 32px; }
+  
+  /* Ocultamos el rol en pantallas muy pequeñas para no amontonar */
+  .navbarRol { display: none; }
+  .navbarUsuarioNombre { font-size: 12px; }
+  
+  .btnCrear { width: 100%; justify-content: center; }
+  .statsBar { gap: 10px; }
+  .metricCard { 
+    min-width: 140px; 
+    padding: 12px; 
+  }
+  .metricValue { font-size: 20px; }
+  
+  .contentTabs { gap: 8px; }
+  .tabButton { padding: 6px 12px; font-size: 12.5px; }
+  
+  .announcementsGrid { 
+    grid-template-columns: 1fr; /* Una sola columna en celulares */
+    gap: 12px; 
+  }
+  
+  .cardThumbnail { height: 140px; }
+  .cardBody { padding: 12px; }
+  .announcementCard h3 { font-size: 14px; }
+  
+  .acciones { gap: 4px; flex-wrap: wrap; }
+  .editButton, .deleteButton, .viewDocButton { 
+    flex: 1; /* Botones más anchos para que sean fáciles de tocar */
+    text-align: center;
+    justify-content: center;
+    padding: 6px 8px; 
+  }
+  
+  .listaTitle { font-size: 14px; padding: 12px; }
+  .emptyState { padding: 40px 16px; }
+  .emptyStateIcon { width: 40px; height: 40px; }
+}
+
+@media (max-width: 360px) {
+  /* Ocultamos totalmente el nombre del usuario si la pantalla es enana, dejamos solo el botón de salir */
+  .navbarUsuarioNombre { display: none; }
+  
+  .metricCard { 
+    min-width: 100%; /* La tarjeta ocupa el 100% del ancho */
+    flex: 0 0 100%; 
+  }
+  .carouselText h2 { font-size: 18px; }
+}
+
+/* ─── Ajustes Navbar Responsiva ─── */
+.navbarActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.textoMovilOculto {
+  display: inline;
+  margin-left: 4px; /* Separación entre el icono y el texto */
+}
+
+/* En celulares ocultamos los textos y ajustamos márgenes */
+@media (max-width: 768px) {
+  .textoMovilOculto {
+    display: none;
+  }
+  
+  .navbarActions {
+    gap: 6px; /* Juntamos más los botones */
+  }
+
+  /* Hacemos los botones más cuadraditos al quitar el texto */
+  .navbarActionButton, 
+  .switchBtn, 
+  .botonKiosco, 
+  .botonSalir {
+    padding: 6px 10px;
+    justify-content: center;
+  }
+
+  .viewSwitcher {
+    display: none;
+  }
+
+  .navbarUsuarioNombre {
+    display: none; /* Ocultamos el icono de usuario si no hay espacio */
+  }
 }

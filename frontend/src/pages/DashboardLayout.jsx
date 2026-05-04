@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import Encabezado from '../components/Encabezado.jsx';
 import CuadriculaTarjetas from '../components/CuadriculaTarjetas.jsx';
@@ -20,15 +20,32 @@ const bufferToUrl = (bufferObj, mimeType) => {
 
 const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => {
   const { removeAnuncio, updateAnuncio } = useAnuncios();
-
   const puedeEditar = rolUsuario === 'admin' || rolUsuario === 'editor' || rolUsuario === 'revisor';
 
   const [vista,             setVista]             = useState(null);
-  const [anuncioAEditar,    setAnuncioAEditar]     = useState(null);
-  const [anuncioVer,        setAnuncioVer]         = useState(null);
-  const [vistaActual,       setVistaActual]        = useState('cuadricula');
-  const [indiceCarrusel,    setIndiceCarrusel]     = useState(0);
-  const [documentoAbierto,  setDocumentoAbierto]   = useState(null);
+  const [anuncioAEditar,    setAnuncioAEditar]    = useState(null);
+  const [anuncioVer,        setAnuncioVer]        = useState(null);
+  const [vistaActual,       setVistaActual]       = useState('cuadricula');
+  const [indiceCarrusel,    setIndiceCarrusel]    = useState(0);
+  const [documentoAbierto,  setDocumentoAbierto]  = useState(null);
+
+  // 👇 AQUÍ ESTÁ LA MAGIA PARA CELULARES Y EL TÍTULO 👇
+  useEffect(() => {
+    document.title = 'Panel de Control — SUTUS'; 
+
+    const revisarPantalla = () => {
+      // Si la pantalla es de celular o tablet pequeña (768px o menos)
+      if (window.innerWidth <= 768) {
+        setVistaActual('cuadricula');
+      }
+    };
+
+    revisarPantalla();
+
+    window.addEventListener('resize', revisarPantalla);
+    return () => window.removeEventListener('resize', revisarPantalla);
+  }, []);
+
 
   const obtenerUrlImagen = useCallback((anuncio) => {
     if (anuncio.imagenes && anuncio.imagenes.length > 0) {
