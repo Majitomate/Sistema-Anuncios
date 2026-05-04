@@ -28,6 +28,7 @@ const KioscoDetalle = () => {
     const [error,         setError]         = useState(null);
     const [lightboxImg,   setLightboxImg]   = useState(false);
     const [visorDoc,      setVisorDoc]      = useState(false);
+    const [indiceImagen,  setIndiceImagen]  = useState(0);
 
     useEffect(() => {
         const cargar = async () => {
@@ -77,16 +78,17 @@ const KioscoDetalle = () => {
         </div>
     );
 
-    const imagenUrl    = anuncio.imagen_tipo    ? `${API}/anuncios/${anuncio.id}/imagen`    : null;
-    const documentoUrl = anuncio.documento_tipo ? `${API}/anuncios/${anuncio.id}/documento` : null;
-    const fechaInicio  = formatFechaLarga(anuncio.fecha_inicio);
-    const fechaFin     = formatFechaLarga(anuncio.fecha_fin);
+    const imagenesUrls = anuncio?.imagenes ? anuncio.imagenes.map(img => `${API}/anuncios/imagen/${img.id}`) : [];
+    const documentoUrl = anuncio?.documento_tipo ? `${API}/anuncios/${anuncio.id}/documento` : null;
+    const fechaInicio  = formatFechaLarga(anuncio?.fecha_inicio);
+    const fechaFin     = formatFechaLarga(anuncio?.fecha_fin);
+    const imagenActual = imagenesUrls[indiceImagen];
 
     return (
         <div className={s.pantalla}>
 
             {/* ── Lightbox imagen ── */}
-            {lightboxImg && imagenUrl && (
+            {lightboxImg && imagenActual && (
                 <div className={s.lightboxOverlay} onClick={() => setLightboxImg(false)}>
                     <button type="button" className={s.lightboxCerrar} onClick={() => setLightboxImg(false)}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -94,7 +96,7 @@ const KioscoDetalle = () => {
                         </svg>
                     </button>
                     <img
-                        src={imagenUrl}
+                        src={imagenActual}
                         alt={anuncio.titulo}
                         className={s.lightboxImg}
                         onClick={(e) => e.stopPropagation()}
@@ -128,8 +130,8 @@ const KioscoDetalle = () => {
 
             {/* ── Panel izquierdo ── */}
             <aside className={s.panelIzq}>
-                {imagenUrl && (
-                    <div className={s.imagenFondo} style={{ backgroundImage: `url(${imagenUrl})` }} />
+                {imagenActual && (
+                    <div className={s.imagenFondo} style={{ backgroundImage: `url(${imagenActual})` }} />
                 )}
                 <div className={s.imagenOverlay} />
 
@@ -190,7 +192,7 @@ const KioscoDetalle = () => {
                     <p>{anuncio.contenido}</p>
                 </div>
 
-                {(imagenUrl || documentoUrl) && (
+                {(imagenActual || documentoUrl) && (
                     <section className={s.archivos}>
                         <h3 className={s.archivosTitulo}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -203,14 +205,14 @@ const KioscoDetalle = () => {
                         <div className={s.archivosGrid}>
 
                             {/* ── Imagen con lightbox ── */}
-                            {imagenUrl && (
+                            {imagenActual && (
                                 <button
                                     type="button"
                                     className={s.imagenThumb}
                                     onClick={() => setLightboxImg(true)}
                                     title="Clic para ampliar"
                                 >
-                                    <img src={imagenUrl} alt={anuncio.titulo} />
+                                    <img src={imagenActual} alt={anuncio.titulo} />
                                     <div className={s.imagenThumbOverlay}>
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
                                             <circle cx="11" cy="11" r="8"/>
@@ -221,6 +223,29 @@ const KioscoDetalle = () => {
                                         Ampliar
                                     </div>
                                 </button>
+                            )}
+
+                            {/* ── Navegación de imágenes ── */}
+                            {imagenesUrls.length > 1 && (
+                                <div className={s.imagenNavegacion}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIndiceImagen((i) => (i - 1 + imagenesUrls.length) % imagenesUrls.length)}
+                                        className={s.navBoton}
+                                    >
+                                        ‹ Anterior
+                                    </button>
+                                    <span className={s.navIndicador}>
+                                        {indiceImagen + 1} de {imagenesUrls.length}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIndiceImagen((i) => (i + 1) % imagenesUrls.length)}
+                                        className={s.navBoton}
+                                    >
+                                        Siguiente ›
+                                    </button>
+                                </div>
                             )}
 
                             {/* ── Documento con preview + visor ── */}

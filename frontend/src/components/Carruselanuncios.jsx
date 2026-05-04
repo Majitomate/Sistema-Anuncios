@@ -15,7 +15,7 @@ const CarruselAnuncios = ({
     return (
         <section
             className={styles.carouselContainer}
-            style={item.imagen_tipo ? { backgroundImage: `url(${obtenerUrlImagen(item)})` } : undefined}
+            style={item.imagenes && item.imagenes.length > 0 ? { backgroundImage: `url(${obtenerUrlImagen(item)})` } : undefined}
         >
             <button className={styles.carouselNavBtnAnt} onClick={onAnterior}>‹</button>
 
@@ -27,7 +27,7 @@ const CarruselAnuncios = ({
                         <p>{item.descripcion_corta}</p>
                     </div>
                     <div className={styles.carouselImageArea}>
-                        {item.imagen_tipo ? (
+                        {item.imagenes && item.imagenes.length > 0 ? (
                             <img
                                 src={obtenerUrlImagen(item)}
                                 alt={item.titulo}

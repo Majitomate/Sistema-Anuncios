@@ -6,6 +6,7 @@ import {
   eliminarAnuncio,
   obtenerAnunciosKiosco,
   obtenerArchivosAnuncio,
+  obtenerImagenPorId,
 } from '../models/anuncios.model.js';
 
 // Obtener todos los anuncios
@@ -83,23 +84,52 @@ export const actualizar = async (req, res) => {
   }
 };
 
-// Descargar imagen
+// Descargar imagen (primera imagen del anuncio)
 export const descargarImagen = async (req, res) => {
   try {
     const { id } = req.params;
     const archivos = await obtenerArchivosAnuncio(id);
 
-    if (!archivos || !archivos.imagen) {
+    if (!archivos || !archivos.imagenes_ids || archivos.imagenes_ids.length === 0) {
+      return res.status(404).json({ error: 'Imagen no encontrada' });
+    }
+
+    // Obtener la primera imagen
+    const primeraImagenId = archivos.imagenes_ids[0];
+    const archivo = await obtenerImagenPorId(primeraImagenId);
+
+    if (!archivo || !archivo.imagen) {
       return res.status(404).json({ error: 'Imagen no encontrada' });
     }
 
     res.set({
-      'Content-Type': archivos.imagen_tipo || 'image/jpeg',
+      'Content-Type': archivo.imagen_tipo || 'image/jpeg',
       'Cache-Control': 'public, max-age=86400',
     });
-    return res.send(archivos.imagen);
+    return res.send(archivo.imagen);
   } catch (error) {
     console.error('[Error descargarImagen]:', error);
+    return res.status(500).json({ error: 'Error interno descargando imagen' });
+  }
+};
+
+// Descargar imagen específica por ID de imagen
+export const descargarImagenEspecifica = async (req, res) => {
+  try {
+    const { idImagen } = req.params;
+    const archivo = await obtenerImagenPorId(idImagen);
+
+    if (!archivo || !archivo.imagen) {
+      return res.status(404).json({ error: 'Imagen no encontrada' });
+    }
+
+    res.set({
+      'Content-Type': archivo.imagen_tipo || 'image/jpeg',
+      'Cache-Control': 'public, max-age=86400',
+    });
+    return res.send(archivo.imagen);
+  } catch (error) {
+    console.error('[Error descargarImagenEspecifica]:', error);
     return res.status(500).json({ error: 'Error interno descargando imagen' });
   }
 };

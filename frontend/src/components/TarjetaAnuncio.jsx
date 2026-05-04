@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styles from '../styles/dashboard.module.css';
-import { obtenerAnuncioPorId } from '../services/anuncios.services';
+import { useAnuncioDetalle } from '../hooks/useAnuncioDetalle';
 
 const PRIORIDAD_ESTILOS = {
   1: { bg: 'rgba(56,142,60,0.09)',  color: '#388e3c', border: 'rgba(56,142,60,0.3)',  label: 'Baja'    },
@@ -8,41 +8,22 @@ const PRIORIDAD_ESTILOS = {
   3: { bg: 'rgba(183,28,28,0.09)', color: '#b71c1c', border: 'rgba(183,28,28,0.3)', label: 'Alta' },
 };
 
-const bufferToUrl = (bufferObj, mimeType) => {
-  if (!bufferObj || !bufferObj.data) return null;
-  const bytes = new Uint8Array(bufferObj.data);
-  const blob = new Blob([bytes], { type: mimeType });
-  return URL.createObjectURL(blob);
-};
-
-const TarjetaAnuncio = ({ id, titulo, tipo, descripcion_corta, prioridad, estado, onEditar, onEliminar, onAbrirDocumento, puedeEditar }) => {
+const TarjetaAnuncio = ({ id, titulo, tipo, id_imagen_principal, prioridad, estado, onEditar, onEliminar, onAbrirDocumento, puedeEditar }) => {
   const estilo = PRIORIDAD_ESTILOS[prioridad] ?? PRIORIDAD_ESTILOS[2];
-  const [archivos, setArchivos] = useState({ imagenUrl: null, documentoUrl: null });
+  const { anuncio, loading } = useAnuncioDetalle(id);
 
-  useEffect(() => {
-    const cargarArchivos = async () => {
-      try {
-        const data = await obtenerAnuncioPorId(id);
-        setArchivos({
-          imagenUrl: data.imagen ? bufferToUrl(data.imagen, data.imagen_tipo) : null,
-          documentoUrl: data.documento ? bufferToUrl(data.documento, data.documento_tipo) : null,
-        });
-      } catch (error) {
-        console.error(`Error al cargar archivos del anuncio ${id}:`, error);
-      }
-    };
-    cargarArchivos();
-  }, [id]);
+  const imagenUrl = anuncio?.imagenes && anuncio.imagenes.length > 0 ? `http://localhost:3001/anuncios/imagen/${anuncio.imagenes[0].id}` : null;
+  const documentoUrl = anuncio?.tiene_documento ? `http://localhost:3001/anuncios/${anuncio.id}/documento` : null;
 
   return (
     <div className={styles.announcementCard}>
 
-      <div className={`${styles.cardThumbnail} ${archivos.imagenUrl ? styles.thumbnailWithImage : ''}`} style={archivos.imagenUrl ? { backgroundImage: `url(${archivos.imagenUrl})` } : {}}>
+      <div className={`${styles.cardThumbnail} ${imagenUrl ? styles.thumbnailWithImage : ''}`} style={imagenUrl ? { backgroundImage: `url(${imagenUrl})` } : {}}>
         <span className={`${styles.status} ${estado ? styles.activo : styles.inactivo}`}>
           {estado ? 'Activo' : 'Inactivo'}
         </span>
         <div className={styles.cardThumbnailGradient} />
-        {archivos.imagenUrl ? (
+        {imagenUrl ? (
           <span className={styles.cardThumbnailTitle}>{titulo}</span>
         ) : (
           <div className={styles.cardThumbnailEmpty}>
@@ -58,7 +39,6 @@ const TarjetaAnuncio = ({ id, titulo, tipo, descripcion_corta, prioridad, estado
       <div className={styles.cardBody}>
         <span className={styles.categoria}>{tipo}</span>
         <h3>{titulo}</h3>
-        <p className={styles.descripcion}>{descripcion_corta}</p>
 
         <div className={styles.cardFooter}>
           <span className={styles.prioridad} style={{ backgroundColor: estilo.bg, color: estilo.color, borderColor: estilo.border }}>
@@ -66,8 +46,8 @@ const TarjetaAnuncio = ({ id, titulo, tipo, descripcion_corta, prioridad, estado
           </span>
 
           <div className={styles.acciones}>
-            {archivos.documentoUrl && (
-              <button type="button" className={`${styles.editButton} ${styles.viewDocButton}`} onClick={() => onAbrirDocumento?.(archivos.documentoUrl)}>
+            {documentoUrl && (
+              <button type="button" className={`${styles.editButton} ${styles.viewDocButton}`} onClick={() => onAbrirDocumento?.(documentoUrl)}>
                 📄 Ver Doc
               </button>
             )}

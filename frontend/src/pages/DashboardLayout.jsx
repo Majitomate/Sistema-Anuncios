@@ -31,8 +31,10 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
   const [documentoAbierto,  setDocumentoAbierto]   = useState(null);
 
   const obtenerUrlImagen = useCallback((anuncio) => {
-    if (anuncio.imagen?.data) return bufferToUrl(anuncio.imagen, anuncio.imagen_tipo);
-    return `http://localhost:3001/anuncios/${anuncio.id}/imagen`;
+    if (anuncio.imagenes && anuncio.imagenes.length > 0) {
+      return `http://localhost:3001/anuncios/imagen/${anuncio.imagenes[0].id}`;
+    }
+    return null;
   }, []);
 
   const handleCerrar    = useCallback(() => { setVista(null); setAnuncioAEditar(null); }, []);

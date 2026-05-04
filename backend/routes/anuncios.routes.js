@@ -8,6 +8,7 @@ import {
   crear,
   obtenerPorId,
   descargarImagen,
+  descargarImagenEspecifica,
   descargarDocumento,
   actualizar,
   eliminar,
@@ -31,7 +32,8 @@ const archivos = upload.fields([
 router.get('/kiosco', listarKiosco);
 
 // Descargar imagen / documento (Usualmente público para que funcione en etiquetas <img> o <iframe>)
-router.get('/imagenes/:idImagen', descargarImagen);
+router.get('/:id/imagen', descargarImagen);
+router.get('/imagen/:idImagen', descargarImagenEspecifica);
 router.get('/:id/documento', descargarDocumento);
 
 

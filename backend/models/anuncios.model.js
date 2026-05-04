@@ -54,19 +54,27 @@ export const crearAnuncio = async (datos, imagenes, documento) => {
 // Obtener anuncio por id (ahora devuelve la lista de IDs de sus imágenes)
 export const obtenerAnuncioPorId = async (id) => {
   const query = `
-    SELECT 
-      id, titulo, subtitulo, contenido, tipo,
-      imagen_tipo, documento_tipo,
+    SELECT
+      id, titulo, descripcion_corta, contenido, tipo,
+      documento_tipo,
       estado, es_permanente,
       fecha_inicio, fecha_fin, prioridad,
       fecha_creacion, fecha_actualizacion,
-      CASE WHEN imagen IS NOT NULL THEN true ELSE false END AS tiene_imagen,
       CASE WHEN documento IS NOT NULL THEN true ELSE false END AS tiene_documento
-    FROM anuncios 
+    FROM anuncios
     WHERE id = $1;
   `;
   const result = await pool.query(query, [id]);
-  return result.rows[0];
+  const anuncio = result.rows[0];
+
+  if (anuncio) {
+    // Obtener las imágenes asociadas
+    const imgQuery = 'SELECT id, imagen_tipo FROM anuncios_imagenes WHERE anuncio_id = $1 ORDER BY id';
+    const imgResult = await pool.query(imgQuery, [id]);
+    anuncio.imagenes = imgResult.rows.map(row => ({ id: row.id, tipo: row.imagen_tipo }));
+  }
+
+  return anuncio;
 };
 
 export const obtenerArchivosAnuncio = async (id) => {
@@ -96,11 +104,19 @@ export const obtenerAnuncios = async () => {
       id, titulo, descripcion_corta, contenido, tipo,
       documento_tipo, estado, es_permanente,
       fecha_inicio, fecha_fin, prioridad,
-      fecha_creacion, fecha_actualizacion,
-      (SELECT id FROM anuncios_imagenes WHERE anuncio_id = anuncios.id LIMIT 1) as id_imagen_principal
+      fecha_creacion, fecha_actualizacion
     FROM anuncios ORDER BY id DESC;
   `);
-  return result.rows;
+
+  const anuncios = result.rows;
+
+  // Para cada anuncio, obtener sus imágenes
+  for (const anuncio of anuncios) {
+    const imgResult = await pool.query('SELECT id, imagen_tipo FROM anuncios_imagenes WHERE anuncio_id = $1 ORDER BY id', [anuncio.id]);
+    anuncio.imagenes = imgResult.rows.map(row => ({ id: row.id, tipo: row.imagen_tipo }));
+  }
+
+  return anuncios;
 };
 
 // Obtener anuncios Kiosco - Quitamos imagen_tipo
@@ -109,13 +125,21 @@ export const obtenerAnunciosKiosco = async () => {
     SELECT
       id, titulo, descripcion_corta, contenido, tipo,
       documento_tipo, estado, es_permanente,
-      fecha_inicio, fecha_fin, prioridad,
-      (SELECT id FROM anuncios_imagenes WHERE anuncio_id = anuncios.id LIMIT 1) as id_imagen_principal
+      fecha_inicio, fecha_fin, prioridad
     FROM anuncios
     WHERE estado = true AND (es_permanente = true OR (CURRENT_DATE >= fecha_inicio AND (fecha_fin IS NULL OR CURRENT_DATE <= fecha_fin)))
     ORDER BY prioridad DESC, fecha_inicio ASC;
   `);
-  return result.rows;
+
+  const anuncios = result.rows;
+
+  // Para cada anuncio, obtener sus imágenes
+  for (const anuncio of anuncios) {
+    const imgResult = await pool.query('SELECT id, imagen_tipo FROM anuncios_imagenes WHERE anuncio_id = $1 ORDER BY id', [anuncio.id]);
+    anuncio.imagenes = imgResult.rows.map(row => ({ id: row.id, tipo: row.imagen_tipo }));
+  }
+
+  return anuncios;
 };
 
 // Eliminar anuncio (Al tener "ON DELETE CASCADE" en tu SQL, borrará las fotos automáticamente)

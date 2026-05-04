@@ -81,7 +81,7 @@ const KioscoLista = () => {
 
     // ── Datos del slide actual ───────────────────────────────────────────────
     const actual    = anuncios[indice];
-    const imagenUrl = actual?.imagen_tipo ? `${API}/anuncios/${actual.id}/imagen` : null;
+    const imagenUrl = actual?.imagenes && actual.imagenes.length > 0 ? `${API}/anuncios/imagen/${actual.imagenes[0].id}` : null;
     const prioConf  = actual ? (PRIO_CONFIG[actual.prioridad] ?? PRIO_CONFIG[1]) : null;
 
     // Todos los demás anuncios activos excepto el actual
