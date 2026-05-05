@@ -78,15 +78,14 @@ export const obtenerAnuncioPorId = async (id) => {
 };
 
 export const obtenerArchivosAnuncio = async (id) => {
-  const query = 'SELECT imagen, imagen_tipo, documento, documento_tipo FROM anuncios WHERE id = $1;';
+  const query = 'SELECT documento, documento_tipo FROM anuncios WHERE id = $1;';
+  
   const result = await pool.query(query, [id]);
   const anuncio = result.rows[0];
 
   if (anuncio) {
-    // Buscamos qué imágenes le pertenecen a este anuncio
     const imgResult = await pool.query('SELECT id FROM anuncios_imagenes WHERE anuncio_id = $1', [id]);
-    // Agregamos un arreglo solo con los IDs, ej: [1, 2, 3]
-    anuncio.imagenes_ids = imgResult.rows.map(row => row.id); 
+    anuncio.imagenes_ids = imgResult.rows.map(row => row.id);
   }
   return anuncio;
 };
