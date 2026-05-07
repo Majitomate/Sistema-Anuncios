@@ -16,12 +16,16 @@ import {
 
 const router = express.Router();
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 } 
+});
 
 const archivos = upload.fields([
   { name: 'imagen', maxCount: 5 },
   { name: 'documento', maxCount: 1 },
 ]);
+
 
 // ==========================================
 // RUTAS PÚBLICAS (No requieren token)

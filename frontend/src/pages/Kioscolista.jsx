@@ -7,8 +7,8 @@ const API = 'http://localhost:3001';
 
 const PRIO_CONFIG = {
     3: { label: 'URGENTE', clase: 'badgeUrgente' },
-    2: { label: 'ALTA',    clase: 'badgeAlta'    },
-    1: { label: null,      clase: null            },
+    2: { label: 'ALTA', clase: 'badgeAlta' },
+    1: { label: null, clase: null },
 };
 
 const formatFechaCorta = (ts) => {
@@ -19,14 +19,15 @@ const formatFechaCorta = (ts) => {
 };
 
 const KioscoLista = () => {
-    const navigate   = useNavigate();
+    const navigate = useNavigate();
 
 
     const [anuncios, setAnuncios] = useState([]);
-    const [loading, setLoading]   = useState(true);
-    const [error, setError]       = useState(null);
-    const [indice, setIndice]     = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [indice, setIndice] = useState(0);
     const [animando, setAnimando] = useState(false);
+    const [pausado, setPausado] = useState(false);
     const timerRef = useRef(null);
 
     // ── Fetch ────────────────────────────────────────────────────────────────
@@ -34,9 +35,9 @@ const KioscoLista = () => {
         setLoading(true);
         setError(null);
         try {
-            const token   = localStorage.getItem('sutus_token');
+            const token = localStorage.getItem('sutus_token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            const res     = await fetch(`${API}/anuncios`, { headers });
+            const res = await fetch(`${API}/anuncios`, { headers });
             if (!res.ok) throw new Error('No se pudieron cargar los anuncios');
             const data = await res.json();
             // Ordenar: prioridad alta (3) primero, luego media (2), luego baja (1)
@@ -54,15 +55,25 @@ const KioscoLista = () => {
     useEffect(() => { fetchAnuncios(); }, [fetchAnuncios]);
     useEffect(() => { document.title = 'Anuncios — SUTUS'; }, []);
 
-    // ── Auto-avance cada 8s ──────────────────────────────────────────────────
+    // ── Auto-avance cada 10s ──────────────────────────────────────────────────
     useEffect(() => {
-        if (anuncios.length <= 1) return;
-        timerRef.current = setInterval(() => {
-            cambiarCon((i) => (i + 1) % anuncios.length);
-        }, 8000);
-        return () => clearInterval(timerRef.current);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [anuncios.length]);
+        if (anuncios.length <= 1 || pausado) return;
+
+        const actual = anuncios[indice];
+        // Asignar tiempo según prioridad
+        let tiempoEspera = 8000; // Normal: 8s
+        if (actual.prioridad === 3) tiempoEspera = 15000; // Urgente: 15s
+        if (actual.prioridad === 2) tiempoEspera = 12000; // Alta: 12s
+
+        // Usamos setTimeout para que cada anuncio tenga su propio ritmo
+        timerRef.current = setTimeout(() => {
+            ir((indice + 1) % anuncios.length);
+        }, tiempoEspera);
+
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+    }, [anuncios, indice, pausado]);
 
     const cambiarCon = (fn) => {
         if (animando) return;
@@ -80,9 +91,9 @@ const KioscoLista = () => {
     };
 
     // ── Datos del slide actual ───────────────────────────────────────────────
-    const actual    = anuncios[indice];
+    const actual = anuncios[indice];
     const imagenUrl = actual?.imagenes && actual.imagenes.length > 0 ? `${API}/anuncios/imagen/${actual.imagenes[0].id}` : null;
-    const prioConf  = actual ? (PRIO_CONFIG[actual.prioridad] ?? PRIO_CONFIG[1]) : null;
+    const prioConf = actual ? (PRIO_CONFIG[actual.prioridad] ?? PRIO_CONFIG[1]) : null;
 
     // Todos los demás anuncios activos excepto el actual
     const proximosDestacados = anuncios.filter((_, i) => i !== indice);
@@ -110,7 +121,12 @@ const KioscoLista = () => {
     );
 
     return (
-        <div className={s.pantalla}>
+        <div className={s.pantalla}
+            onMouseEnter={() => setPausado(true)}
+            onMouseLeave={() => setPausado(false)}
+            onTouchStart={() => setPausado(true)}
+            onTouchEnd={() => setPausado(false)}
+        >
 
             {/* ── Fondo imagen con blur ── */}
             <div
@@ -124,7 +140,7 @@ const KioscoLista = () => {
                 <div className={s.headerIzq}>
                     <button type="button" className={s.botonVolver} onClick={handleVolver}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <polyline points="15 18 9 12 15 6"/>
+                            <polyline points="15 18 9 12 15 6" />
                         </svg>
                         Volver
                     </button>
@@ -135,17 +151,23 @@ const KioscoLista = () => {
                 </div>
 
                 {prioConf?.label && (
-                    <span className={`${s.badgePrio} ${s[prioConf.clase]}`}>
-            <span className={s.badgeDot} />
+                    // 👇 AQUÍ AGREGAMOS LA ANIMACIÓN DE PULSO SI ES URGENTE
+                    <span className={`${s.badgePrio} ${s[prioConf.clase]} ${actual.prioridad === 3 ? s.animacionPulso : ''}`}>
+                        <span className={s.badgeDot} />
                         {prioConf.label}
-          </span>
+                    </span>
                 )}
             </header>
 
             {/* ── Contenido central (clickeable para ir al detalle) ── */}
             <button
                 type="button"
-                className={`${s.contenido} ${animando ? s.contenidoSaliendo : ''}`}
+                // 👇 AQUÍ AGREGAMOS EL BORDE Y RESPLANDOR SEGÚN LA PRIORIDAD
+                className={`
+                    ${s.contenido} 
+                    ${animando ? s.contenidoSaliendo : ''} 
+                    ${actual.prioridad === 3 ? s.contenidoUrgente : actual.prioridad === 2 ? s.contenidoAlta : ''}
+                `}
                 onClick={() => navigate(`/display/${actual.id}`)}
             >
                 <h1 className={s.titulo}>{actual.titulo}</h1>
@@ -169,10 +191,10 @@ const KioscoLista = () => {
                         {formatFechaCorta(actual.fecha_inicio) && (
                             <div className={s.fechaChip}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
                                 </svg>
                                 <div>
                                     <span className={s.fechaLabel}>INICIO</span>
@@ -183,8 +205,8 @@ const KioscoLista = () => {
                         {formatFechaCorta(actual.fecha_fin) && (
                             <div className={s.fechaChip}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12 6 12 12 16 14"/>
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
                                 </svg>
                                 <div>
                                     <span className={s.fechaLabel}>FIN</span>
@@ -204,9 +226,9 @@ const KioscoLista = () => {
                                     className={`${s.cardProximo} ${dest.prioridad === 3 ? s.esUrgente : dest.prioridad === 2 ? s.esAlta : s.esNormal}`}
                                     onClick={() => ir(anuncios.findIndex((a) => a.id === dest.id))}
                                 >
-                  <span className={`${s.cardProximoLabel} ${dest.prioridad === 3 ? s.labelUrgente : dest.prioridad === 2 ? s.labelAlta : s.labelNormal}`}>
-                    ● {dest.prioridad === 3 ? 'URGENTE' : dest.prioridad === 2 ? 'ALTA' : 'PRÓXIMO'}
-                  </span>
+                                    <span className={`${s.cardProximoLabel} ${dest.prioridad === 3 ? s.labelUrgente : dest.prioridad === 2 ? s.labelAlta : s.labelNormal}`}>
+                                        ● {dest.prioridad === 3 ? 'URGENTE' : dest.prioridad === 2 ? 'ALTA' : 'PRÓXIMO'}
+                                    </span>
                                     <span className={s.cardProximoTitulo}>{dest.titulo}</span>
                                 </button>
                             ))}

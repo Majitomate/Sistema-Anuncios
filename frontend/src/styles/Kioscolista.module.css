@@ -425,3 +425,41 @@
     font-weight: 600;
     cursor: pointer;
 }
+
+/* =========================================
+   EFECTOS DE PRIORIDAD (KIOSCO)
+========================================= */
+
+/* Nivel 3: Urgente (Rojo) */
+.contenidoUrgente {
+    border: 3px solid #d32f2f !important;
+    box-shadow: 0 0 30px rgba(211, 47, 47, 0.4), 
+                inset 0 0 20px rgba(211, 47, 47, 0.1) !important;
+    background-color: transparent !important;
+}
+
+/* Nivel 2: Alta (Naranja) */
+.contenidoAlta {
+    border: 2px solid #f57c00 !important;
+    box-shadow: 0 0 20px rgba(245, 124, 0, 0.25) !important;
+}
+
+/* Animación de Latido para el Badge "URGENTE" */
+.animacionPulso {
+    animation: latidoUrgente 1.5s infinite;
+}
+
+@keyframes latidoUrgente {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7);
+    }
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 0 8px rgba(211, 47, 47, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(211, 47, 47, 0);
+    }
+}

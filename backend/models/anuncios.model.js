@@ -3,12 +3,12 @@ import pool from '../config/db.js';
 // Crear anuncio con múltiples imágenes
 export const crearAnuncio = async (datos, imagenes, documento) => {
   const esPermanente = datos.esPermanente === 'true';
-  const fechaInicio  = datos.fechaInicio ? new Date(datos.fechaInicio) : null;
+  const fechaInicio = datos.fechaInicio ? new Date(datos.fechaInicio) : null;
   const estadoInicial = esPermanente || !fechaInicio || fechaInicio <= new Date();
 
   // Usamos un 'client' para hacer una transacción segura
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN'); // Iniciar transacción
 
@@ -27,7 +27,7 @@ export const crearAnuncio = async (datos, imagenes, documento) => {
       datos.fechaInicio || null, datos.fechaFin || null,
       datos.prioridad || 1, esPermanente, estadoInicial
     ];
-    
+
     const resAnuncio = await client.query(queryAnuncio, valuesAnuncio);
     const anuncioCreado = resAnuncio.rows[0];
 
@@ -79,7 +79,7 @@ export const obtenerAnuncioPorId = async (id) => {
 
 export const obtenerArchivosAnuncio = async (id) => {
   const query = 'SELECT documento, documento_tipo FROM anuncios WHERE id = $1;';
-  
+
   const result = await pool.query(query, [id]);
   const anuncio = result.rows[0];
 
@@ -126,8 +126,12 @@ export const obtenerAnunciosKiosco = async () => {
       documento_tipo, estado, es_permanente,
       fecha_inicio, fecha_fin, prioridad
     FROM anuncios
-    WHERE estado = true AND (es_permanente = true OR (CURRENT_DATE >= fecha_inicio AND (fecha_fin IS NULL OR CURRENT_DATE <= fecha_fin)))
-    ORDER BY prioridad DESC, fecha_inicio ASC;
+    WHERE estado = true 
+  AND (
+    es_permanente = true 
+    OR (NOW() >= fecha_inicio AND (fecha_fin IS NULL OR NOW() <= fecha_fin))
+  )
+    ORDER BY prioridad DESC, fecha_creacion DESC
   `);
 
   const anuncios = result.rows;

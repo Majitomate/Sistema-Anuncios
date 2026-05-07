@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import Swal from 'sweetalert2';
 
 const IconoSubirMejorado = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -12,19 +13,66 @@ const Archivos = ({ archivos, onAgregar, onEliminar }) => {
   const fileInputRef = useRef(null);
   const [arrastrando, setArrastrando] = useState(false);
 
-  const handleClickSubir = () => fileInputRef.current.click();
+  // --- LÓGICA DE VALIDACIÓN ---
+  const validarArchivos = (nuevosArchivos) => {
+    const listaArchivos = Array.from(nuevosArchivos);
+    
+    // Contamos qué hay ya en el estado
+    const imagenesActuales = archivos.filter(a => a.type.startsWith('image/')).length;
+    const documentosActuales = archivos.filter(a => a.type === 'application/pdf').length;
+
+    let imagenesNuevas = 0;
+    let documentosNuevos = 0;
+    const archivosValidados = [];
+
+    for (const file of listaArchivos) {
+      // 1. Validar tamaño (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire('Archivo muy pesado', `"${file.name}" excede los 5MB`, 'warning');
+        continue;
+      }
+
+      // 2. Validar Imágenes
+      if (file.type.startsWith('image/')) {
+        if (imagenesActuales + imagenesNuevas <= 5) {
+          imagenesNuevas++;
+          archivosValidados.push(file);
+        } else {
+          Swal.fire('Límite de imágenes', 'Solo se permiten 5 imágenes por anuncio', 'info');
+        }
+      } 
+      // 3. Validar PDF
+      else if (file.type === 'application/pdf') {
+        if (documentosActuales + documentosNuevos < 1) {
+          documentosNuevos++;
+          archivosValidados.push(file);
+        } else {
+          Swal.fire('Límite de documentos', 'Solo se permite 1 PDF por anuncio', 'info');
+        }
+      }
+    }
+
+    if (archivosValidados.length > 0) {
+      onAgregar(archivosValidados);
+    }
+    
+    // Resetear el input para permitir volver a subir el mismo archivo si se borró
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleCambioArchivo = (e) => {
-    if (e.target.files.length > 0) onAgregar(e.target.files);
+    if (e.target.files.length > 0) validarArchivos(e.target.files);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setArrastrando(false);
+    if (e.dataTransfer.files.length > 0) validarArchivos(e.dataTransfer.files);
   };
 
   const handleDragOver = (e) => { e.preventDefault(); setArrastrando(true); };
   const handleDragLeave = (e) => { e.preventDefault(); setArrastrando(false); };
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setArrastrando(false);
-    if (e.dataTransfer.files.length > 0) onAgregar(e.dataTransfer.files);
-  };
+  const handleClickSubir = () => fileInputRef.current.click();
 
   return (
     <section className="tarjeta-referencia">
@@ -62,20 +110,21 @@ const Archivos = ({ archivos, onAgregar, onEliminar }) => {
           style={{
             borderColor: arrastrando ? '#1b5e20' : undefined,
             backgroundColor: arrastrando ? '#f0f6f0' : undefined,
+            cursor: 'pointer'
           }}
         >
           <div className="area-carga-icono">
             <IconoSubirMejorado />
           </div>
           <p className="area-carga-titulo">Arrastra o haz clic para subir</p>
-          <p className="area-carga-sub">Imagen o documento del anuncio</p>
+          <p className="area-carga-sub">Máximo 5 imágenes y 1 PDF</p>
           <span className="area-carga-tipos">JPG · PNG · PDF · máx. 5 MB</span>
         </div>
 
         {archivos.length > 0 && (
           <div className="lista-archivos-contenedor">
             {archivos.map((file, index) => (
-              <div key={file.name} className="item-archivo">
+              <div key={`${file.name}-${index}`} className="item-archivo">
                 <span>
                   {file.type.includes('image') ? '🖼 ' : '📄 '}
                   {file.name.length > 28 ? `${file.name.substring(0, 28)}…` : file.name}

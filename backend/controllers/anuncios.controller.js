@@ -68,19 +68,24 @@ export const actualizar = async (req, res) => {
   try {
     const { id } = req.params;
     const datos = req.body;
-    const imagenes = req.files?.imagen || [];
-    const documento = req.files?.documento?.[0];
+    const nuevasImagenes = req.files?.imagen || [];
+    const nuevoDocumento = req.files?.documento?.[0];
+    const anuncioExistente = await obtenerAnuncioPorId(id);
+    if (!anuncioExistente) return res.status(404).json({ error: 'Anuncio no encontrado' });
 
-    const anuncio = await editarAnuncio(id, datos, imagenes, documento);
+    const totalImagenes = (anuncioExistente.imagenes?.length || 0) + nuevasImagenes.length;
     
-    if (!anuncio) {
-      return res.status(404).json({ error: 'Anuncio no encontrado' });
+    if (totalImagenes > 5) {
+      return res.status(400).json({ 
+        error: `El anuncio ya tiene fotos. Solo puedes agregar ${5 - anuncioExistente.imagenes.length} más.` 
+      });
     }
 
-    return res.json(anuncio);
+    const actualizado = await editarAnuncio(id, datos, nuevasImagenes, nuevoDocumento);
+    res.json(actualizado);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Error actualizando anuncio' });
+    res.status(500).json({ error: 'Error al actualizar' });
   }
 };
 

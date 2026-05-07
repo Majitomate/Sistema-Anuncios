@@ -29,12 +29,10 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
   const [indiceCarrusel,    setIndiceCarrusel]    = useState(0);
   const [documentoAbierto,  setDocumentoAbierto]  = useState(null);
 
-  // 👇 AQUÍ ESTÁ LA MAGIA PARA CELULARES Y EL TÍTULO 👇
   useEffect(() => {
     document.title = 'Panel de Control — SUTUS'; 
 
     const revisarPantalla = () => {
-      // Si la pantalla es de celular o tablet pequeña (768px o menos)
       if (window.innerWidth <= 768) {
         setVistaActual('cuadricula');
       }
