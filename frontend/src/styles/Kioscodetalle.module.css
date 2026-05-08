@@ -539,3 +539,159 @@
     .panelDer      { padding: 24px 20px 48px; }
     .imagenTitulo  { font-size: 1.3rem; }
 }
+/* ── Lightbox: flechas de navegación ────────────────────────────────────── */
+.lightboxFlecha {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.lightboxFlecha:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.lightboxFlechaIzq { left: 24px; }
+.lightboxFlechaDer { right: 24px; }
+
+/* ── Lightbox: contador ──────────────────────────────────────────────────── */
+.lightboxContador {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 6px 16px;
+}
+
+/* ── Lightbox: dots ──────────────────────────────────────────────────────── */
+.lightboxDots {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.lightboxDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s, transform 0.2s, width 0.25s;
+}
+
+.lightboxDotActivo {
+    background: #fff;
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* ── Galería con tira de miniaturas ─────────────────────────────────────── */
+.galeriaWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 220px;
+}
+
+.galeriaTira {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.galeriaMini {
+    width: 52px;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.2s, border-color 0.2s, transform 0.15s;
+    flex-shrink: 0;
+}
+
+.galeriaMini:hover {
+    opacity: 0.85;
+    transform: scale(1.05);
+}
+
+.galeriaMiniActiva {
+    opacity: 1;
+    border-color: #1b5e20;
+}
+
+.galeriaMini img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+/* ── Navegación entre imágenes ───────────────────────────────────────────── */
+.imagenNavegacion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.navBoton {
+    padding: 6px 12px;
+    background: #f4f7f4;
+    border: 1px solid #c8d5c8;
+    border-radius: 6px;
+    color: #1b5e20;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.navBoton:hover { background: #e8f5e9; }
+
+.navIndicador {
+    font-size: 0.78rem;
+    color: #5a6a5a;
+}
+
+/* ── Botón TTS speaking ──────────────────────────────────────────────────── */
+.botonSpeaking {
+    background: #c62828 !important;
+    animation: latidoBoton 1s ease-in-out infinite;
+}
+
+@keyframes latidoBoton {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.1); }
+}

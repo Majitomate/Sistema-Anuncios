@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { useFullscreen } from '../components/FullscreenContext';
 import s from '../styles/KioscoLista.module.css';
 
 const API = 'http://localhost:3001';
 
 const PRIO_CONFIG = {
     3: { label: 'URGENTE', clase: 'badgeUrgente' },
-    2: { label: 'ALTA', clase: 'badgeAlta' },
-    1: { label: null, clase: null },
+    2: { label: 'ALTA',    clase: 'badgeAlta'    },
+    1: { label: null,      clase: null            },
 };
 
 const formatFechaCorta = (ts) => {
@@ -20,27 +20,25 @@ const formatFechaCorta = (ts) => {
 
 const KioscoLista = () => {
     const navigate = useNavigate();
-
+    const { isFullscreen, toggleFullscreen, salirDePantallaCompleta } = useFullscreen();
 
     const [anuncios, setAnuncios] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [indice, setIndice] = useState(0);
+    const [loading,  setLoading]  = useState(true);
+    const [error,    setError]    = useState(null);
+    const [indice,   setIndice]   = useState(0);
     const [animando, setAnimando] = useState(false);
-    const [pausado, setPausado] = useState(false);
+    const [pausado,  setPausado]  = useState(false);
     const timerRef = useRef(null);
 
-    // ── Fetch ────────────────────────────────────────────────────────────────
     const fetchAnuncios = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const token = localStorage.getItem('sutus_token');
+            const token   = localStorage.getItem('sutus_token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            const res = await fetch(`${API}/anuncios`, { headers });
+            const res     = await fetch(`${API}/anuncios`, { headers });
             if (!res.ok) throw new Error('No se pudieron cargar los anuncios');
             const data = await res.json();
-            // Ordenar: prioridad alta (3) primero, luego media (2), luego baja (1)
             const ordenados = data
                 .filter((a) => a.estado)
                 .sort((a, b) => b.prioridad - a.prioridad);
@@ -53,26 +51,19 @@ const KioscoLista = () => {
     }, []);
 
     useEffect(() => { fetchAnuncios(); }, [fetchAnuncios]);
-    useEffect(() => { document.title = 'Anuncios — SUTUS'; }, []);
 
-    // ── Auto-avance cada 10s ──────────────────────────────────────────────────
     useEffect(() => {
         if (anuncios.length <= 1 || pausado) return;
-
         const actual = anuncios[indice];
-        // Asignar tiempo según prioridad
-        let tiempoEspera = 8000; // Normal: 8s
-        if (actual.prioridad === 3) tiempoEspera = 15000; // Urgente: 15s
-        if (actual.prioridad === 2) tiempoEspera = 12000; // Alta: 12s
+        let tiempoEspera = 8000;
+        if (actual.prioridad === 3) tiempoEspera = 15000;
+        if (actual.prioridad === 2) tiempoEspera = 12000;
 
-        // Usamos setTimeout para que cada anuncio tenga su propio ritmo
         timerRef.current = setTimeout(() => {
             ir((indice + 1) % anuncios.length);
         }, tiempoEspera);
 
-        return () => {
-            if (timerRef.current) clearTimeout(timerRef.current);
-        };
+        return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     }, [anuncios, indice, pausado]);
 
     const cambiarCon = (fn) => {
@@ -81,66 +72,80 @@ const KioscoLista = () => {
         setTimeout(() => { setIndice(fn); setAnimando(false); }, 300);
     };
 
-    const ir = (idx) => { clearInterval(timerRef.current); cambiarCon(() => idx); };
-    const anterior = () => { clearInterval(timerRef.current); cambiarCon((i) => (i - 1 + anuncios.length) % anuncios.length); };
-    const siguiente = () => { clearInterval(timerRef.current); cambiarCon((i) => (i + 1) % anuncios.length); };
-    const handleVolver = () => {
-        const rol = localStorage.getItem('sutus_rol');
-        const esDashboard = ['admin', 'editor', 'revisor'].includes(rol);
-        navigate(esDashboard ? '/dashboard' : '/login', { replace: true });
+    const ir = (idx) => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        cambiarCon(() => idx);
     };
 
-    // ── Datos del slide actual ───────────────────────────────────────────────
-    const actual = anuncios[indice];
-    const imagenUrl = actual?.imagenes && actual.imagenes.length > 0 ? `${API}/anuncios/imagen/${actual.imagenes[0].id}` : null;
-    const prioConf = actual ? (PRIO_CONFIG[actual.prioridad] ?? PRIO_CONFIG[1]) : null;
+    const anterior = () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        cambiarCon((i) => (i - 1 + anuncios.length) % anuncios.length);
+    };
 
-    // Todos los demás anuncios activos excepto el actual
-    const proximosDestacados = anuncios.filter((_, i) => i !== indice);
+    const siguiente = () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        cambiarCon((i) => (i + 1) % anuncios.length);
+    };
 
-    // ── Estados de carga ─────────────────────────────────────────────────────
+    const handleVolver = () => {
+        salirDePantallaCompleta();
+        const rol = localStorage.getItem('sutus_rol');
+        navigate(rol === 'visualizador' ? '/login' : '/dashboard');
+    };
+
     if (loading) return (
         <div className={s.pantalla}>
-            <div className={s.estadoCentro}><div className={s.spinner} /><p>Cargando anuncios...</p></div>
+            <div className={s.estadoCentro}><div className={s.spinner} /></div>
         </div>
     );
 
     if (error) return (
         <div className={s.pantalla}>
             <div className={s.estadoCentro}>
-                <span>⚠️</span><p>{error}</p>
-                <button type="button" className={s.botonReintentar} onClick={fetchAnuncios}>Reintentar</button>
+                <p>{error}</p>
+                <button className={s.botonReintentar} onClick={fetchAnuncios}>Reintentar</button>
             </div>
         </div>
     );
 
-    if (anuncios.length === 0) return (
+    if (!anuncios.length) return (
         <div className={s.pantalla}>
-            <div className={s.estadoCentro}><span>📋</span><p>No hay anuncios activos en este momento.</p></div>
+            <div className={s.estadoCentro}><p>No hay anuncios disponibles.</p></div>
         </div>
     );
 
+    const actual    = anuncios[indice];
+    const imagenUrl = actual?.imagenes?.length > 0
+        ? `${API}/anuncios/imagen/${actual.imagenes[0].id}`
+        : null;
+    const prioConf  = actual ? (PRIO_CONFIG[actual.prioridad] ?? PRIO_CONFIG[1]) : null;
+
+    const fechaInicio = formatFechaCorta(actual?.fecha_inicio);
+    const fechaFin    = formatFechaCorta(actual?.fecha_fin);
+
+    // Anuncios proximos: todos menos el actual, max 3
+    const proximos = anuncios
+        .filter((_, i) => i !== indice)
+        .slice(0, 3);
+
     return (
-        <div className={s.pantalla}
+        <div
+            className={s.pantalla}
             onMouseEnter={() => setPausado(true)}
             onMouseLeave={() => setPausado(false)}
-            onTouchStart={() => setPausado(true)}
-            onTouchEnd={() => setPausado(false)}
         >
-
-            {/* ── Fondo imagen con blur ── */}
             <div
                 className={`${s.fondo} ${animando ? s.fondoSaliendo : ''}`}
-                style={imagenUrl ? { backgroundImage: `url(${imagenUrl})` } : undefined}
+                style={imagenUrl ? { backgroundImage: `url(${imagenUrl})` } : {}}
             />
             <div className={s.overlay} />
 
-            {/* ── Header ── */}
+            {/* Header */}
             <header className={s.header}>
                 <div className={s.headerIzq}>
-                    <button type="button" className={s.botonVolver} onClick={handleVolver}>
+                    <button className={s.botonVolver} onClick={handleVolver}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <polyline points="15 18 9 12 15 6" />
+                            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
                         </svg>
                         Volver
                     </button>
@@ -149,89 +154,111 @@ const KioscoLista = () => {
                         <span className={s.marcaSub}>SEÑALIZACIÓN DIGITAL</span>
                     </div>
                 </div>
-
-                {prioConf?.label && (
-                    // 👇 AQUÍ AGREGAMOS LA ANIMACIÓN DE PULSO SI ES URGENTE
-                    <span className={`${s.badgePrio} ${s[prioConf.clase]} ${actual.prioridad === 3 ? s.animacionPulso : ''}`}>
-                        <span className={s.badgeDot} />
-                        {prioConf.label}
-                    </span>
-                )}
+                <div className={s.headerDer}>
+                    {prioConf?.label && (
+                        <span className={`${s.badgePrio} ${s[prioConf.clase]}`}>
+                            <span className={s.badgeDot} />
+                            {prioConf.label}
+                        </span>
+                    )}
+                    <button className={s.botonFullscreen} onClick={toggleFullscreen} title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}>
+                        {isFullscreen ? (
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                <polyline points="8 3 3 3 3 8"/>
+                                <polyline points="21 8 21 3 16 3"/>
+                                <polyline points="3 16 3 21 8 21"/>
+                                <polyline points="16 21 21 21 21 16"/>
+                            </svg>
+                        ) : (
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                <polyline points="15 3 21 3 21 9"/>
+                                <polyline points="9 21 3 21 3 15"/>
+                                <line x1="21" y1="3" x2="14" y2="10"/>
+                                <line x1="3" y1="21" x2="10" y2="14"/>
+                            </svg>
+                        )}
+                    </button>
+                </div>
             </header>
 
-            {/* ── Contenido central (clickeable para ir al detalle) ── */}
-            <button
-                type="button"
-                // 👇 AQUÍ AGREGAMOS EL BORDE Y RESPLANDOR SEGÚN LA PRIORIDAD
-                className={`
-                    ${s.contenido} 
-                    ${animando ? s.contenidoSaliendo : ''} 
-                    ${actual.prioridad === 3 ? s.contenidoUrgente : actual.prioridad === 2 ? s.contenidoAlta : ''}
-                `}
-                onClick={() => navigate(`/display/${actual.id}`)}
-            >
-                <h1 className={s.titulo}>{actual.titulo}</h1>
-                {actual.descripcion_corta && <p className={s.descripcion_corta}>{actual.descripcion_corta}</p>}
-            </button>
+            {/* Contenido central */}
+            <div className={`${s.contenido} ${animando ? s.contenidoSaliendo : ''}`}>
+                <h1 className={s.titulo}>{actual?.titulo}</h1>
+                <p className={s.descripcion_corta}>{actual?.descripcion_corta}</p>
+                <div className={s.verDetalleWrap}>
+                    <button className={s.botonVerDetalle} onClick={() => navigate(`/display/${actual.id}`)}>
+                        VER DETALLE COMPLETO
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
-            {/* ── Flechas de navegación ── */}
+            {/* Flechas */}
             {anuncios.length > 1 && (
                 <>
-                    <button type="button" className={`${s.flecha} ${s.flechaIzq}`} onClick={anterior} aria-label="Anterior">‹</button>
-                    <button type="button" className={`${s.flecha} ${s.flechaDer}`} onClick={siguiente} aria-label="Siguiente">›</button>
+                    <button className={`${s.flecha} ${s.flechaIzq}`} onClick={anterior}>&#8249;</button>
+                    <button className={`${s.flecha} ${s.flechaDer}`} onClick={siguiente}>&#8250;</button>
                 </>
             )}
 
-            {/* ── Footer ── */}
+            {/* Footer */}
             <footer className={s.footer}>
                 <div className={s.footerIzq}>
 
-                    {/* Chips de fecha */}
-                    <div className={s.fechasRow}>
-                        {formatFechaCorta(actual.fecha_inicio) && (
-                            <div className={s.fechaChip}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" />
-                                    <line x1="16" y1="2" x2="16" y2="6" />
-                                    <line x1="8" y1="2" x2="8" y2="6" />
-                                    <line x1="3" y1="10" x2="21" y2="10" />
-                                </svg>
-                                <div>
-                                    <span className={s.fechaLabel}>INICIO</span>
-                                    <span className={s.fechaValor}>{formatFechaCorta(actual.fecha_inicio)}</span>
+                    {/* Fechas del anuncio actual */}
+                    {(fechaInicio || fechaFin) && (
+                        <div className={s.fechasRow}>
+                            {fechaInicio && (
+                                <div className={s.fechaChip}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8"  y1="2" x2="8"  y2="6"/>
+                                        <line x1="3"  y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                    <div>
+                                        <span className={s.fechaLabel}>INICIO</span>
+                                        <span className={s.fechaValor}>{fechaInicio}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                        {formatFechaCorta(actual.fecha_fin) && (
-                            <div className={s.fechaChip}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <polyline points="12 6 12 12 16 14" />
-                                </svg>
-                                <div>
-                                    <span className={s.fechaLabel}>FIN</span>
-                                    <span className={s.fechaValor}>{formatFechaCorta(actual.fecha_fin)}</span>
+                            )}
+                            {fechaFin && (
+                                <div className={s.fechaChip}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    <div>
+                                        <span className={s.fechaLabel}>FIN</span>
+                                        <span className={s.fechaValor}>{fechaFin}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    )}
 
-                    {/* Cards próximos urgentes/alta */}
-                    {proximosDestacados.length > 0 && (
+                    {/* Cards de proximos anuncios */}
+                    {proximos.length > 0 && (
                         <div className={s.proximosWrap}>
-                            {proximosDestacados.map((dest) => (
-                                <button
-                                    key={dest.id}
-                                    type="button"
-                                    className={`${s.cardProximo} ${dest.prioridad === 3 ? s.esUrgente : dest.prioridad === 2 ? s.esAlta : s.esNormal}`}
-                                    onClick={() => ir(anuncios.findIndex((a) => a.id === dest.id))}
-                                >
-                                    <span className={`${s.cardProximoLabel} ${dest.prioridad === 3 ? s.labelUrgente : dest.prioridad === 2 ? s.labelAlta : s.labelNormal}`}>
-                                        ● {dest.prioridad === 3 ? 'URGENTE' : dest.prioridad === 2 ? 'ALTA' : 'PRÓXIMO'}
-                                    </span>
-                                    <span className={s.cardProximoTitulo}>{dest.titulo}</span>
-                                </button>
-                            ))}
+                            {proximos.map((a) => {
+                                const pc        = PRIO_CONFIG[a.prioridad] ?? PRIO_CONFIG[1];
+                                const esUrgente = a.prioridad === 3;
+                                const esAlta    = a.prioridad === 2;
+                                return (
+                                    <button
+                                        key={a.id}
+                                        className={`${s.cardProximo} ${esUrgente ? s.esUrgente : esAlta ? s.esAlta : s.esNormal}`}
+                                        onClick={() => ir(anuncios.findIndex(x => x.id === a.id))}
+                                    >
+                                        <span className={`${s.cardProximoLabel} ${esUrgente ? s.labelUrgente : esAlta ? s.labelAlta : s.labelNormal}`}>
+                                            {pc.label ? `\u2022 ${pc.label}` : '\u2022 PRÓXIMO'}
+                                        </span>
+                                        <span className={s.cardProximoTitulo}>{a.titulo}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -242,16 +269,13 @@ const KioscoLista = () => {
                         {anuncios.map((_, i) => (
                             <button
                                 key={i}
-                                type="button"
                                 className={`${s.dot} ${i === indice ? s.dotActivo : ''}`}
                                 onClick={() => ir(i)}
-                                aria-label={`Anuncio ${i + 1}`}
                             />
                         ))}
                     </div>
                 )}
             </footer>
-
         </div>
     );
 };
