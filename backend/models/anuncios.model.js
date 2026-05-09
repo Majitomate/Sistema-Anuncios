@@ -120,26 +120,45 @@ export const obtenerAnuncios = async () => {
 
 // Obtener anuncios Kiosco - Quitamos imagen_tipo
 export const obtenerAnunciosKiosco = async () => {
-  const result = await pool.query(`
+  // 1. Intentamos obtener anuncios temporales que estén vigentes hoy
+  const resultTemporales = await pool.query(`
     SELECT
       id, titulo, descripcion_corta, contenido, tipo,
       documento_tipo, estado, es_permanente,
       fecha_inicio, fecha_fin, prioridad
     FROM anuncios
     WHERE estado = true 
-  AND (
-    es_permanente = true 
-    OR (NOW() >= fecha_inicio AND (fecha_fin IS NULL OR NOW() <= fecha_fin))
-  )
+      AND es_permanente = false
+      AND (NOW() >= fecha_inicio AND (fecha_fin IS NULL OR NOW() <= fecha_fin))
     ORDER BY prioridad DESC, fecha_creacion DESC
   `);
 
-  const anuncios = result.rows;
+  let anuncios = resultTemporales.rows;
 
-  // Para cada anuncio, obtener sus imágenes
+  // 2. LÓGICA HU-14: Si no hay anuncios temporales, cargamos los "Permanentes"
+  if (anuncios.length === 0) {
+    const resultPermanentes = await pool.query(`
+      SELECT
+        id, titulo, descripcion_corta, contenido, tipo,
+        documento_tipo, estado, es_permanente,
+        fecha_inicio, fecha_fin, prioridad
+      FROM anuncios
+      WHERE estado = true AND es_permanente = true
+      ORDER BY prioridad DESC, fecha_creacion DESC
+    `);
+    anuncios = resultPermanentes.rows;
+  }
+
+  // 3. Para el grupo que hayamos decidido mostrar, traemos sus imágenes
   for (const anuncio of anuncios) {
-    const imgResult = await pool.query('SELECT id, imagen_tipo FROM anuncios_imagenes WHERE anuncio_id = $1 ORDER BY id', [anuncio.id]);
-    anuncio.imagenes = imgResult.rows.map(row => ({ id: row.id, tipo: row.imagen_tipo }));
+    const imgResult = await pool.query(
+      'SELECT id, imagen_tipo FROM anuncios_imagenes WHERE anuncio_id = $1 ORDER BY id', 
+      [anuncio.id]
+    );
+    anuncio.imagenes = imgResult.rows.map(row => ({ 
+      id: row.id, 
+      tipo: row.imagen_tipo 
+    }));
   }
 
   return anuncios;

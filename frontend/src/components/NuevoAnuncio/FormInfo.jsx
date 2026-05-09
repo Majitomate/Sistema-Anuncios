@@ -89,9 +89,9 @@ const FormInfo = ({ formData, errores, onChange, modoEdicion = false }) => {
           </div>
         </div>
 
-        {/* Subtítulo */}
+        {/* Descripción Corta */}
         <div className="campo-referencia">
-          <label htmlFor="descripcion_corta">Subtítulo</label>
+          <label htmlFor="descripcion_corta">Descripción Corta</label>
           <input
             id="descripcion_corta"
             name="descripcion_corta"
@@ -124,11 +124,11 @@ const FormInfo = ({ formData, errores, onChange, modoEdicion = false }) => {
           {errores.contenido && <span className="campo-error-msg">El contenido es obligatorio</span>}
         </div>
 
-        {/* Switch — Anuncio Permanente */}
+        {/* Switch — Contenido Alternativo */}
         <div className="switch-container">
           <div className="switch-info">
-            <span className="switch-label">Anuncio permanente</span>
-            <span className="switch-desc">Sin fecha de expiración</span>
+            <span className="switch-label">Contenido Alternativo</span>
+            <span className="switch-desc">Se mostrará si no hay anuncios activos. Sin fecha de expiración</span>
           </div>
           <label className="switch">
             <input
