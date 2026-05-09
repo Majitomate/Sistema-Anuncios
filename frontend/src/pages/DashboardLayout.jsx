@@ -103,7 +103,7 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
   const anunciosActivos  = anuncios.filter((a) => a.estado);
 
   if (vista === 'crear') return <CrearAnuncio alCerrar={handleCerrar} onActualizado={handleGuardado} />;
-  if (vista === 'editar' && anuncioAEditar) return <EditarAnuncio anuncio={anuncioAEditar} alCerrar={handleCerrar} onActualizado={handleGuardado} />;
+  if (vista === 'editar' && anuncioAEditar) return <EditarAnuncio anuncio={anuncioAEditar} alCerrar={handleCerrar} onActualizado={onAnuncioCreado} />;
 
   return (
       <div className={styles.dashboardLayout}>

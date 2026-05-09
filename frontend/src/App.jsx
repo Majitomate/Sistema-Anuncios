@@ -35,24 +35,40 @@ const App = () => {
     const [rolUsuario,  setRolUsuario]  = useState(localStorage.getItem('sutus_rol'));
 
     const fetchAnuncios = useCallback(async () => {
-        setLoading(true);
-        try {
-            const token = localStorage.getItem('sutus_token');
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            const res = await fetch('http://localhost:3001/anuncios', { headers });
-            if (!res.ok) throw new Error('Error al cargar anuncios');
-            const data = await res.json();
-            setAnuncios(data);
-        } catch (err) {
-            console.error("Error fetching ads:", err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const token = localStorage.getItem('sutus_token');
+    
+    // Si no hay token, no intentamos la petición y marcamos que terminó de cargar
+    if (!token) {
+        setLoading(false);
+        return;
+    }
 
-    useEffect(() => {
+    setLoading(true);
+    try {
+        const headers = { Authorization: `Bearer ${token}` };
+        const res = await fetch('http://localhost:3001/anuncios', { headers });
+        
+        if (!res.ok) throw new Error('Error al cargar anuncios');
+        
+        const data = await res.json();
+        setAnuncios(data);
+    } catch (err) {
+        console.error("Error fetching ads:", err);
+    } finally {
+        setLoading(false);
+    }
+}, []);
+
+useEffect(() => {
+    fetchAnuncios();
+
+    // Sincronización automática cada minuto para activar anuncios por hora
+    const intervalo = setInterval(() => {
         fetchAnuncios();
-    }, [fetchAnuncios]);
+    }, 60000); 
+
+    return () => clearInterval(intervalo);
+}, [fetchAnuncios]);
 
     const alIniciarSesion = () => {
         setRolUsuario(localStorage.getItem('sutus_rol'));

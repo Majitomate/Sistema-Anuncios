@@ -36,11 +36,10 @@ const KioscoLista = () => {
         try {
             const token   = localStorage.getItem('sutus_token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            const res     = await fetch(`${API}/anuncios`, { headers });
+            const res     = await fetch(`${API}/anuncios/kiosco`, { headers });
             if (!res.ok) throw new Error('No se pudieron cargar los anuncios');
             const data = await res.json();
             const ordenados = data
-                .filter((a) => a.estado)
                 .sort((a, b) => b.prioridad - a.prioridad);
             setAnuncios(ordenados);
         } catch (err) {

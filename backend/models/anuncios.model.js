@@ -120,7 +120,7 @@ export const obtenerAnuncios = async () => {
 
 // Obtener anuncios Kiosco - Quitamos imagen_tipo
 export const obtenerAnunciosKiosco = async () => {
-  // 1. Intentamos obtener anuncios temporales que estén vigentes hoy
+  // 1. Intentamos obtener primero SOLO anuncios temporales vigentes
   const resultTemporales = await pool.query(`
     SELECT
       id, titulo, descripcion_corta, contenido, tipo,
@@ -135,7 +135,7 @@ export const obtenerAnunciosKiosco = async () => {
 
   let anuncios = resultTemporales.rows;
 
-  // 2. LÓGICA HU-14: Si no hay anuncios temporales, cargamos los "Permanentes"
+  // 2. LÓGICA HU-14: Si la lista está vacía, recién buscamos los "Permanentes" (contenido alternativo)
   if (anuncios.length === 0) {
     const resultPermanentes = await pool.query(`
       SELECT
@@ -143,21 +143,21 @@ export const obtenerAnunciosKiosco = async () => {
         documento_tipo, estado, es_permanente,
         fecha_inicio, fecha_fin, prioridad
       FROM anuncios
-      WHERE estado = true AND es_permanente = true
+      WHERE es_permanente = true
       ORDER BY prioridad DESC, fecha_creacion DESC
     `);
     anuncios = resultPermanentes.rows;
   }
 
-  // 3. Para el grupo que hayamos decidido mostrar, traemos sus imágenes
+  // 3. Obtenemos las imágenes para los anuncios seleccionados
   for (const anuncio of anuncios) {
     const imgResult = await pool.query(
       'SELECT id, imagen_tipo FROM anuncios_imagenes WHERE anuncio_id = $1 ORDER BY id', 
       [anuncio.id]
     );
     anuncio.imagenes = imgResult.rows.map(row => ({ 
-      id: row.id, 
-      tipo: row.imagen_tipo 
+        id: row.id, 
+        tipo: row.imagen_tipo 
     }));
   }
 
