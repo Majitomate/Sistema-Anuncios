@@ -625,6 +625,18 @@ body, html {
   display: block;
 }
 
+:global(.imagenes-lista) {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+:global(.imagenes-lista .archivo-actual-imagen) {
+  width: 120px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
 :global(.archivo-actual-doc) {
   display: inline-flex;
   align-items: center;

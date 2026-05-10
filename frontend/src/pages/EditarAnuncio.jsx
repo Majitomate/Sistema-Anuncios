@@ -64,7 +64,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
 
   const [errores, setErrores] = useState({});
   const [archivos, setArchivos] = useState([]);
-  const [archivosActuales, setArchivosActuales] = useState({ imagenUrl: null, documentoUrl: null });
+  const [archivosActuales, setArchivosActuales] = useState({ imagenes: [], documento: null });
   const [documentoAbierto, setDocumentoAbierto] = useState(null);
 
   useEffect(() => {
@@ -72,8 +72,8 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
       try {
         const data = await obtenerAnuncioPorId(anuncio.id);
         setArchivosActuales({
-          imagenUrl: data.imagen_tipo ? `http://localhost:3001/anuncios/${data.id}/imagen` : null,
-          documentoUrl: data.documento_tipo ? `http://localhost:3001/anuncios/${data.id}/documento` : null,
+          imagenes: data.imagenes || [],
+          documento: data.tiene_documento ? { tipo: data.documento_tipo, url: `http://localhost:3001/anuncios/${data.id}/documento` } : null,
         });
       } catch (err) {
         console.error('Error al cargar archivos:', err);
@@ -185,7 +185,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
             <FormFechas formData={formData} esPermanente={formData.esPermanente} onChange={handleChange} errores={errores} />
 
             {/* Archivos actualmente guardados */}
-            {(archivosActuales.imagenUrl || archivosActuales.documentoUrl) && (
+            {(archivosActuales.imagenes.length > 0 || archivosActuales.documento) && (
               <section className="tarjeta-referencia">
                 <div className="archivos-actuales-header">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1b5e20" strokeWidth="2.5" strokeLinecap="round">
@@ -195,31 +195,35 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
                   <h3>Archivos guardados</h3>
                 </div>
                 <div className="archivos-actuales-cuerpo">
-                  {archivosActuales.imagenUrl && (
+                  {archivosActuales.imagenes.length > 0 && (
                     <div>
-                      <span className="archivo-actual-label">Imagen actual</span>
-                      <img src={archivosActuales.imagenUrl} alt="Imagen actual" className="archivo-actual-imagen" />
+                      <span className="archivo-actual-label">Imágenes actuales</span>
+                      <div className="imagenes-lista">
+                        {archivosActuales.imagenes.map(img => (
+                          <img key={img.id} src={`http://localhost:3001/anuncios/imagen/${img.id}`} alt="Imagen" className="archivo-actual-imagen" />
+                        ))}
+                      </div>
                     </div>
                   )}
-                  {archivosActuales.documentoUrl && (
+                  {archivosActuales.documento && (
                     <div>
                       <span className="archivo-actual-label">Documento actual</span>
                       <button
                         type="button"
                         className="archivo-actual-doc"
-                        onClick={() => setDocumentoAbierto(archivosActuales.documentoUrl)}
+                        onClick={() => setDocumentoAbierto(archivosActuales.documento.url)}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                           <circle cx="12" cy="12" r="3"/>
                         </svg>
-                        Ver documento
+                        Ver documento ({archivosActuales.documento.tipo})
                       </button>
                     </div>
                   )}
                 </div>
                 <p className="archivos-actuales-aviso">
-                  Si subes un nuevo archivo reemplazará al actual. Si lo dejas vacío, se conservará.
+                  Al subir nuevas imágenes, se agregarán a la galería. Si subes un nuevo documento, reemplazará al actual.
                 </p>
               </section>
             )}
