@@ -12,7 +12,7 @@ const diasHabilesEntre = (inicio, fin) => {
   return count;
 };
 
-export const validarRegla10Dias = (formData) => {
+export const validarRegla3Dias = (formData) => {
   const { tipo, prioridad, esPermanente, fechaInicio, fechaFin } = formData;
   if (esPermanente || !fechaInicio || !fechaFin) return null;
 
@@ -24,8 +24,8 @@ export const validarRegla10Dias = (formData) => {
   if (!requiere) return null;
 
   const dias = diasHabilesEntre(fechaInicio, fechaFin);
-  if (dias < 10) {
-    return `Los anuncios de votación o prioridad alta requieren al menos 10 días hábiles de vigencia. Vigencia actual: ${dias} día(s) hábil(es).`;
+  if (dias < 3) {
+    return `Los anuncios de votación o prioridad alta requieren al menos 3 días hábiles de vigencia. Vigencia actual: ${dias} día(s) hábil(es).`;
   }
   return null;
 };

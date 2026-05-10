@@ -6,7 +6,7 @@ import FormInfo from '../components/NuevoAnuncio/FormInfo';
 import FormFechas from '../components/NuevoAnuncio/FormFechas';
 import Archivos from '../components/NuevoAnuncio/Archivos';
 import { useAnuncios } from '../hooks/useAnuncios';
-import { validarRegla10Dias } from '../utils/validarRegla10Dias';
+import { validarRegla3Dias } from '../utils/validarRegla3Dias';
 
 const FORM_INICIAL = {
   titulo: '', tipo: '', prioridad: '', descripcion_corta: '',
@@ -58,7 +58,7 @@ const CrearAnuncio = ({ alCerrar, onActualizado }) => {
 
   const handleCrearAnuncio = async () => {
     /* Validación de 10 días hábiles en el frontend */
-    const errorRegla = validarRegla10Dias(formData);
+    const errorRegla = validarRegla3Dias(formData);
     if (errorRegla) {
       return Swal.fire({
         icon: 'warning',

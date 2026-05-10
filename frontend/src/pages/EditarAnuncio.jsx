@@ -8,7 +8,7 @@ import Archivos from '../components/NuevoAnuncio/Archivos.jsx';
 import ModalDocumento from '../components/ModalDocumento.jsx';
 import { useAnuncios } from '../hooks/useAnuncios';
 import { obtenerAnuncioPorId } from '../services/anuncios.services';
-import { validarRegla10Dias } from '../utils/validarRegla10Dias';
+import { validarRegla3Dias } from '../utils/validarRegla3Dias';
 
 const splitDateTime = (timestamp) => {
   if (!timestamp) return { date: '', time: '' };
@@ -101,7 +101,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
 
   const handleEditarAnuncio = async () => {
     /* Validación de 10 días hábiles en el frontend */
-    const errorRegla = validarRegla10Dias(formData);
+    const errorRegla = validarRegla3Dias(formData);
     if (errorRegla) {
       return Swal.fire({
         icon: 'warning',
