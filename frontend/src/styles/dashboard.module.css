@@ -338,18 +338,6 @@
   display: block;
 }
 
-.noImagePlaceholder {
-  color: rgba(255,255,255,0.40);
-  font-size: 13px;
-  font-style: italic;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.noImagePlaceholder span { font-size: 32px; opacity: 0.50; }
-.noImagePlaceholder p { margin: 0; }
 
 .carouselDots {
   position: relative;

@@ -4,6 +4,8 @@ import { useFullscreen } from '../components/FullscreenContext';
 import s from '../styles/KioscoLista.module.css';
 
 const API = 'http://localhost:3001';
+const IMAGEN_DEFAULT = '/imagen_default.jpg';
+
 
 const PRIO_CONFIG = {
     3: { label: 'URGENTE', clase: 'badgeUrgente' },
@@ -116,7 +118,7 @@ const KioscoLista = () => {
     const actual    = anuncios[indice];
     const imagenUrl = actual?.imagenes?.length > 0
         ? `${API}/anuncios/imagen/${actual.imagenes[0].id}`
-        : null;
+        : IMAGEN_DEFAULT;
     const prioConf  = actual ? (PRIO_CONFIG[actual.prioridad] ?? PRIO_CONFIG[1]) : null;
 
     const fechaInicio = formatFechaCorta(actual?.fecha_inicio);
