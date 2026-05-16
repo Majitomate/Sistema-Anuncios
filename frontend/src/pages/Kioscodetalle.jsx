@@ -4,13 +4,14 @@ import { useFullscreen } from '../components/FullscreenContext';
 import s from '../styles/KioscoDetalle.module.css';
 
 const API = 'http://localhost:3001';
+const IMAGEN_DEFAULT = '/imagen_default.jpg';
 
 const TIPO_LABEL = {
-    general:      'General',
-    evento:       'Evento',
+    general: 'General',
+    evento: 'Evento',
     convocatoria: 'Convocatoria',
-    votacion:     'Votación',
-    resultado:    'Resultado',
+    votacion: 'Votación',
+    resultado: 'Resultado',
 };
 
 const formatFechaLarga = (ts) => {
@@ -21,27 +22,27 @@ const formatFechaLarga = (ts) => {
 };
 
 const KioscoDetalle = () => {
-    const { id }   = useParams();
+    const { id } = useParams();
     const navigate = useNavigate();
 
     const { isFullscreen } = useFullscreen();
 
-    const [anuncio,       setAnuncio]      = useState(null);
-    const [loading,       setLoading]      = useState(true);
-    const [error,         setError]        = useState(null);
-    const [lightboxImg,   setLightboxImg]  = useState(false);
-    const [visorDoc,      setVisorDoc]     = useState(false);
-    const [indiceImagen,  setIndiceImagen] = useState(0);
-    const [isSpeaking,    setIsSpeaking]   = useState(false);
+    const [anuncio, setAnuncio] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [lightboxImg, setLightboxImg] = useState(false);
+    const [visorDoc, setVisorDoc] = useState(false);
+    const [indiceImagen, setIndiceImagen] = useState(0);
+    const [isSpeaking, setIsSpeaking] = useState(false);
 
     useEffect(() => {
         const cargar = async () => {
             setLoading(true);
             setError(null);
             try {
-                const token   = localStorage.getItem('sutus_token');
+                const token = localStorage.getItem('sutus_token');
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
-                const res     = await fetch(`${API}/anuncios/${id}`, { headers });
+                const res = await fetch(`${API}/anuncios/${id}`, { headers });
                 if (!res.ok) throw new Error('No se encontró el anuncio');
                 const data = await res.json();
                 setAnuncio(data);
@@ -82,9 +83,8 @@ const KioscoDetalle = () => {
 
         const textoALeer = `
             ${anuncio.titulo}. 
-            Tipo de anuncio: ${tipoLabel}. 
             ${anuncio.descripcion_corta || ''}. 
-            Contenido: ${anuncio.contenido}
+            ${anuncio.contenido}
         `;
 
         const utterance = new SpeechSynthesisUtterance(textoALeer);
@@ -120,10 +120,12 @@ const KioscoDetalle = () => {
         </div>
     );
 
-    const imagenesUrls = anuncio?.imagenes ? anuncio.imagenes.map(img => `${API}/anuncios/imagen/${img.id}`) : [];
+    const imagenesUrls = anuncio?.imagenes && anuncio.imagenes.length > 0
+        ? anuncio.imagenes.map(img => `${API}/anuncios/imagen/${img.id}`)
+        : [IMAGEN_DEFAULT]; // Si no hay imágenes, creamos un array con la default
     const documentoUrl = anuncio?.documento_tipo ? `${API}/anuncios/${anuncio.id}/documento` : null;
-    const fechaInicio  = formatFechaLarga(anuncio?.fecha_inicio);
-    const fechaFin     = formatFechaLarga(anuncio?.fecha_fin);
+    const fechaInicio = formatFechaLarga(anuncio?.fecha_inicio);
+    const fechaFin = formatFechaLarga(anuncio?.fecha_fin);
     const imagenActual = imagenesUrls[indiceImagen];
 
     return (
@@ -134,10 +136,16 @@ const KioscoDetalle = () => {
                 <div className={s.lightboxOverlay} onClick={() => setLightboxImg(false)}>
                     <button type="button" className={s.lightboxCerrar} onClick={() => setLightboxImg(false)}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                     </button>
-                    <img src={imagenActual} alt={anuncio.titulo} className={s.lightboxImg} onClick={(e) => e.stopPropagation()} />
+                    <img
+                        src={imagenActual}
+                        alt={anuncio.titulo}
+                        className={s.lightboxImg}
+                        onClick={(e) => e.stopPropagation()}
+                        onError={(e) => { e.target.src = IMAGEN_DEFAULT; }}
+                    />
                 </div>
             )}
 
@@ -147,7 +155,7 @@ const KioscoDetalle = () => {
                     <div className={s.visorDocWrap}>
                         <button type="button" className={s.visorDocCerrarFlotante} onClick={() => setVisorDoc(false)}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
                             Cerrar
                         </button>
@@ -157,14 +165,17 @@ const KioscoDetalle = () => {
             )}
 
             <aside className={s.panelIzq}>
-                {imagenActual && (
-                    <div className={s.imagenFondo} style={{ backgroundImage: `url(${imagenActual})` }} />
-                )}
+                {/* Imagen de fondo (Blur) */}
+                <div
+                    className={s.imagenFondo}
+                    style={{ backgroundImage: `url(${imagenActual})` }}
+                />
+
                 <div className={s.imagenOverlay} />
 
                 <button type="button" className={s.botonCerrar} onClick={handleVolver}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                     Cerrar detalle
                 </button>
@@ -186,7 +197,7 @@ const KioscoDetalle = () => {
                         {fechaInicio && (
                             <div className={s.fechaItem}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                                    <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                                 </svg>
                                 <div><span className={s.fechaLabel}>Inicio</span><span className={s.fechaValor}>{fechaInicio}</span></div>
                             </div>
@@ -194,7 +205,7 @@ const KioscoDetalle = () => {
                         {fechaFin && (
                             <div className={s.fechaItem}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                                 </svg>
                                 <div><span className={s.fechaLabel}>Fin</span><span className={s.fechaValor}>{fechaFin}</span></div>
                             </div>
@@ -208,7 +219,7 @@ const KioscoDetalle = () => {
 
                 <section className={s.archivos}>
                     <h3 className={s.archivosTitulo}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                         ARCHIVOS ADJUNTOS Y GALERÍA
                     </h3>
                     <div className={s.archivosGrid}>
@@ -247,11 +258,11 @@ const KioscoDetalle = () => {
                 >
                     {isSpeaking ? (
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+                            <rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />
                         </svg>
                     ) : (
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                            <path d="M11 5L6 9H2V15H6L11 19V5Z" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
                         </svg>
                     )}
                 </button>

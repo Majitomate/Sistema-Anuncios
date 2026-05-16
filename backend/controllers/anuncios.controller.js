@@ -68,24 +68,32 @@ export const actualizar = async (req, res) => {
   try {
     const { id } = req.params;
     const datos = req.body;
-    const nuevasImagenes = req.files?.imagen || [];
-    const nuevoDocumento = req.files?.documento?.[0];
-    const anuncioExistente = await obtenerAnuncioPorId(id);
-    if (!anuncioExistente) return res.status(404).json({ error: 'Anuncio no encontrado' });
+    const imagenes = req.files?.imagen || [];
+    const documento = req.files?.documento?.[0] || null;
 
-    const totalImagenes = (anuncioExistente.imagenes?.length || 0) + nuevasImagenes.length;
+    const anuncioActualBD = await obtenerAnuncioPorId(id);
     
-    if (totalImagenes > 5) {
-      return res.status(400).json({ 
-        error: `El anuncio ya tiene fotos. Solo puedes agregar ${5 - anuncioExistente.imagenes.length} más.` 
-      });
+    if (!anuncioActualBD) {
+      return res.status(404).json({ error: 'Anuncio no encontrado' });
     }
 
-    const actualizado = await editarAnuncio(id, datos, nuevasImagenes, nuevoDocumento);
-    res.json(actualizado);
+    const nuevoEstadoSolicitado = datos.estado === 'true' || datos.estado === true;
+    const estadoActualEnBD = anuncioActualBD.estado === true;
+
+    if (estadoActualEnBD === false && nuevoEstadoSolicitado === true) {
+      datos.estado = false;
+    }
+
+    const fila = await editarAnuncio(id, datos, imagenes, documento);
+
+    if (!fila) {
+      return res.status(404).json({ error: 'Anuncio no encontrado al intentar guardar' });
+    }
+
+    return res.json(fila);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al actualizar' });
+    console.error('[Error actualizar]:', error);
+    return res.status(500).json({ error: 'Error interno actualizando anuncio' });
   }
 };
 

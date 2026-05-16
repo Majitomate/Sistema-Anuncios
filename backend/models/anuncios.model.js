@@ -4,7 +4,8 @@ import pool from '../config/db.js';
 export const crearAnuncio = async (datos, imagenes, documento) => {
   const esPermanente = datos.esPermanente === 'true';
   const fechaInicio = datos.fechaInicio ? new Date(datos.fechaInicio) : null;
-  const estadoInicial = esPermanente || !fechaInicio || fechaInicio <= new Date();
+  // Al crearse, el interruptor maestro (estado) se guarda por defecto en true (Habilitado)
+  const estadoInicial = true; 
 
   const client = await pool.connect();
 
@@ -59,7 +60,14 @@ export const obtenerAnuncioPorId = async (id) => {
       estado, es_permanente,
       fecha_inicio, fecha_fin, prioridad,
       fecha_creacion, fecha_actualizacion,
-      CASE WHEN documento IS NOT NULL THEN true ELSE false END AS tiene_documento
+      CASE WHEN documento IS NOT NULL THEN true ELSE false END AS tiene_documento,
+      -- Evaluamos dinámicamente si realmente debe estar activo en pantalla
+      CASE 
+        WHEN estado = false THEN false
+        WHEN es_permanente = true THEN true
+        WHEN (NOW() >= fecha_inicio AND (fecha_fin IS NULL OR NOW() <= fecha_fin)) THEN true
+        ELSE false
+      END AS esta_vigente
     FROM anuncios
     WHERE id = $1;
   `;
@@ -95,14 +103,21 @@ export const obtenerImagenPorId = async (idImagen) => {
   return result.rows[0];
 };
 
-// Obtener todos los anuncios (Dashboard) - Quitamos imagen_tipo
+// Obtener todos los anuncios (Dashboard) con el cálculo automático de vigencia
 export const obtenerAnuncios = async () => {
   const result = await pool.query(`
     SELECT
       id, titulo, descripcion_corta, contenido, tipo,
       documento_tipo, estado, es_permanente,
       fecha_inicio, fecha_fin, prioridad,
-      fecha_creacion, fecha_actualizacion
+      fecha_creacion, fecha_actualizacion,
+      -- Si el administrador lo apagó manualmente (estado = false), esta_vigente SIEMPRE será false
+      CASE 
+        WHEN estado = false THEN false
+        WHEN es_permanente = true THEN true
+        WHEN (NOW() >= fecha_inicio AND (fecha_fin IS NULL OR NOW() <= fecha_fin)) THEN true
+        ELSE false
+      END AS esta_vigente
     FROM anuncios ORDER BY id DESC;
   `);
 
@@ -117,9 +132,8 @@ export const obtenerAnuncios = async () => {
   return anuncios;
 };
 
-// Obtener anuncios Kiosco - Quitamos imagen_tipo
+// Obtener anuncios Kiosco
 export const obtenerAnunciosKiosco = async () => {
-  // 1. Intentamos obtener primero SOLO anuncios temporales vigentes
   const resultTemporales = await pool.query(`
     SELECT
       id, titulo, descripcion_corta, contenido, tipo,
@@ -134,7 +148,6 @@ export const obtenerAnunciosKiosco = async () => {
 
   let anuncios = resultTemporales.rows;
 
-  // Si la lista está vacía, buscamos contenido alternativo
   if (anuncios.length === 0) {
     const resultPermanentes = await pool.query(`
       SELECT
@@ -142,22 +155,19 @@ export const obtenerAnunciosKiosco = async () => {
         documento_tipo, estado, es_permanente,
         fecha_inicio, fecha_fin, prioridad
       FROM anuncios
-      WHERE es_permanente = true
+      WHERE estado = true
+        AND es_permanente = true
       ORDER BY prioridad DESC, fecha_creacion DESC
     `);
     anuncios = resultPermanentes.rows;
   }
 
-  // Obtenemos las imágenes
   for (const anuncio of anuncios) {
     const imgResult = await pool.query(
       'SELECT id, imagen_tipo FROM anuncios_imagenes WHERE anuncio_id = $1 ORDER BY id', 
       [anuncio.id]
     );
-    anuncio.imagenes = imgResult.rows.map(row => ({ 
-        id: row.id, 
-        tipo: row.imagen_tipo 
-    }));
+    anuncio.imagenes = imgResult.rows.map(row => ({ id: row.id, tipo: row.imagen_tipo }));
   }
 
   return anuncios;
