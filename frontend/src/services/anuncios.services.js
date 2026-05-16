@@ -6,6 +6,27 @@ const getAuthHeaders = () => {
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
 
+export const obtenerAuditoria = async (id, token) => {
+  try {
+    const response = await fetch(`${API_URL}/${id}/auditoria`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('No se pudo obtener la auditoría del anuncio');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('[Error obtenerAuditoria service]:', error);
+    throw error;
+  }
+};
+
 export const obtenerAnuncios = async () => {
   // Token por si hay anuncios que solo el admin puede ver
   const res = await fetch(API_URL, { headers: getAuthHeaders() });

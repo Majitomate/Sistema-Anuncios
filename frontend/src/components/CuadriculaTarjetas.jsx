@@ -2,7 +2,7 @@ import React from 'react';
 import styles from '../styles/dashboard.module.css';
 import TarjetaAnuncio from './TarjetaAnuncio';
 
-const CuadriculaTarjetas = ({ anuncios, onEditar, onEliminar, onAbrirDocumento, puedeEditar }) => (
+const CuadriculaTarjetas = ({ anuncios, onEditar, onEliminar, onAbrirDocumento, puedeEditar, onVerAuditoria }) => (
   <section className={styles.announcementsGrid}>
     {anuncios.map((anuncio) => (
       <TarjetaAnuncio
@@ -10,7 +10,7 @@ const CuadriculaTarjetas = ({ anuncios, onEditar, onEliminar, onAbrirDocumento, 
         id={anuncio.id}
         titulo={anuncio.titulo}
         tipo={anuncio.tipo}
-        descripcion_corta={anuncio.descripcion_corta || ''} 
+        descripcion_corta={anuncio.descripcion_corta || ''}
         tieneDocumento={!!anuncio.documento_tipo}
         id_imagen_principal={anuncio.id_imagen_principal}
         prioridad={anuncio.prioridad}
@@ -18,7 +18,9 @@ const CuadriculaTarjetas = ({ anuncios, onEditar, onEliminar, onAbrirDocumento, 
         onEditar={() => onEditar(anuncio)}
         onEliminar={() => onEliminar(anuncio.id)}
         onAbrirDocumento={onAbrirDocumento}
+        onVerAuditoria={onVerAuditoria}
         puedeEditar={puedeEditar}
+
       />
     ))}
   </section>

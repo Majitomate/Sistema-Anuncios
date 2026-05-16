@@ -11,7 +11,7 @@ const PRIORIDAD_ESTILOS = {
 const IMAGEN_DEFAULT = '/imagen_default.jpg';
 
 
-const TarjetaAnuncio = ({ id, titulo, tipo, id_imagen_principal, prioridad, estado, onEditar, onEliminar, onAbrirDocumento, puedeEditar }) => {
+const TarjetaAnuncio = ({ id, titulo, tipo, id_imagen_principal, prioridad, estado, onEditar, onEliminar, onAbrirDocumento, onVerAuditoria, puedeEditar }) => {
   const estilo = PRIORIDAD_ESTILOS[prioridad] ?? PRIORIDAD_ESTILOS[2];
   const { anuncio, loading } = useAnuncioDetalle(id);
 
@@ -56,6 +56,9 @@ const TarjetaAnuncio = ({ id, titulo, tipo, id_imagen_principal, prioridad, esta
                 📄 Ver Doc
               </button>
             )}
+            <button type="button\" className={styles.auditoriaButton} onClick={() => onVerAuditoria(id)} title="Ver registro de cambios">
+              📋 Cambios
+            </button>
             {puedeEditar && (
               <>
                 <button type="button" className={styles.editButton} onClick={onEditar}>

@@ -12,6 +12,7 @@ import {
   descargarDocumento,
   actualizar,
   eliminar,
+  consultarAuditoria,
 } from '../controllers/anuncios.controller.js';
 
 const router = express.Router();
@@ -32,10 +33,9 @@ const archivos = upload.fields([
 // ==========================================
 
 // Kiosco (Solo activos, ordenados por prioridad)
-// IMPORTANTE: Definir rutas estáticas antes que las dinámicas (/:id)
 router.get('/kiosco', listarKiosco);
 
-// Descargar imagen / documento (Usualmente público para que funcione en etiquetas <img> o <iframe>)
+// Descargar imagen / documento
 router.get('/:id/imagen', descargarImagen);
 router.get('/imagen/:idImagen', descargarImagenEspecifica);
 router.get('/:id/documento', descargarDocumento);
@@ -45,11 +45,13 @@ router.get('/:id/documento', descargarDocumento);
 // RUTAS PROTEGIDAS (Requieren token)
 // ==========================================
 
-// Aplicamos el middleware a todas las rutas que se definan debajo de esta línea
 router.use(verifyToken);
 
 // Obtener todos los anuncios (Dashboard)
 router.get('/', listar);
+
+// Obetener auditoría para un anuncio específico
+router.get('/:id/auditoria', consultarAuditoria);
 
 // Obtener un anuncio por id
 router.get('/:id', obtenerPorId);

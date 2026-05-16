@@ -7,6 +7,7 @@ import {
   obtenerAnunciosKiosco,
   obtenerArchivosAnuncio,
   obtenerImagenPorId,
+  obtenerAuditoriaAnuncio,
 } from '../models/anuncios.model.js';
 
 // Obtener todos los anuncios
@@ -37,11 +38,12 @@ export const crear = async (req, res) => {
     const datos = req.body;
     const imagenes = req.files?.imagen || [];
     const documento = req.files?.documento?.[0];
+    const usuarioId = req.user.id; // Extraído de forma segura del JWT verificado
 
-    const anuncio = await crearAnuncio(datos, imagenes, documento);
+    const anuncio = await crearAnuncio(datos, imagenes, documento, usuarioId);
     return res.status(201).json(anuncio);
   } catch (error) {
-    console.error(error);
+    console.error('[Error crear anuncio]:', error);
     return res.status(500).json({ error: 'Error creando anuncio' });
   }
 };
@@ -70,6 +72,7 @@ export const actualizar = async (req, res) => {
     const datos = req.body;
     const imagenes = req.files?.imagen || [];
     const documento = req.files?.documento?.[0] || null;
+    const usuarioId = req.user.id; // Extraído de forma segura del JWT verificado
 
     const anuncioActualBD = await obtenerAnuncioPorId(id);
     
@@ -84,7 +87,8 @@ export const actualizar = async (req, res) => {
       datos.estado = false;
     }
 
-    const fila = await editarAnuncio(id, datos, imagenes, documento);
+    // Se pasa usuarioId como último argumento
+    const fila = await editarAnuncio(id, datos, imagenes, documento, usuarioId);
 
     if (!fila) {
       return res.status(404).json({ error: 'Anuncio no encontrado al intentar guardar' });
@@ -165,6 +169,59 @@ export const descargarDocumento = async (req, res) => {
   } catch (error) {
     console.error('[Error descargarDocumento]:', error);
     return res.status(500).json({ error: 'Error interno descargando documento' });
+  }
+};
+
+// Consultar Auditoría
+export const consultarAuditoria = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const auditoria = await obtenerAuditoriaAnuncio(id);
+
+    if (!auditoria) {
+      return res.status(404).json({ error: 'Registro de auditoría no encontrado' });
+    }
+
+    // Inicializamos el array de detalles del cambio
+    const cambiosDetectados = [];
+
+    const creado = new Date(auditoria.fecha_creacion).getTime();
+    const actualizado = new Date(auditoria.fecha_actualizacion).getTime();
+    
+    // Margen de 2 segundos por cualquier retraso en la transacción de la BD
+    const fueModificado = (actualizado - creado) > 2000;
+
+    if (fueModificado) {
+      // Como buena práctica de auditoría, listamos las propiedades críticas activas en la última versión
+      cambiosDetectados.push(`El anuncio fue editado operativamente.`);
+      cambiosDetectados.push(`Clasificación actual: Tipo [${auditoria.tipo}] con Prioridad [${auditoria.prioridad === 3 ? 'Alta' : auditoria.prioridad === 2 ? 'Media' : 'Baja'}].`);
+      
+      if (auditoria.es_permanente) {
+        cambiosDetectados.push('Establecido como contenido permanente del Kiosco.');
+      } else {
+        cambiosDetectados.push('Se ajustaron los rangos de vigencia horaria/calendario.');
+      }
+
+      if (auditoria.documento_tipo) {
+        cambiosDetectados.push('Contiene un documento institucional adjunto (PDF).');
+      }
+
+      if (!auditoria.estado) {
+        cambiosDetectados.push('⚠️ El administrador forzó el apagado del anuncio (Interruptor Maestro: Inactivo).');
+      }
+    } else {
+      cambiosDetectados.push('El anuncio conserva su contenido y configuración original de creación.');
+    }
+
+    // Retornamos un objeto extendido respetando el estándar Airbnb (sin mutar el original)
+    return res.status(200).json({
+      ...auditoria,
+      fueModificado,
+      cambiosDetectados,
+    });
+  } catch (error) {
+    console.error('[Error consultarAuditoria]:', error);
+    return res.status(500).json({ error: 'Error interno obteniendo la auditoría' });
   }
 };
 

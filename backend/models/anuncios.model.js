@@ -1,10 +1,8 @@
 import pool from '../config/db.js';
 
-// Crear anuncio con múltiples imágenes
-export const crearAnuncio = async (datos, imagenes, documento) => {
+// Crear anuncio
+export const crearAnuncio = async (datos, imagenes, documento, usuarioId) => {
   const esPermanente = datos.esPermanente === 'true';
-  const fechaInicio = datos.fechaInicio ? new Date(datos.fechaInicio) : null;
-  // Al crearse, el interruptor maestro (estado) se guarda por defecto en true (Habilitado)
   const estadoInicial = true; 
 
   const client = await pool.connect();
@@ -12,26 +10,26 @@ export const crearAnuncio = async (datos, imagenes, documento) => {
   try {
     await client.query('BEGIN');
 
-    // Guardar el anuncio
     const queryAnuncio = `
       INSERT INTO anuncios 
       (titulo, descripcion_corta, contenido, tipo,
        documento, documento_tipo,
-       fecha_inicio, fecha_fin, prioridad, es_permanente, estado)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       fecha_inicio, fecha_fin, prioridad, es_permanente, estado, 
+       creado_por, modificado_por)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *;
     `;
     const valuesAnuncio = [
       datos.titulo, datos.descripcion_corta, datos.contenido, datos.tipo,
       documento ? documento.buffer : null, documento ? documento.mimetype : null,
       datos.fechaInicio || null, datos.fechaFin || null,
-      datos.prioridad || 1, esPermanente, estadoInicial
+      datos.prioridad || 1, esPermanente, estadoInicial,
+      usuarioId, usuarioId, // $12 y $13
     ];
 
     const resAnuncio = await client.query(queryAnuncio, valuesAnuncio);
     const anuncioCreado = resAnuncio.rows[0];
 
-    // Guardar las imágenes en la nueva tabla
     if (imagenes && imagenes.length > 0) {
       for (const img of imagenes) {
         await client.query(
@@ -180,21 +178,24 @@ export const eliminarAnuncio = async (id) => {
 };
 
 // Editar anuncio
-export const editarAnuncio = async (id, datos, imagenes, documento) => {
+export const editarAnuncio = async (id, datos, imagenes, documento, usuarioId) => {
+  // SE AGREGA: modificado_por = $12
   const query = `
     UPDATE anuncios SET 
       titulo = $1, descripcion_corta = $2, contenido = $3, tipo = $4,
       documento = COALESCE($5::bytea, documento), 
       documento_tipo = COALESCE($6::varchar, documento_tipo),
       fecha_inicio = $7, fecha_fin = $8, prioridad = $9, 
-      es_permanente = $10, estado = $11, fecha_actualizacion = CURRENT_TIMESTAMP
-    WHERE id = $12 RETURNING *;
+      es_permanente = $10, estado = $11, modificado_por = $12,
+      fecha_actualizacion = CURRENT_TIMESTAMP
+    WHERE id = $13 RETURNING *;
   `;
   const values = [
     datos.titulo, datos.descripcion_corta, datos.contenido, datos.tipo,
     documento ? documento.buffer : null, documento ? documento.mimetype : null,
     datos.fechaInicio || null, datos.fechaFin || null, datos.prioridad || 1,
-    datos.esPermanente === 'true', datos.estado === 'true' || datos.estado === true, id
+    datos.esPermanente === 'true', datos.estado === 'true' || datos.estado === true,
+    usuarioId, id,
   ];
 
   const result = await pool.query(query, values);
@@ -209,4 +210,33 @@ export const editarAnuncio = async (id, datos, imagenes, documento) => {
     }
   }
   return anuncioActualizado;
+};
+
+export const obtenerAuditoriaAnuncio = async (id) => {
+  const query = `
+    SELECT 
+      a.id AS anuncio_id,
+      a.titulo,
+      a.descripcion_corta,
+      a.contenido,
+      a.tipo,
+      a.prioridad,
+      a.estado,
+      a.es_permanente,
+      a.fecha_inicio,
+      a.fecha_fin,
+      a.documento_tipo,
+      a.fecha_creacion,
+      a.fecha_actualizacion,
+      u1.nombre AS creado_por_nombre,
+      u1.email AS creado_por_email,
+      u2.nombre AS modificado_por_nombre,
+      u2.email AS modificado_por_email
+    FROM anuncios a
+    LEFT JOIN usuarios u1 ON a.creado_por = u1.id
+    LEFT JOIN usuarios u2 ON a.modificado_por = u2.id
+    WHERE a.id = $1;
+  `;
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
 };
