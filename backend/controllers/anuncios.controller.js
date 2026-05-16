@@ -81,9 +81,27 @@ export const actualizar = async (req, res) => {
     }
 
     const nuevoEstadoSolicitado = datos.estado === 'true' || datos.estado === true;
-    const estadoActualEnBD = anuncioActualBD.estado === true;
+    const esPermanente = datos.esPermanente === 'true' || datos.esPermanente === true;
+    const fechaInicio = datos.fechaInicio || anuncioActualBD.fecha_inicio;
+    const fechaFin = datos.fechaFin || anuncioActualBD.fecha_fin;
 
-    if (estadoActualEnBD === false && nuevoEstadoSolicitado === true) {
+    const estaDentroDeFechas = () => {
+      if (esPermanente) return true;
+      if (!fechaInicio) return false;
+
+      const inicio = new Date(fechaInicio);
+      const fin = fechaFin ? new Date(fechaFin) : null;
+      const ahora = new Date();
+
+      if (Number.isNaN(inicio.getTime())) return false;
+      if (fin && Number.isNaN(fin.getTime())) return false;
+
+      return inicio <= ahora && (!fin || ahora <= fin);
+    };
+
+    // Respetar el cambio manual del administrador.
+    // Solo desactivamos automáticamente si el anuncio está fuera de su ventana de vigencia.
+    if (nuevoEstadoSolicitado && !estaDentroDeFechas()) {
       datos.estado = false;
     }
 
