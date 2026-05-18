@@ -1,0 +1,536 @@
+/* ── Paleta ──────────────────────────────────────────────────────────────── */
+:root {
+    --verde:       #1b5e20;
+    --verde-medio: #2e7d32;
+    --verde-claro: #43a047;
+    --naranja:     #ff6224;
+    --fondo:       #edeee9;
+    --blanco:      #ffffff;
+    --texto:       #1a1a1a;
+    --texto-suave: #6b7b6b;
+    --borde:       #dde5dd;
+    --error:       #c62828;
+}
+
+/* ── Página ──────────────────────────────────────────────────────────────── */
+.pagina {
+    min-height: 100vh;
+    background: var(--fondo);
+    background-image:
+            radial-gradient(circle at 10% 20%, rgba(27,94,32,0.06) 0%, transparent 50%),
+            radial-gradient(circle at 90% 80%, rgba(255,98,36,0.05) 0%, transparent 50%);
+    padding: 32px 40px 60px;
+    font-family: 'Georgia', serif;
+    box-sizing: border-box;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────────────── */
+.topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+.topBarIzq {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.botonVolver {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    flex-shrink: 0;
+}
+
+.botonVolver:hover {
+    background: #f4f7f4;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.botonVolver svg { color: var(--texto); }
+
+.pageTitle {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--verde);
+    margin: 0 0 2px;
+    letter-spacing: -0.01em;
+}
+
+.pageSubtitle {
+    font-size: 0.82rem;
+    color: var(--texto-suave);
+    margin: 0;
+    font-family: system-ui, sans-serif;
+}
+
+.botonNuevo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    background: var(--verde);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(27,94,32,0.3);
+}
+
+.botonNuevo:hover {
+    background: var(--verde-medio);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(27,94,32,0.35);
+}
+
+.botonCancelarTop {
+    padding: 10px 22px;
+    background: var(--blanco);
+    color: var(--texto-suave);
+    border: 1.5px solid var(--borde);
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.botonCancelarTop:hover {
+    background: #f4f7f4;
+    border-color: #c8d5c8;
+}
+
+/* ── Contenedor centrado del formulario ──────────────────────────────────── */
+.formCentrado {
+    display: flex;
+    justify-content: center;
+}
+
+.formCentrado .card {
+    width: 100%;
+    max-width: 780px;
+}
+
+/* ── Card contenedor ─────────────────────────────────────────────────────── */
+.card {
+    background: var(--blanco);
+    border-radius: 18px;
+    border: 1px solid var(--borde);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--borde);
+    color: var(--verde);
+}
+
+.cardTitle {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--texto);
+    margin: 0;
+    font-family: system-ui, sans-serif;
+}
+
+.contador {
+    font-size: 0.9rem;
+    color: var(--texto-suave);
+    font-family: system-ui, sans-serif;
+}
+
+/* ── Tabla ───────────────────────────────────────────────────────────────── */
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: system-ui, sans-serif;
+}
+
+.tabla thead tr {
+    border-bottom: 1px solid var(--borde);
+}
+
+.tabla thead th {
+    padding: 12px 24px;
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--texto-suave);
+}
+
+.tabla tbody tr {
+    border-bottom: 1px solid #f0f4f0;
+    transition: background 0.15s;
+}
+
+.tabla tbody tr:last-child { border-bottom: none; }
+.tabla tbody tr:hover       { background: #f8faf8; }
+
+.tabla tbody td {
+    padding: 14px 24px;
+    font-size: 0.88rem;
+    color: var(--texto);
+    vertical-align: middle;
+}
+
+/* ── Celda usuario ───────────────────────────────────────────────────────── */
+.usuarioCell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.nombreUsuario {
+    font-weight: 600;
+    color: var(--texto);
+}
+
+.emailCell   { color: var(--texto-suave); font-size: 0.85rem; }
+.idCell      { color: var(--texto-suave); font-size: 0.82rem; font-family: monospace; }
+
+/* ── Badge rol ───────────────────────────────────────────────────────────── */
+.badgeRol {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    border: 1px solid;
+}
+
+.badgeDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Acciones ────────────────────────────────────────────────────────────── */
+.acciones {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.btnEditar,
+.btnEliminar {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.btnEditar {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.btnEditar:hover {
+    background: #bbdefb;
+    transform: scale(1.08);
+}
+
+.btnEliminar {
+    background: #fde8e8;
+    color: #c62828;
+}
+
+.btnEliminar:hover {
+    background: #ffcdd2;
+    transform: scale(1.08);
+}
+
+/* ── Estado centro ───────────────────────────────────────────────────────── */
+.estadoCentro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    gap: 12px;
+    color: var(--texto-suave);
+    font-family: system-ui, sans-serif;
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--borde);
+    border-top-color: var(--verde);
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* ── Formulario ──────────────────────────────────────────────────────────── */
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 28px;
+    padding: 28px 28px 0;
+}
+
+/* Contraseña ocupa el ancho completo */
+.campoFull {
+    grid-column: 1 / -1;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--texto-suave);
+    font-family: system-ui, sans-serif;
+    text-transform: uppercase;
+}
+
+.labelHint {
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: #aaa;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.inputWrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.inputIcon {
+    position: absolute;
+    left: 13px;
+    color: #bbb;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.input {
+    width: 100%;
+    padding: 11px 40px 11px 38px;
+    font-size: 0.88rem;
+    font-family: system-ui, sans-serif;
+    color: var(--texto);
+    background: #f8faf8;
+    border: 1.5px solid var(--borde);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.input:focus {
+    border-color: var(--verde-medio);
+    box-shadow: 0 0 0 3px rgba(27,94,32,0.1);
+    background: var(--blanco);
+}
+
+.inputError         { border-color: var(--error); background: #fff8f8; }
+.inputError:focus   { box-shadow: 0 0 0 3px rgba(198,40,40,0.1); }
+
+.togglePass {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #bbb;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.togglePass:hover { color: var(--verde); }
+
+.errorMsg {
+    font-size: 0.73rem;
+    color: var(--error);
+    font-family: system-ui, sans-serif;
+}
+
+/* ── Roles ───────────────────────────────────────────────────────────────── */
+.rolesSection {
+    padding: 24px 28px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rolesGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.rolCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 12px;
+    background: #f8faf8;
+    border: 2px solid var(--borde);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    text-align: center;
+}
+
+.rolCard:hover {
+    border-color: #aac8aa;
+    transform: translateY(-2px);
+}
+
+.rolCardActivo {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(27,94,32,0.12);
+}
+
+.rolIcono {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rolNombre {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--texto);
+    font-family: system-ui, sans-serif;
+}
+
+.rolDesc {
+    font-size: 0.72rem;
+    color: var(--texto-suave);
+    font-family: system-ui, sans-serif;
+    line-height: 1.3;
+}
+
+/* ── Footer del formulario ───────────────────────────────────────────────── */
+.formFooter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 24px 28px;
+    margin-top: 8px;
+    border-top: 1px solid var(--borde);
+}
+
+.btnCancelar {
+    padding: 10px 24px;
+    background: var(--blanco);
+    border: 1.5px solid var(--borde);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--texto-suave);
+    cursor: pointer;
+    font-family: system-ui, sans-serif;
+    transition: background 0.2s;
+}
+
+.btnCancelar:hover { background: #f4f7f4; }
+
+.btnGuardar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 28px;
+    background: var(--verde);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    font-family: system-ui, sans-serif;
+    transition: background 0.2s, transform 0.15s;
+    box-shadow: 0 4px 12px rgba(27,94,32,0.25);
+}
+
+.btnGuardar:hover:not(:disabled) {
+    background: var(--verde-medio);
+    transform: translateY(-1px);
+}
+
+.btnGuardar:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.spinnerBtn {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: girar 0.7s linear infinite;
+    display: inline-block;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .pagina     { padding: 20px 16px 40px; }
+    .formGrid   { grid-template-columns: 1fr; }
+    .campoFull  { grid-column: 1; }
+    .rolesGrid  { grid-template-columns: repeat(2, 1fr); }
+    .pageTitle  { font-size: 1.3rem; }
+    .tabla      { font-size: 0.8rem; }
+    .tabla thead th,
+    .tabla tbody td { padding: 10px 14px; }
+}

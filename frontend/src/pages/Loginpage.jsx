@@ -4,21 +4,18 @@ import Swal from 'sweetalert2';
 import useAuth from '../hooks/useAuth';
 import s from '../styles/LoginPage.module.css';
 
-// admin, editor, revisor → dashboard | visualizador → /display
 const rutaPorRol = (rol) =>
     rol === 'visualizador' ? '/display' : '/dashboard';
 
-// Corregimos el nombre aquí (le faltaba la 's' al final)
 const LoginPage = ({ onLoginSuccess }) => {
     const navigate           = useNavigate();
     const { login, loading } = useAuth();
 
-    const [email,      setEmail]      = useState('');
-    const [password,   setPassword]   = useState('');
-    const [verPass,    setVerPass]    = useState(false);
-    const [errores,    setErrores]    = useState({});
+    const [email,    setEmail]    = useState('');
+    const [password, setPassword] = useState('');
+    const [verPass,  setVerPass]  = useState(false);
+    const [errores,  setErrores]  = useState({});
 
-    // Si ya hay sesión activa, redirigir
     useEffect(() => {
         const token = localStorage.getItem('sutus_token');
         const rol   = localStorage.getItem('sutus_rol');
@@ -43,10 +40,7 @@ const LoginPage = ({ onLoginSuccess }) => {
 
         try {
             const rol = await login(email.trim(), password);
-            if (onLoginSuccess) {
-                onLoginSuccess();
-            }
-
+            if (onLoginSuccess) onLoginSuccess();
             navigate(rutaPorRol(rol), { replace: true });
         } catch (err) {
             Swal.fire({
@@ -68,7 +62,6 @@ const LoginPage = ({ onLoginSuccess }) => {
     return (
         <div className={s.pagina}>
 
-            {/* Círculos decorativos de fondo */}
             <div className={s.fondo}>
                 <div className={s.fondoCirculo1} />
                 <div className={s.fondoCirculo2} />
@@ -77,7 +70,6 @@ const LoginPage = ({ onLoginSuccess }) => {
 
             <main className={s.tarjeta}>
 
-                {/* Logo + título */}
                 <header className={s.encabezado}>
                     <div className={s.logoWrap}>
                         <img
@@ -92,19 +84,18 @@ const LoginPage = ({ onLoginSuccess }) => {
                     <span className={s.divider} />
                 </header>
 
-                {/* Formulario */}
                 <form className={s.form} onSubmit={handleLogin} noValidate>
 
                     {/* Email */}
                     <div className={s.campo}>
                         <label className={s.label} htmlFor="email">Correo electrónico</label>
                         <div className={s.inputWrap}>
-              <span className={s.inputIcono}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                  <polyline points="22,6 12,13 2,6"/>
-                </svg>
-              </span>
+                            <span className={s.inputIcono}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                            </span>
                             <input
                                 id="email"
                                 name="email"
@@ -124,12 +115,12 @@ const LoginPage = ({ onLoginSuccess }) => {
                     <div className={s.campo}>
                         <label className={s.label} htmlFor="password">Contraseña</label>
                         <div className={s.inputWrap}>
-              <span className={s.inputIcono}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2"/>
-                  <path d="M7 11V7a5 5 0 0110 0v4"/>
-                </svg>
-              </span>
+                            <span className={s.inputIcono}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                    <path d="M7 11V7a5 5 0 0110 0v4"/>
+                                </svg>
+                            </span>
                             <input
                                 id="password"
                                 name="password"
@@ -164,13 +155,12 @@ const LoginPage = ({ onLoginSuccess }) => {
                         {errores.password && <span className={s.mensajeError}>{errores.password}</span>}
                     </div>
 
-                    {/* Botón submit */}
                     <button type="submit" className={s.botonLogin} disabled={loading}>
                         {loading ? (
                             <span className={s.spinnerWrap}>
-                <span className={s.spinner} />
-                Ingresando...
-              </span>
+                                <span className={s.spinner} />
+                                Ingresando...
+                            </span>
                         ) : 'Ingresar'}
                     </button>
 

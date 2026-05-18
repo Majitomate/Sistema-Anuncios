@@ -77,14 +77,72 @@
   gap: 8px;
 }
 
+/* ─── Sistema unificado de botones navbar ─── */
+/* Botón base: misma altura, padding, radio y fuente para todos */
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  transition: background var(--t), border-color var(--t), transform var(--t), box-shadow var(--t);
+}
+.navBtn:active { transform: translateY(0) !important; }
+
+/* Naranja — acción principal */
+.navBtnNaranja {
+  background: var(--naranja);
+  color: #fff;
+  border: 1.5px solid transparent;
+  box-shadow: 0 2px 8px rgba(255,98,36,0.28);
+}
+.navBtnNaranja:hover {
+  background: var(--naranja-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(255,98,36,0.40);
+}
+
+/* Ghost — acciones secundarias sobre fondo verde */
+.navBtnGhost {
+  background: rgba(255,255,255,0.10);
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.22);
+}
+.navBtnGhost:hover {
+  background: rgba(255,255,255,0.20);
+  border-color: rgba(255,255,255,0.40);
+  transform: translateY(-1px);
+}
+
+/* Salir — tono rojo sutil */
+.navBtnSalir {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border: 1.5px solid rgba(255,255,255,0.16);
+}
+.navBtnSalir:hover {
+  background: rgba(198,40,40,0.30);
+  border-color: rgba(198,40,40,0.50);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Mantener compatibilidad con uso anterior */
 .navbarActionButton {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
-  padding: 0 18px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: 8px;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -102,33 +160,34 @@
 
 .viewSwitcher {
   display: flex;
-  background-color: rgba(0,0,0,0.20);
-  border-radius: 8px;
-  padding: 2px;
-  gap: 1px;
+  background: rgba(0,0,0,0.18);
+  border-radius: 9px;
+  padding: 3px;
+  gap: 2px;
 }
 
 .switchBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 6px;
   background: none;
   border: none;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255,255,255,0.60);
   font-size: 12.5px;
   font-weight: 600;
   font-family: inherit;
-  padding: 6px 14px;
-  border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
-  transition: color var(--t), background-color var(--t);
+  transition: color var(--t), background-color var(--t), box-shadow var(--t);
 }
-.switchBtn:hover { color: #fff; }
+.switchBtn:hover { color: rgba(255,255,255,0.90); }
 .switchBtn.active {
-  background-color: var(--naranja);
+  background: var(--naranja);
   color: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  box-shadow: 0 2px 6px rgba(255,98,36,0.35);
 }
 
 /* ─── Contenido ─── */
@@ -414,10 +473,10 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.08) 0%,
-    rgba(0,0,0,0.55) 65%,
-    rgba(0,0,0,0.75) 100%
+          to bottom,
+          rgba(0,0,0,0.08) 0%,
+          rgba(0,0,0,0.55) 65%,
+          rgba(0,0,0,0.75) 100%
   );
   z-index: 1;
 }
@@ -983,34 +1042,34 @@
 }
 
 @media (max-width: 768px) {
-  .navbar { 
-    padding: 0 16px; 
+  .navbar {
+    padding: 0 16px;
     height: 60px;
   }
   .navbarTitle { font-size: 18px; }
-  
+
   .dashboardContainer { padding: 16px; gap: 16px; }
   .headerActions { flex-direction: column; align-items: stretch; gap: 12px; }
-  
+
   /* Scroll horizontal suave en móviles para métricas y pestañas */
-  .statsBar, .contentTabs { 
-    padding-bottom: 4px; 
+  .statsBar, .contentTabs {
+    padding-bottom: 4px;
     -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
   }
-  
+
   .carouselSection { height: 200px; border-radius: 12px; }
   .carouselText h2 { font-size: 22px; }
-  
+
   .contentHeader { flex-direction: column; align-items: flex-start; gap: 12px; }
   .viewOptions { align-self: flex-end; }
-  
+
   .tableContainer {
     border-radius: var(--radio);
     /* Aseguramos que la tabla no rompa el diseño */
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .emptyState { padding: 60px 20px; }
 }
 
@@ -1018,39 +1077,39 @@
   .dashboardContainer { padding: 12px; gap: 12px; }
   .navbarTitle { display: none; /* Ocultamos la palabra SUTUS para dar espacio al usuario */ }
   .navbarLogo { width: 32px; height: 32px; }
-  
+
   /* Ocultamos el rol en pantallas muy pequeñas para no amontonar */
   .navbarRol { display: none; }
   .navbarUsuarioNombre { font-size: 12px; }
-  
+
   .btnCrear { width: 100%; justify-content: center; }
   .statsBar { gap: 10px; }
-  .metricCard { 
-    min-width: 140px; 
-    padding: 12px; 
+  .metricCard {
+    min-width: 140px;
+    padding: 12px;
   }
   .metricValue { font-size: 20px; }
-  
+
   .contentTabs { gap: 8px; }
   .tabButton { padding: 6px 12px; font-size: 12.5px; }
-  
-  .announcementsGrid { 
+
+  .announcementsGrid {
     grid-template-columns: 1fr; /* Una sola columna en celulares */
-    gap: 12px; 
+    gap: 12px;
   }
-  
+
   .cardThumbnail { height: 140px; }
   .cardBody { padding: 12px; }
   .announcementCard h3 { font-size: 14px; }
-  
+
   .acciones { gap: 4px; flex-wrap: wrap; }
-  .editButton, .deleteButton, .viewDocButton { 
+  .editButton, .deleteButton, .viewDocButton {
     flex: 1; /* Botones más anchos para que sean fáciles de tocar */
     text-align: center;
     justify-content: center;
-    padding: 6px 8px; 
+    padding: 6px 8px;
   }
-  
+
   .listaTitle { font-size: 14px; padding: 12px; }
   .emptyState { padding: 40px 16px; }
   .emptyStateIcon { width: 40px; height: 40px; }
@@ -1059,10 +1118,10 @@
 @media (max-width: 360px) {
   /* Ocultamos totalmente el nombre del usuario si la pantalla es enana, dejamos solo el botón de salir */
   .navbarUsuarioNombre { display: none; }
-  
-  .metricCard { 
+
+  .metricCard {
     min-width: 100%; /* La tarjeta ocupa el 100% del ancho */
-    flex: 0 0 100%; 
+    flex: 0 0 100%;
   }
   .carouselText h2 { font-size: 18px; }
 }
@@ -1084,15 +1143,15 @@
   .textoMovilOculto {
     display: none;
   }
-  
+
   .navbarActions {
     gap: 6px; /* Juntamos más los botones */
   }
 
   /* Hacemos los botones más cuadraditos al quitar el texto */
-  .navbarActionButton, 
-  .switchBtn, 
-  .botonKiosco, 
+  .navbarActionButton,
+  .switchBtn,
+  .botonKiosco,
   .botonSalir {
     padding: 6px 10px;
     justify-content: center;
@@ -1153,3 +1212,212 @@
 .tipoGeneral { background-color: #e3f2fd; color: #0d47a1; }
 .tipoEvento { background-color: #e8f5e9; color: #1b5e20; }
 .tipoConvocatoria { background-color: #fff3e0; color: #e65100; }
+
+/* ── Agregar al final de dashboard.module.css ──────────────────────────── */
+
+.navbarUsuarioWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.navbarUsuarioNombre {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+
+.botonSalir {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.botonSalir:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.navbarAccionesIzq {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.botonModoVista {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.botonModoVista:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.botonUsuarios {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.botonUsuarios:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+/* ─── Sistema unificado navbar (nuevas clases) ─── */
+.navbarGrupo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navSeparador {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,0.18);
+  flex-shrink: 0;
+}
+
+.navBtnText { display: inline; }
+
+/* Base unificada */
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  transition: background var(--t), border-color var(--t), transform var(--t), box-shadow var(--t);
+}
+.navBtn:active { transform: translateY(0) !important; }
+
+/* Naranja — acción principal */
+.navBtnNaranja {
+  background: var(--naranja);
+  color: #fff;
+  border: 1.5px solid transparent;
+  box-shadow: 0 2px 8px rgba(255,98,36,0.28);
+}
+.navBtnNaranja:hover {
+  background: var(--naranja-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(255,98,36,0.40);
+}
+
+/* Ghost — acciones secundarias */
+.navBtnGhost {
+  background: rgba(255,255,255,0.10);
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.22);
+}
+.navBtnGhost:hover {
+  background: rgba(255,255,255,0.20);
+  border-color: rgba(255,255,255,0.40);
+  transform: translateY(-1px);
+}
+
+/* Salir — rojo sutil */
+.navBtnSalir {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border: 1.5px solid rgba(255,255,255,0.16);
+}
+.navBtnSalir:hover {
+  background: rgba(198,40,40,0.28);
+  border-color: rgba(198,40,40,0.45);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Responsive navbar */
+@media (max-width: 900px) {
+  .navBtnText { display: none; }
+  .navBtn { padding: 0 10px; }
+  .switchBtn .navBtnText { display: none; }
+}
+@media (max-width: 640px) {
+  .navSeparador { display: none; }
+  .navbarUsuarioNombre { display: none; }
+  .viewSwitcher { display: none; }
+}
+/* ── Pegar al final de dashboard.module.css ───────────────────────────────
+   Estilos para el botón de perfil de usuario en el Navbar                  */
+
+/* Botón clickeable que reemplaza el span estático del nombre */
+.navbarUsuarioBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px 4px 4px;
+  border-radius: 8px;
+  transition: background 0.15s;
+  color: inherit;
+  font-family: inherit;
+}
+
+.navbarUsuarioBtn:hover {
+  background: rgba(27, 94, 32, 0.08);
+}
+
+/* Círculo con la inicial del usuario */
+.navbarAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1b5e20, #2e7d32);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Georgia', serif;
+}

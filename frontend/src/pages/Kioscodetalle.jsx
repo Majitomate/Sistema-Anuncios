@@ -100,7 +100,6 @@ const KioscoDetalle = () => {
 
     const handleVolver = () => {
         window.speechSynthesis.cancel();
-        // Navegamos de vuelta a la lista. El FullscreenProvider mantendrá la pantalla completa.
         navigate('/display');
     };
 
