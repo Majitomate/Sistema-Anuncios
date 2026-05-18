@@ -6,11 +6,10 @@ import s from '../styles/KioscoLista.module.css';
 const API = 'http://localhost:3001';
 const IMAGEN_DEFAULT = '/imagen_default.jpg';
 
-
 const PRIO_CONFIG = {
     3: { label: 'URGENTE', clase: 'badgeUrgente' },
-    2: { label: 'ALTA',    clase: 'badgeAlta'    },
-    1: { label: null,      clase: null            },
+    2: { label: 'ALTA', clase: 'badgeAlta' },
+    1: { label: null, clase: null },
 };
 
 const formatFechaCorta = (ts) => {
@@ -23,26 +22,25 @@ const formatFechaCorta = (ts) => {
 const KioscoLista = () => {
     const navigate = useNavigate();
     const { isFullscreen, toggleFullscreen, salirDePantallaCompleta } = useFullscreen();
-
     const [anuncios, setAnuncios] = useState([]);
-    const [loading,  setLoading]  = useState(true);
-    const [error,    setError]    = useState(null);
-    const [indice,   setIndice]   = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [indice, setIndice] = useState(0);
     const [animando, setAnimando] = useState(false);
-    const [pausado,  setPausado]  = useState(false);
+    const [pausado, setPausado] = useState(false);
     const timerRef = useRef(null);
+    const [isOffline, setIsOffline] = useState(false);
 
     const fetchAnuncios = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const token   = localStorage.getItem('sutus_token');
+            const token = localStorage.getItem('sutus_token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            const res     = await fetch(`${API}/anuncios/kiosco`, { headers });
+            const res = await fetch(`${API}/anuncios/kiosco`, { headers });
             if (!res.ok) throw new Error('No se pudieron cargar los anuncios');
             const data = await res.json();
-            const ordenados = data
-                .sort((a, b) => b.prioridad - a.prioridad);
+            const ordenados = data.sort((a, b) => b.prioridad - a.prioridad);
             setAnuncios(ordenados);
         } catch (err) {
             setError(err.message);
@@ -51,7 +49,54 @@ const KioscoLista = () => {
         }
     }, []);
 
-    useEffect(() => { fetchAnuncios(); }, [fetchAnuncios]);
+    useEffect(() => {
+        let activo = true;
+
+        const cargarAnuncios = async () => {
+            try {
+                const response = await fetch(`${API}/anuncios/kiosco`);
+
+                if (!response.ok) throw new Error('Error de conexión');
+
+                const data = await response.json();
+
+                if (activo) {
+                    setAnuncios(data);
+                    setIsOffline(false);
+                    setError(null);
+                    // GUARDAMOS LA CACHÉ Y LA FECHA EXACTA
+                    localStorage.setItem('kiosco_cache_unisierra', JSON.stringify(data));
+                    localStorage.setItem('kiosco_ultima_sync', new Date().toISOString());
+                }
+            } catch (err) {
+                console.warn('Sin conexión al servidor. Cargando caché local...');
+
+                if (activo) {
+                    setIsOffline(true);
+                    const cache = localStorage.getItem('kiosco_cache_unisierra');
+
+                    if (cache) {
+                        setAnuncios(JSON.parse(cache));
+                        setError(null);
+                    } else {
+                        setError('No hay conexión a internet y no hay anuncios guardados en esta tablet.');
+                        setAnuncios([]);
+                    }
+                }
+            } finally {
+                if (activo) setLoading(false);
+            }
+        };
+
+        cargarAnuncios();
+
+        const intervalo = setInterval(cargarAnuncios, 5 * 60 * 1000);
+
+        return () => {
+            activo = false;
+            clearInterval(intervalo);
+        };
+    }, []);
 
     useEffect(() => {
         if (anuncios.length <= 1 || pausado) return;
@@ -95,36 +140,45 @@ const KioscoLista = () => {
     };
 
     if (loading) return (
-        <div className={s.pantalla}>
+        <div className={`${s.pantalla} ${s.pantallaCargando}`}>
             <div className={s.estadoCentro}><div className={s.spinner} /></div>
         </div>
     );
 
-    if (error) return (
-        <div className={s.pantalla}>
-            <div className={s.estadoCentro}>
-                <p>{error}</p>
-                <button className={s.botonReintentar} onClick={fetchAnuncios}>Reintentar</button>
+    if (!anuncios.length) {
+        const ultimaSync = localStorage.getItem('kiosco_ultima_sync');
+        return (
+            <div className={`${s.pantalla} ${s.pantallaVacia}`}>
+                <img src={IMAGEN_DEFAULT} alt="Logo SUTUS" className={s.logoGrande} />
+                
+                {isOffline && (
+                    <div className={s.offlineBanner}>
+                        ⚠️ Sin conexión. Mostrando datos locales (Última sync: {ultimaSync ? new Date(ultimaSync).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : 'Desconocida'})
+                    </div>
+                )}
+                
+                <h1 className={s.vacioTitulo}>No hay anuncios disponibles en este momento.</h1>
+                <p className={s.vacioTexto}>
+                    {error || "Esperando sincronización con el servidor..."}
+                </p>
+                {error && (
+                    <button className={s.botonReintentar} onClick={fetchAnuncios}>
+                        Reintentar conexión
+                    </button>
+                )}
             </div>
-        </div>
-    );
+        );
+    }
 
-    if (!anuncios.length) return (
-        <div className={s.pantalla}>
-            <div className={s.estadoCentro}><p>No hay anuncios disponibles.</p></div>
-        </div>
-    );
-
-    const actual    = anuncios[indice];
+    const actual = anuncios[indice];
     const imagenUrl = actual?.imagenes?.length > 0
         ? `${API}/anuncios/imagen/${actual.imagenes[0].id}`
         : IMAGEN_DEFAULT;
-    const prioConf  = actual ? (PRIO_CONFIG[actual.prioridad] ?? PRIO_CONFIG[1]) : null;
+    const prioConf = actual ? (PRIO_CONFIG[actual.prioridad] ?? PRIO_CONFIG[1]) : null;
 
     const fechaInicio = formatFechaCorta(actual?.fecha_inicio);
-    const fechaFin    = formatFechaCorta(actual?.fecha_fin);
+    const fechaFin = formatFechaCorta(actual?.fecha_fin);
 
-    // Anuncios proximos: todos menos el actual, max 3
     const proximos = anuncios
         .filter((_, i) => i !== indice)
         .slice(0, 3);
@@ -135,10 +189,20 @@ const KioscoLista = () => {
             onMouseEnter={() => setPausado(true)}
             onMouseLeave={() => setPausado(false)}
         >
-            <div
-                className={`${s.fondo} ${animando ? s.fondoSaliendo : ''}`}
-                style={imagenUrl ? { backgroundImage: `url(${imagenUrl})` } : {}}
+            <img 
+                key={actual?.id || indice}
+                src={imagenUrl}
+                alt="Fondo Anuncio"
+                className={`${s.fondo} ${s.imagenResponsive} ${animando ? s.fondoSaliendo : ''}`}
+                onError={(e) => {
+                    if (!e.target.src.includes(IMAGEN_DEFAULT)) {
+                        e.target.src = IMAGEN_DEFAULT;
+                    } else {
+                        e.target.style.display = 'none';
+                    }
+                }}
             />
+            
             <div className={s.overlay} />
 
             {/* Header */}
@@ -146,7 +210,7 @@ const KioscoLista = () => {
                 <div className={s.headerIzq}>
                     <button className={s.botonVolver} onClick={handleVolver}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                            <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
                         </svg>
                         Volver
                     </button>
@@ -155,6 +219,11 @@ const KioscoLista = () => {
                         <span className={s.marcaSub}>SEÑALIZACIÓN DIGITAL</span>
                     </div>
                 </div>
+                {isOffline && (
+                    <div className={s.offlineBadge}>
+                        ⚠️ Sin Conexión (Modo Local)
+                    </div>
+                )}
                 <div className={s.headerDer}>
                     {prioConf?.label && (
                         <span className={`${s.badgePrio} ${s[prioConf.clase]}`}>
@@ -165,17 +234,17 @@ const KioscoLista = () => {
                     <button className={s.botonFullscreen} onClick={toggleFullscreen} title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}>
                         {isFullscreen ? (
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                                <polyline points="8 3 3 3 3 8"/>
-                                <polyline points="21 8 21 3 16 3"/>
-                                <polyline points="3 16 3 21 8 21"/>
-                                <polyline points="16 21 21 21 21 16"/>
+                                <polyline points="8 3 3 3 3 8" />
+                                <polyline points="21 8 21 3 16 3" />
+                                <polyline points="3 16 3 21 8 21" />
+                                <polyline points="16 21 21 21 21 16" />
                             </svg>
                         ) : (
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                                <polyline points="15 3 21 3 21 9"/>
-                                <polyline points="9 21 3 21 3 15"/>
-                                <line x1="21" y1="3" x2="14" y2="10"/>
-                                <line x1="3" y1="21" x2="10" y2="14"/>
+                                <polyline points="15 3 21 3 21 9" />
+                                <polyline points="9 21 3 21 3 15" />
+                                <line x1="21" y1="3" x2="14" y2="10" />
+                                <line x1="3" y1="21" x2="10" y2="14" />
                             </svg>
                         )}
                     </button>
@@ -190,7 +259,7 @@ const KioscoLista = () => {
                     <button className={s.botonVerDetalle} onClick={() => navigate(`/display/${actual.id}`)}>
                         VER DETALLE COMPLETO
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                            <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
                         </svg>
                     </button>
                 </div>
@@ -214,10 +283,10 @@ const KioscoLista = () => {
                             {fechaInicio && (
                                 <div className={s.fechaChip}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                        <line x1="8"  y1="2" x2="8"  y2="6"/>
-                                        <line x1="3"  y1="10" x2="21" y2="10"/>
+                                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
                                     </svg>
                                     <div>
                                         <span className={s.fechaLabel}>INICIO</span>
@@ -228,8 +297,8 @@ const KioscoLista = () => {
                             {fechaFin && (
                                 <div className={s.fechaChip}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <polyline points="12 6 12 12 16 14"/>
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
                                     </svg>
                                     <div>
                                         <span className={s.fechaLabel}>FIN</span>
@@ -244,9 +313,9 @@ const KioscoLista = () => {
                     {proximos.length > 0 && (
                         <div className={s.proximosWrap}>
                             {proximos.map((a) => {
-                                const pc        = PRIO_CONFIG[a.prioridad] ?? PRIO_CONFIG[1];
+                                const pc = PRIO_CONFIG[a.prioridad] ?? PRIO_CONFIG[1];
                                 const esUrgente = a.prioridad === 3;
-                                const esAlta    = a.prioridad === 2;
+                                const esAlta = a.prioridad === 2;
                                 return (
                                     <button
                                         key={a.id}

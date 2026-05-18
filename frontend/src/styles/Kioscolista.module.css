@@ -12,6 +12,54 @@
     cursor: default;
 }
 
+.pantallaCargando {
+    background-color: #1b5e20;
+}
+
+.pantallaVacia {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #1b5e20;
+    padding: 20px;
+    text-align: center;
+}
+
+.logoGrande {
+    width: 180px;
+    margin-bottom: 20px;
+}
+
+.vacioTitulo {
+    color: #ffffff;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.vacioTexto {
+    color: #a5d6a7;
+    font-size: 1.2rem;
+    max-width: 600px;
+}
+
+.imagenResponsive {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.offlineBadge {
+    background-color: #ff9800;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-right: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
 /* ── Fondo con imagen y blur ─────────────────────────────────────────────── */
 .fondo {
     position: absolute;
@@ -531,4 +579,27 @@
 
 .botonVerDetalle:hover svg {
     transform: translateX(4px);
+}
+
+/* Añadir a KioscoLista.module.css */
+.offlineBanner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ff9800; /* Naranja de advertencia (Material Design) */
+    color: #ffffff;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 9999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    letter-spacing: 0.5px;
+    animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
 }

@@ -34,26 +34,57 @@ const KioscoDetalle = () => {
     const [visorDoc, setVisorDoc] = useState(false);
     const [indiceImagen, setIndiceImagen] = useState(0);
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [isOffline, setIsOffline] = useState(false);
 
     useEffect(() => {
-        const cargar = async () => {
-            setLoading(true);
-            setError(null);
+        let activo = true;
+
+        const cargarAnuncio = async () => {
             try {
-                const token = localStorage.getItem('sutus_token');
-                const headers = token ? { Authorization: `Bearer ${token}` } : {};
-                const res = await fetch(`${API}/anuncios/${id}`, { headers });
-                if (!res.ok) throw new Error('No se encontró el anuncio');
-                const data = await res.json();
-                setAnuncio(data);
-                document.title = `${data.titulo} — SUTUS`;
+                setLoading(true);
+                // 1. Intentamos consultar al servidor remoto
+                const response = await fetch(`${API}/api/anuncios/${id}`);
+                if (!response.ok) throw new Error('Error de conexión');
+
+                const data = await response.json();
+
+                if (activo) {
+                    setAnuncio(data);
+                    setIsOffline(false);
+                    setError(null);
+                }
             } catch (err) {
-                setError(err.message);
+                console.warn(`Sin red para el anuncio ${id}. Buscando en caché...`);
+
+                if (activo) {
+                    setIsOffline(true);
+                    const cache = localStorage.getItem('kiosco_cache_unisierra');
+
+                    if (cache) {
+                        const anunciosGuardados = JSON.parse(cache);
+                        // Buscamos el anuncio específico
+                        const anuncioEncontrado = anunciosGuardados.find(a => String(a.id) === String(id));
+
+                        if (anuncioEncontrado) {
+                            setAnuncio(anuncioEncontrado);
+                            setError(null);
+                        } else {
+                            setError('El anuncio no se encuentra en la memoria de la tablet.');
+                        }
+                    } else {
+                        setError('Sin conexión y sin historial en la tablet.');
+                    }
+                }
             } finally {
-                setLoading(false);
+                if (activo) setLoading(false);
             }
         };
-        cargar();
+
+        cargarAnuncio();
+
+        return () => {
+            activo = false;
+        };
     }, [id]);
 
     useEffect(() => {
@@ -178,7 +209,11 @@ const KioscoDetalle = () => {
                     </svg>
                     Cerrar detalle
                 </button>
-
+                {isOffline && (
+                    <div className={s.offlineBadge} style={{ backgroundColor: '#ff9800', color: 'white', padding: '8px 16px', borderRadius: '20px', fontWeight: 'bold', fontSize: '14px', marginRight: '20px' }}>
+                        ⚠️ Sin Conexión (Modo Local)
+                    </div>
+                )}
                 <div className={s.imagenTexto}>
                     {anuncio.tipo && (
                         <span className={s.imagenTipo}>{TIPO_LABEL[anuncio.tipo] ?? anuncio.tipo}</span>
