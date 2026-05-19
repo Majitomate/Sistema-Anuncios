@@ -6,6 +6,7 @@ import DashboardLayout from './pages/DashboardLayout';
 import LoginPage       from './pages/LoginPage';
 import KioscoLista     from './pages/KioscoLista';
 import KioscoDetalle   from './pages/KioscoDetalle';
+import EstadoConexion  from './pages/EstadoConexion';
 
 import { FullscreenProvider } from './components/FullscreenContext';
 
@@ -114,6 +115,15 @@ useEffect(() => {
                         element={
                             <RutaProtegida rolesPermitidos={ROLES_VER_KIOSCO}>
                                 <KioscoDetalle />
+                            </RutaProtegida>
+                        }
+                    />
+
+                    <Route
+                        path="/estado-conexion"
+                        element={
+                            <RutaProtegida rolesPermitidos={['admin']}>
+                                <EstadoConexion />
                             </RutaProtegida>
                         }
                     />

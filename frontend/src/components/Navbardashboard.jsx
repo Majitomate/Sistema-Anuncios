@@ -65,6 +65,16 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                             </button>
                         )}
 
+                        {rol === 'admin' && (
+                            <button type="button" className={styles.navBtn + ' ' + styles.navBtnGhost} onClick={() => navigate('/estado-conexion')}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <circle cx="12" cy="12" r="6" fill="currentColor"/>
+                                </svg>
+                                <span className={styles.navBtnText}>Estado Conexión</span>
+                            </button>
+                        )}
+
                         <button type="button" className={styles.navBtn + ' ' + styles.navBtnGhost} onClick={() => navigate('/display')}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                 <rect x="2" y="3" width="20" height="14" rx="2"/>

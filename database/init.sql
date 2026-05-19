@@ -64,4 +64,33 @@ VALUES (
   'admin'
 );
 
+-- =========================================================
+-- CREAR TABLA DISPOSITIVOS KIOSCOS (HU-19)
+-- =========================================================
+CREATE TABLE dispositivos_kioscos (
+  id SERIAL PRIMARY KEY,
+  identificador VARCHAR(150) UNIQUE NOT NULL,
+  nombre VARCHAR(100),
+  ubicacion VARCHAR(200),
+  estado_conexion VARCHAR(20) DEFAULT 'desconectado', -- 'conectado' o 'desconectado'
+  ultima_conexion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================================================
+-- CREAR TABLA AUDITORÍA CONEXIONES (HU-19)
+-- =========================================================
+CREATE TABLE conexiones_log (
+  id SERIAL PRIMARY KEY,
+  dispositivo_id INT REFERENCES dispositivos_kioscos(id) ON DELETE CASCADE,
+  identificador_dispositivo VARCHAR(150),
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  tipo_evento VARCHAR(50), -- 'heartbeat', 'conectado', 'desconectado'
+  detalles JSONB
+);
+
+CREATE INDEX idx_conexiones_log_dispositivo ON conexiones_log(dispositivo_id);
+CREATE INDEX idx_conexiones_log_timestamp ON conexiones_log(timestamp);
+
 \echo Base de datos "anuncios_db" y tablas creadas correctamente.

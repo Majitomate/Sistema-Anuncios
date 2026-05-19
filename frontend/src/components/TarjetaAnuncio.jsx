@@ -56,7 +56,7 @@ const TarjetaAnuncio = ({ id, titulo, tipo, id_imagen_principal, prioridad, esta
                 📄 Ver Doc
               </button>
             )}
-            <button type="button\" className={styles.auditoriaButton} onClick={() => onVerAuditoria(id)} title="Ver registro de cambios">
+            <button type="button" className={styles.auditoriaButton} onClick={() => onVerAuditoria(id)} title="Ver registro de cambios">
               📋 Cambios
             </button>
             {puedeEditar && (

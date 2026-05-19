@@ -19,6 +19,47 @@ const formatFechaCorta = (ts) => {
     return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
 };
 
+/**
+ * Verifica si un anuncio está vigente (dentro de su rango de fechas)
+ * @param {Object} anuncio - Anuncio a validar
+ * @returns {boolean} true si el anuncio está vigente
+ */
+const esAnuncioVigente = (anuncio) => {
+    if (!anuncio) return false;
+
+    const ahora = new Date();
+    
+    // Si tiene fecha de inicio, validar que ya haya comenzado
+    if (anuncio.fecha_inicio) {
+        const fechaInicio = new Date(anuncio.fecha_inicio);
+        if (!isNaN(fechaInicio.getTime()) && ahora < fechaInicio) {
+            return false;
+        }
+    }
+    
+    // Si tiene fecha de fin, validar que no haya vencido
+    if (anuncio.fecha_fin) {
+        const fechaFin = new Date(anuncio.fecha_fin);
+        if (!isNaN(fechaFin.getTime()) && ahora > fechaFin) {
+            return false;
+        }
+    }
+    
+    // Si no tiene fechas definidas, considerarlo vigente
+    return true;
+};
+
+/**
+ * Filtra anuncios vencidos y los ordena por prioridad
+ * @param {Array} anuncios - Array de anuncios
+ * @returns {Array} Anuncios vigentes ordenados por prioridad
+ */
+const filtrarAnunciosVigentes = (anuncios) => {
+    return anuncios
+        .filter(esAnuncioVigente)
+        .sort((a, b) => b.prioridad - a.prioridad);
+};
+
 const KioscoLista = () => {
     const navigate = useNavigate();
     const { isFullscreen, toggleFullscreen, salirDePantallaCompleta } = useFullscreen();
@@ -30,6 +71,8 @@ const KioscoLista = () => {
     const [pausado, setPausado] = useState(false);
     const timerRef = useRef(null);
     const [isOffline, setIsOffline] = useState(false);
+    const heartbeatTimerRef = useRef(null);
+    const dispositivoIdRef = useRef(null);
 
     const fetchAnuncios = useCallback(async () => {
         setLoading(true);
@@ -40,14 +83,46 @@ const KioscoLista = () => {
             const res = await fetch(`${API}/anuncios/kiosco`, { headers });
             if (!res.ok) throw new Error('No se pudieron cargar los anuncios');
             const data = await res.json();
-            const ordenados = data.sort((a, b) => b.prioridad - a.prioridad);
-            setAnuncios(ordenados);
+            const filtrados = filtrarAnunciosVigentes(data);
+            setAnuncios(filtrados);
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
     }, []);
+
+    /**
+     * Genera o recupera identificador único del dispositivo
+     */
+    const generarObtenerIdDispositivo = useCallback(() => {
+        let id = localStorage.getItem('sutus_dispositivo_id');
+        if (!id) {
+            id = `dispositivo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            localStorage.setItem('sutus_dispositivo_id', id);
+        }
+        return id;
+    }, []);
+
+    /**
+     * Envía heartbeat al servidor
+     */
+    const enviarHeartbeat = useCallback(async () => {
+        try {
+            const dispositivoId = generarObtenerIdDispositivo();
+            await fetch(`${API}/dispositivos/heartbeat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    identificador: dispositivoId,
+                    nombre: `Kiosco - ${dispositivoId.slice(-8)}`,
+                    ubicacion: 'Unisierra Campus'
+                })
+            });
+        } catch (err) {
+            console.warn('[Heartbeat] Error enviando heartbeat:', err.message);
+        }
+    }, [generarObtenerIdDispositivo]);
 
     useEffect(() => {
         let activo = true;
@@ -61,7 +136,8 @@ const KioscoLista = () => {
                 const data = await response.json();
 
                 if (activo) {
-                    setAnuncios(data);
+                    const filtrados = filtrarAnunciosVigentes(data);
+                    setAnuncios(filtrados);
                     setIsOffline(false);
                     setError(null);
                     // GUARDAMOS LA CACHÉ Y LA FECHA EXACTA
@@ -76,7 +152,9 @@ const KioscoLista = () => {
                     const cache = localStorage.getItem('kiosco_cache_unisierra');
 
                     if (cache) {
-                        setAnuncios(JSON.parse(cache));
+                        const datosEnCache = JSON.parse(cache);
+                        const filtrados = filtrarAnunciosVigentes(datosEnCache);
+                        setAnuncios(filtrados);
                         setError(null);
                     } else {
                         setError('No hay conexión a internet y no hay anuncios guardados en esta tablet.');
@@ -92,11 +170,17 @@ const KioscoLista = () => {
 
         const intervalo = setInterval(cargarAnuncios, 5 * 60 * 1000);
 
+        // INICIAR HEARTBEAT - Se envía cada 2 minutos
+        dispositivoIdRef.current = generarObtenerIdDispositivo();
+        enviarHeartbeat(); // Enviar inmediatamente al cargar
+        heartbeatTimerRef.current = setInterval(enviarHeartbeat, 2 * 60 * 1000);
+
         return () => {
             activo = false;
             clearInterval(intervalo);
+            if (heartbeatTimerRef.current) clearInterval(heartbeatTimerRef.current);
         };
-    }, []);
+    }, [generarObtenerIdDispositivo, enviarHeartbeat]);
 
     useEffect(() => {
         if (anuncios.length <= 1 || pausado) return;
@@ -147,6 +231,12 @@ const KioscoLista = () => {
 
     if (!anuncios.length) {
         const ultimaSync = localStorage.getItem('kiosco_ultima_sync');
+        const cacheOriginal = localStorage.getItem('kiosco_cache_unisierra');
+        const hayAnunciosEnCache = cacheOriginal ? JSON.parse(cacheOriginal).length > 0 : false;
+        const mensajeVacio = hayAnunciosEnCache 
+            ? 'Todos los anuncios han vencido o aún no están vigentes.'
+            : 'No hay anuncios disponibles en este momento.';
+        
         return (
             <div className={`${s.pantalla} ${s.pantallaVacia}`}>
                 <img src={IMAGEN_DEFAULT} alt="Logo SUTUS" className={s.logoGrande} />
@@ -157,7 +247,7 @@ const KioscoLista = () => {
                     </div>
                 )}
                 
-                <h1 className={s.vacioTitulo}>No hay anuncios disponibles en este momento.</h1>
+                <h1 className={s.vacioTitulo}>{mensajeVacio}</h1>
                 <p className={s.vacioTexto}>
                     {error || "Esperando sincronización con el servidor..."}
                 </p>
