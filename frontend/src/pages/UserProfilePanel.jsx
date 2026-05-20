@@ -2,31 +2,23 @@ import { useState } from 'react';
 import Swal from 'sweetalert2';
 import s from '../styles/LoginPage.module.css';
 import sp from '../styles/UserProfilePanel.module.css';
+import { actualizarPassword } from '../services/usuarios.services';
 
-const API = 'http://localhost:3001';
-
-/**
- * Panel deslizable con info del usuario y opción de cambiar contraseña.
- *
- * Props:
- *   open      {boolean}  — controla visibilidad
- *   onClose   {function} — callback para cerrar
- */
 const UserProfilePanel = ({ open, onClose }) => {
     const nombre = localStorage.getItem('sutus_nombre') || '—';
     const email  = localStorage.getItem('sutus_email')  || '—';
     const rol    = localStorage.getItem('sutus_rol')     || '—';
     const token  = localStorage.getItem('sutus_token');
 
-    const [modo,          setModo]         = useState('perfil'); // 'perfil' | 'cambiar'
-    const [actual,        setActual]        = useState('');
-    const [nueva,         setNueva]         = useState('');
-    const [confirmar,     setConfirmar]     = useState('');
-    const [verActual,     setVerActual]     = useState(false);
-    const [verNueva,      setVerNueva]      = useState(false);
-    const [verConf,       setVerConf]       = useState(false);
-    const [errores,       setErrores]       = useState({});
-    const [loading,       setLoading]       = useState(false);
+    const [modo, setModo] = useState('perfil'); // 'perfil' | 'cambiar'
+    const [actual, setActual] = useState('');
+    const [nueva, setNueva] = useState('');
+    const [confirmar, setConfirmar] = useState('');
+    const [verActual, setVerActual] = useState(false);
+    const [verNueva, setVerNueva] = useState(false);
+    const [verConf, setVerConf] = useState(false);
+    const [errores, setErrores] = useState({});
+    const [loading, setLoading] = useState(false);
 
     const rolesLabel = {
         admin:        'Administrador',
@@ -57,22 +49,14 @@ const UserProfilePanel = ({ open, onClose }) => {
         return Object.keys(errs).length === 0;
     };
 
-    const handleCambiar = async (e) => {
+const handleCambiar = async (e) => {
         e.preventDefault();
         if (!validar()) return;
 
         setLoading(true);
         try {
-            const res  = await fetch(`${API}/change-password`, {
-                method:  'POST',
-                headers: {
-                    'Content-Type':  'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({ passwordActual: actual, passwordNueva: nueva }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.mensaje ?? data.message ?? 'Error al cambiar la contraseña');
+            // Usamos nuestro servicio abstraído (Arquitectura Limpia)
+            await actualizarPassword(actual, nueva);
 
             await Swal.fire({
                 icon:               'success',
@@ -81,13 +65,15 @@ const UserProfilePanel = ({ open, onClose }) => {
                 confirmButtonColor: '#1b5e20',
                 confirmButtonText:  'Listo',
             });
+            
             resetForm();
             setModo('perfil');
+            
         } catch (err) {
             Swal.fire({
                 icon:               'error',
                 title:              'Error',
-                text:               err.message,
+                text:               err.message, // Mostrará "La contraseña actual es incorrecta" si falla
                 confirmButtonColor: '#1b5e20',
             });
         } finally {
