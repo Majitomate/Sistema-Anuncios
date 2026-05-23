@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import { useFullscreen } from '../components/FullscreenContext';
 import s from '../styles/KioscoLista.module.css';
 
@@ -211,9 +212,20 @@ const KioscoLista = () => {
             }
         };
 
+        // Carga inicial y de respaldo cada 5 minutos
         cargarAnuncios();
         const intervalo = setInterval(cargarAnuncios, 5 * 60 * 1000);
 
+        // CONEXIÓN EN TIEMPO REAL
+        const socket = io(API);
+
+        socket.on('actualizacion_anuncios', () => {
+            if (activo) {
+                cargarAnuncios();
+            }
+        });
+
+        // Tareas del dispositivo (Heartbeat)
         dispositivoIdRef.current = generarObtenerIdDispositivo();
         enviarHeartbeat();
         heartbeatTimerRef.current = setInterval(enviarHeartbeat, 2 * 60 * 1000);
@@ -222,6 +234,7 @@ const KioscoLista = () => {
             activo = false;
             clearInterval(intervalo);
             if (heartbeatTimerRef.current) clearInterval(heartbeatTimerRef.current);
+            socket.disconnect();
         };
     }, [generarObtenerIdDispositivo, enviarHeartbeat]);
 

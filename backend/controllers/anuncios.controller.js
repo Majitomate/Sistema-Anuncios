@@ -1,3 +1,5 @@
+import sharp from 'sharp';
+import { Readable } from 'stream';
 import {
   crearAnuncio,
   obtenerAnuncios,
@@ -9,6 +11,33 @@ import {
   obtenerImagenPorId,
   obtenerAuditoriaAnuncio,
 } from '../models/anuncios.model.js';
+
+// ==========================================
+// FUNCIÓN AUXILIAR PARA OPTIMIZAR IMÁGENES
+// ==========================================
+const optimizarImagenes = async (imagenesMulter) => {
+  if (!imagenesMulter || imagenesMulter.length === 0) return [];
+  
+  const imagenesOptimizadas = [];
+  for (const img of imagenesMulter) {
+    if (img.mimetype.startsWith('image/')) {
+      // Comprime a WebP y reduce a tamaño HD
+      const bufferOptimizado = await sharp(img.buffer)
+        .resize({ width: 1280, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
+      
+      imagenesOptimizadas.push({
+        ...img,
+        buffer: bufferOptimizado,
+        mimetype: 'image/webp'
+      });
+    } else {
+      imagenesOptimizadas.push(img);
+    }
+  }
+  return imagenesOptimizadas;
+};
 
 // Obtener todos los anuncios
 export const listar = async (req, res) => {
@@ -36,11 +65,21 @@ export const listarKiosco = async (req, res) => {
 export const crear = async (req, res) => {
   try {
     const datos = req.body;
-    const imagenes = req.files?.imagen || [];
+    const imagenesOriginales = req.files?.imagen || [];
     const documento = req.files?.documento?.[0];
-    const usuarioId = req.user.id; // Extraído de forma segura del JWT verificado
+    const usuarioId = req.user.id;
+
+    // OPTIMIZAMOS ANTES DE GUARDAR
+    const imagenes = await optimizarImagenes(imagenesOriginales);
 
     const anuncio = await crearAnuncio(datos, imagenes, documento, usuarioId);
+    
+    // Avisar a tablets
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('actualizacion_anuncios');
+    }
+    
     return res.status(201).json(anuncio);
   } catch (error) {
     console.error('[Error crear anuncio]:', error);
@@ -53,11 +92,11 @@ export const obtenerPorId = async (req, res) => {
   try {
     const { id } = req.params;
     const anuncio = await obtenerAnuncioPorId(id);
-    
+
     if (!anuncio) {
       return res.status(404).json({ error: 'No encontrado' });
     }
-    
+
     return res.json(anuncio);
   } catch (error) {
     console.error(error);
@@ -70,15 +109,17 @@ export const actualizar = async (req, res) => {
   try {
     const { id } = req.params;
     const datos = req.body;
-    const imagenes = req.files?.imagen || [];
+    const imagenesOriginales = req.files?.imagen || [];
     const documento = req.files?.documento?.[0] || null;
-    const usuarioId = req.user.id; // Extraído de forma segura del JWT verificado
-
+    const usuarioId = req.user.id; 
     const anuncioActualBD = await obtenerAnuncioPorId(id);
-    
+
     if (!anuncioActualBD) {
       return res.status(404).json({ error: 'Anuncio no encontrado' });
     }
+
+    // OPTIMIZAMOS LAS IMÁGENES NUEVAS
+    const imagenes = await optimizarImagenes(imagenesOriginales);
 
     const nuevoEstadoSolicitado = datos.estado === 'true' || datos.estado === true;
     const esPermanente = datos.esPermanente === 'true' || datos.esPermanente === true;
@@ -99,17 +140,20 @@ export const actualizar = async (req, res) => {
       return inicio <= ahora && (!fin || ahora <= fin);
     };
 
-    // Respetar el cambio manual del administrador.
-    // Solo desactivamos automáticamente si el anuncio está fuera de su ventana de vigencia.
     if (nuevoEstadoSolicitado && !estaDentroDeFechas()) {
       datos.estado = false;
     }
 
-    // Se pasa usuarioId como último argumento
     const fila = await editarAnuncio(id, datos, imagenes, documento, usuarioId);
 
     if (!fila) {
       return res.status(404).json({ error: 'Anuncio no encontrado al intentar guardar' });
+    }
+
+    // Avisar a tablets que hubo un cambio
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('actualizacion_anuncios');
     }
 
     return res.json(fila);
@@ -129,7 +173,6 @@ export const descargarImagen = async (req, res) => {
       return res.status(404).json({ error: 'Imagen no encontrada' });
     }
 
-    // Obtener la primera imagen
     const primeraImagenId = archivos.imagenes_ids[0];
     const archivo = await obtenerImagenPorId(primeraImagenId);
 
@@ -139,7 +182,7 @@ export const descargarImagen = async (req, res) => {
 
     res.set({
       'Content-Type': archivo.imagen_tipo || 'image/jpeg',
-      'Cache-Control': 'public, max-age=86400',
+      'Cache-Control': 'public, max-age=604800', // 7 días
     });
     return res.send(archivo.imagen);
   } catch (error) {
@@ -160,7 +203,7 @@ export const descargarImagenEspecifica = async (req, res) => {
 
     res.set({
       'Content-Type': archivo.imagen_tipo || 'image/jpeg',
-      'Cache-Control': 'public, max-age=86400',
+      'Cache-Control': 'public, max-age=604800', // 7 días
     });
     return res.send(archivo.imagen);
   } catch (error) {
@@ -174,16 +217,25 @@ export const descargarDocumento = async (req, res) => {
   try {
     const { id } = req.params;
     const archivos = await obtenerArchivosAnuncio(id);
-    
+
     if (!archivos || !archivos.documento) {
       return res.status(404).json({ error: 'Documento no encontrado' });
     }
-    
+
+    // Cabeceras HTTP óptimas para PDFs y rendimiento
     res.set({
       'Content-Type': archivos.documento_tipo || 'application/pdf',
-      'Content-Disposition': `inline; filename="anuncio_${id}_documento.pdf"`, 
+      'Content-Disposition': `inline; filename="anuncio_${id}_documento.pdf"`,
+      'Cache-Control': 'public, max-age=604800', // 7 días
     });
-    return res.send(archivos.documento);
+    
+    const streamEstudiante = new Readable();
+    streamEstudiante.push(archivos.documento);
+    streamEstudiante.push(null);
+
+    // Envía el flujo directo al cliente (tablet) en porciones dinámicas
+    return streamEstudiante.pipe(res);
+
   } catch (error) {
     console.error('[Error descargarDocumento]:', error);
     return res.status(500).json({ error: 'Error interno descargando documento' });
@@ -200,20 +252,15 @@ export const consultarAuditoria = async (req, res) => {
       return res.status(404).json({ error: 'Registro de auditoría no encontrado' });
     }
 
-    // Inicializamos el array de detalles del cambio
     const cambiosDetectados = [];
-
     const creado = new Date(auditoria.fecha_creacion).getTime();
     const actualizado = new Date(auditoria.fecha_actualizacion).getTime();
-    
-    // Margen de 2 segundos por cualquier retraso en la transacción de la BD
     const fueModificado = (actualizado - creado) > 2000;
 
     if (fueModificado) {
-      // Como buena práctica de auditoría, listamos las propiedades críticas activas en la última versión
       cambiosDetectados.push(`El anuncio fue editado operativamente.`);
       cambiosDetectados.push(`Clasificación actual: Tipo [${auditoria.tipo}] con Prioridad [${auditoria.prioridad === 3 ? 'Alta' : auditoria.prioridad === 2 ? 'Media' : 'Baja'}].`);
-      
+
       if (auditoria.es_permanente) {
         cambiosDetectados.push('Establecido como contenido permanente del Kiosco.');
       } else {
@@ -231,7 +278,6 @@ export const consultarAuditoria = async (req, res) => {
       cambiosDetectados.push('El anuncio conserva su contenido y configuración original de creación.');
     }
 
-    // Retornamos un objeto extendido respetando el estándar Airbnb (sin mutar el original)
     return res.status(200).json({
       ...auditoria,
       fueModificado,
@@ -251,6 +297,12 @@ export const eliminar = async (req, res) => {
 
     if (filas === 0) {
       return res.status(404).json({ error: 'Anuncio no encontrado' });
+    }
+
+    // Avisar a tablets que se borró un anuncio
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('actualizacion_anuncios');
     }
 
     return res.status(200).json({ mensaje: 'Anuncio eliminado permanentemente', id });
