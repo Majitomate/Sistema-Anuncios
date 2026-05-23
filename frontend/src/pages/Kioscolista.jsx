@@ -4,6 +4,9 @@ import { io } from 'socket.io-client';
 import { useFullscreen } from '../components/FullscreenContext';
 import s from '../styles/KioscoLista.module.css';
 
+// Importamos framer-motion para las transiciones
+import { motion, AnimatePresence } from 'framer-motion';
+
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IMAGEN_DEFAULT = '/imagen_default.jpg';
 
@@ -88,10 +91,8 @@ const KioscoLista = () => {
 
     // REINICIO NOCTURNO PROGRAMADO
     useEffect(() => {
-        // Calculamos la hora actual
         const ahora = new Date();
 
-        // Configuramos la hora objetivo: 3:00 AM
         const proximoReinicio = new Date();
         proximoReinicio.setHours(3, 0, 0, 0);
 
@@ -99,7 +100,6 @@ const KioscoLista = () => {
             proximoReinicio.setDate(proximoReinicio.getDate() + 1);
         }
 
-        // Calculamos los milisegundos que faltan
         const tiempoFaltante = proximoReinicio.getTime() - ahora.getTime();
 
         const timerReinicio = setTimeout(() => {
@@ -118,7 +118,6 @@ const KioscoLista = () => {
                 if (anuncio.imagenes && anuncio.imagenes.length > 0) {
                     const url = `${API}/anuncios/imagen/${anuncio.imagenes[0].id}`;
 
-                    // Verifica si la imagen ya está guardada
                     const respuestaCache = await cache.match(url);
                     if (!respuestaCache) {
                         await cache.add(url);
@@ -212,11 +211,9 @@ const KioscoLista = () => {
             }
         };
 
-        // Carga inicial y de respaldo cada 5 minutos
         cargarAnuncios();
         const intervalo = setInterval(cargarAnuncios, 5 * 60 * 1000);
 
-        // CONEXIÓN EN TIEMPO REAL
         const socket = io(API);
 
         socket.on('actualizacion_anuncios', () => {
@@ -225,7 +222,6 @@ const KioscoLista = () => {
             }
         });
 
-        // Tareas del dispositivo (Heartbeat)
         dispositivoIdRef.current = generarObtenerIdDispositivo();
         enviarHeartbeat();
         heartbeatTimerRef.current = setInterval(enviarHeartbeat, 2 * 60 * 1000);
@@ -371,37 +367,41 @@ const KioscoLista = () => {
             onMouseEnter={() => setPausado(true)}
             onMouseLeave={() => setPausado(false)}
         >
-            <img
-                key={actual?.id || indice}
-                src={imagenUrl}
-                alt="Fondo Anuncio"
-                className={`${s.fondo} ${animando ? s.fondoSaliendo : ''}`}
-                onError={async (e) => {
-                    const originalSrc = e.target.src;
+            {/* AnimatePresence gestiona los ciclos de desvanecimiento cruzado al cambiar la key */}
+            <AnimatePresence mode="wait">
+                <motion.img
+                    key={actual?.id || indice}
+                    src={imagenUrl}
+                    alt="Fondo Anuncio"
+                    className={`${s.fondo} ${animando ? s.fondoSaliendo : ''}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                    onError={async (e) => {
+                        const originalSrc = e.target.src;
 
-                    try {
-                        // Si falla, buscamos en el disco duro de la tablet
-                        const cache = await caches.open('sutus-kiosco-imagenes');
-                        const cachedRes = await cache.match(originalSrc);
+                        try {
+                            const cache = await caches.open('sutus-kiosco-imagenes');
+                            const cachedRes = await cache.match(originalSrc);
 
-                        if (cachedRes) {
-                            // Convertimos a formato visible
-                            const blob = await cachedRes.blob();
-                            e.target.src = URL.createObjectURL(blob);
-                            return;
+                            if (cachedRes) {
+                                const blob = await cachedRes.blob();
+                                e.target.src = URL.createObjectURL(blob);
+                                return;
+                            }
+                        } catch (err) {
+                            console.warn('Fallo al recuperar imagen de caché', err);
                         }
-                    } catch (err) {
-                        console.warn('Fallo al recuperar imagen de caché', err);
-                    }
 
-                    // Si no está, mostramos la imagen genérica gris
-                    if (!originalSrc.includes(IMAGEN_DEFAULT)) {
-                        e.target.src = IMAGEN_DEFAULT;
-                    } else {
-                        e.target.style.display = 'none';
-                    }
-                }}
-            />
+                        if (!originalSrc.includes(IMAGEN_DEFAULT)) {
+                            e.target.src = IMAGEN_DEFAULT;
+                        } else {
+                            e.target.style.display = 'none';
+                        }
+                    }}
+                />
+            </AnimatePresence>
 
             <div className={s.overlay} />
 
@@ -452,18 +452,28 @@ const KioscoLista = () => {
                 </div>
             </header>
 
-            <div className={`${s.contenido} ${animando ? s.contenidoSaliendo : ''}`}>
-                <h1 className={s.titulo}>{actual?.titulo}</h1>
-                <p className={s.descripcion_corta}>{actual?.descripcion_corta}</p>
-                <div className={s.verDetalleWrap}>
-                    <button className={s.botonVerDetalle} onClick={() => navigate(`/display/${actual.id}`)}>
-                        VER DETALLE COMPLETO
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
+            {/* AnimatePresence para suavizar la transición de textos simultáneamente */}
+            <AnimatePresence mode="wait">
+                <motion.div 
+                    key={actual?.id || indice}
+                    className={`${s.contenido} ${animando ? s.contenidoSaliendo : ''}`}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                >
+                    <h1 className={s.titulo}>{actual?.titulo}</h1>
+                    <p className={s.descripcion_corta}>{actual?.descripcion_corta}</p>
+                    <div className={s.verDetalleWrap}>
+                        <button className={s.botonVerDetalle} onClick={() => navigate(`/display/${actual.id}`)}>
+                            VER DETALLE COMPLETO
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                            </svg>
+                        </button>
+                    </div>
+                </motion.div>
+            </AnimatePresence>
 
             {anuncios.length > 1 && (
                 <>
