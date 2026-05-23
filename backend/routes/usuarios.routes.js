@@ -5,6 +5,7 @@ import {
     agregar,
     actualizar,
     eliminar,
+    obtenerPerfil,
     cambiarPassword
 } from '../controllers/usuarios.controller.js';
 
@@ -15,6 +16,7 @@ const router = express.Router();
 // ==========================================
 
 router.use(verifyToken);
+router.get('/me', obtenerPerfil);
 router.post('/cambiar-password', cambiarPassword);
 router.get('/', listarUsuarios);
 router.post('/', agregar);

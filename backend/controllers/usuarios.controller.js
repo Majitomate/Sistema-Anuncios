@@ -6,6 +6,7 @@ import {
     eliminarUsuario,
     verificarEmailExistente,
     obtenerPasswordUsuario,
+    obtenerUsuarioPorId,
     actualizarPasswordUsuario
 } from '../models/usuarios.model.js';
 
@@ -92,6 +93,22 @@ export const eliminar = async (req, res) => {
     } catch (error) {
         console.error('[Error eliminarUsuario]:', error);
         return res.status(500).json({ error: 'Error interno al procesar la remoción del usuario.' });
+    }
+};
+
+export const obtenerPerfil = async (req, res) => {
+    try {
+        const idUsuario = req.user.id;
+        const usuario = await obtenerUsuarioPorId(idUsuario);
+
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado.' });
+        }
+
+        return res.status(200).json(usuario);
+    } catch (error) {
+        console.error('[Error obtenerPerfil]:', error);
+        return res.status(500).json({ error: 'Error interno al obtener perfil de usuario.' });
     }
 };
 

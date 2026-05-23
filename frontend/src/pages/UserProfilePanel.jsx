@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import s from '../styles/LoginPage.module.css';
 import sp from '../styles/UserProfilePanel.module.css';
-import { actualizarPassword } from '../services/usuarios.services';
+import { actualizarPassword, obtenerUsuarioActivo } from '../services/usuarios.services';
 
 const UserProfilePanel = ({ open, onClose }) => {
-    const nombre = localStorage.getItem('sutus_nombre') || '—';
-    const email  = localStorage.getItem('sutus_email')  || '—';
-    const rol    = localStorage.getItem('sutus_rol')     || '—';
-    const token  = localStorage.getItem('sutus_token');
+    const [usuarioActivo, setUsuarioActivo] = useState({
+        nombre: localStorage.getItem('sutus_nombre') || '—',
+        email: localStorage.getItem('sutus_email') || '—',
+        rol: localStorage.getItem('sutus_rol') || '—',
+    });
+    const { nombre, email, rol } = usuarioActivo;
 
     const [modo, setModo] = useState('perfil'); // 'perfil' | 'cambiar'
     const [actual, setActual] = useState('');
@@ -26,6 +28,24 @@ const UserProfilePanel = ({ open, onClose }) => {
         revisor:      'Revisor',
         visualizador: 'Visualizador',
     };
+
+    useEffect(() => {
+        if (!open) return;
+
+        const fetchUsuario = async () => {
+            try {
+                const usuario = await obtenerUsuarioActivo();
+                setUsuarioActivo(usuario);
+                localStorage.setItem('sutus_nombre', usuario.nombre);
+                localStorage.setItem('sutus_email', usuario.email);
+                localStorage.setItem('sutus_rol', usuario.rol);
+            } catch (error) {
+                console.error('[Error cargar usuario activo]:', error);
+            }
+        };
+
+        fetchUsuario();
+    }, [open]);
 
     const resetForm = () => {
         setActual(''); setNueva(''); setConfirmar('');

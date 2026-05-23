@@ -64,6 +64,13 @@ export const obtenerPasswordUsuario = async (id) => {
   return result.rows[0];
 };
 
+// Obtener datos del usuario por id
+export const obtenerUsuarioPorId = async (id) => {
+  const query = 'SELECT id, nombre, email, rol FROM usuarios WHERE id = $1';
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
+};
+
 // Actualizar la contraseña por el nuevo hash
 export const actualizarPasswordUsuario = async (id, nuevoHash) => {
   const query = 'UPDATE usuarios SET password = $1 WHERE id = $2 RETURNING id';

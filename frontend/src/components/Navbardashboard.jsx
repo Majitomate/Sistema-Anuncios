@@ -1,17 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import styles from '../styles/dashboard.module.css';
 import UserProfilePanel from '../pages/UserProfilePanel';
+import { obtenerUsuarioActivo } from '../services/usuarios.services';
 
 const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnuncio, onGestionUsuarios }) => {
     const navigate = useNavigate();
-    const nombre   = localStorage.getItem('sutus_nombre') || localStorage.getItem('sutus_rol') || 'Usuario';
-    const rol      = localStorage.getItem('sutus_rol');
+    const [usuarioActivo, setUsuarioActivo] = useState({
+        nombre: localStorage.getItem('sutus_nombre') || 'Usuario',
+        email: localStorage.getItem('sutus_email') || '',
+        rol: localStorage.getItem('sutus_rol') || 'visualizador',
+    });
 
-    const [panelAbierto, setPanelAbierto] = useState(false);
+    const { nombre, rol } = usuarioActivo;
+
+    const [panelAbierto,  setPanelAbierto]  = useState(false);
+    const [menuAbierto,   setMenuAbierto]   = useState(false);
+    const menuRef = useRef(null);
+
+    /* Cierra el menú al hacer click fuera */
+    useEffect(() => {
+        const handler = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setMenuAbierto(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    useEffect(() => {
+        const token = localStorage.getItem('sutus_token');
+        if (!token) return;
+
+        const fetchUsuario = async () => {
+            try {
+                const usuario = await obtenerUsuarioActivo();
+                setUsuarioActivo(usuario);
+                localStorage.setItem('sutus_nombre', usuario.nombre);
+                localStorage.setItem('sutus_email', usuario.email);
+                localStorage.setItem('sutus_rol', usuario.rol);
+            } catch (err) {
+                console.error('[Error obtener usuario activo]:', err);
+            }
+        };
+
+        fetchUsuario();
+    }, []);
+
+    /* Cierra el menú al cambiar de ruta o hacer una acción */
+    const accion = (fn) => () => { setMenuAbierto(false); fn && fn(); };
 
     const handleLogout = async () => {
+        setMenuAbierto(false);
         const result = await Swal.fire({
             title:              '¿Cerrar sesión?',
             icon:               'question',
@@ -37,15 +79,16 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                 <div className={styles.navbarTitleGroup}>
                     <img src="/logo-sutus.svg" alt="SUTUS" className={styles.navbarLogo} />
                     <span className={styles.navbarTitle}>Dashboard de Anuncios SUTUS</span>
+                    <span className={styles.navbarTitleCorto}>SUTUS</span>
                 </div>
 
-                {/* ── Acciones ── */}
+                {/* ── Acciones desktop ── */}
                 <div className={styles.navbarActions}>
 
-                    {/* Grupo izquierdo: acciones primarias */}
+                    {/* Grupo izquierdo */}
                     <div className={styles.navbarGrupo}>
                         {puedeEditar && (
-                            <button type="button" className={styles.navBtn + ' ' + styles.navBtnNaranja} onClick={onCrearAnuncio}>
+                            <button type="button" className={`${styles.navBtn} ${styles.navBtnNaranja}`} onClick={onCrearAnuncio}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="14" height="14">
                                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                                 </svg>
@@ -54,7 +97,7 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         )}
 
                         {rol === 'admin' && (
-                            <button type="button" className={styles.navBtn + ' ' + styles.navBtnGhost} onClick={onGestionUsuarios}>
+                            <button type="button" className={`${styles.navBtn} ${styles.navBtnGhost}`} onClick={onGestionUsuarios}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                     <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
                                     <circle cx="9" cy="7" r="4"/>
@@ -66,29 +109,29 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         )}
 
                         {rol === 'admin' && (
-                            <button type="button" className={styles.navBtn + ' ' + styles.navBtnGhost} onClick={() => navigate('/estado-conexion')}>
+                            <button type="button" className={`${styles.navBtn} ${styles.navBtnGhost}`} onClick={() => navigate('/estado-conexion')}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                     <circle cx="12" cy="12" r="10"/>
                                     <circle cx="12" cy="12" r="6" fill="currentColor"/>
                                 </svg>
-                                <span className={styles.navBtnText}>Estado Conexión</span>
+                                <span className={styles.navBtnText}>Conexión</span>
                             </button>
                         )}
 
-                        <button type="button" className={styles.navBtn + ' ' + styles.navBtnGhost} onClick={() => navigate('/display')}>
+                        <button type="button" className={`${styles.navBtn} ${styles.navBtnGhost}`} onClick={() => navigate('/display')}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                 <rect x="2" y="3" width="20" height="14" rx="2"/>
                                 <path d="M8 21h8M12 17v4"/>
                             </svg>
-                            <span className={styles.navBtnText}>Modo Visualización</span>
+                            <span className={styles.navBtnText}>Visualización</span>
                         </button>
                     </div>
 
                     {/* Separador */}
-                    <div className={styles.navSeparador} />
+                    <div className={`${styles.navSeparador} ${styles.navSeparadorDesktop}`} />
 
                     {/* Selector de vista */}
-                    <div className={styles.viewSwitcher}>
+                    <div className={`${styles.viewSwitcher} ${styles.viewSwitcherDesktop}`}>
                         <button
                             className={`${styles.switchBtn} ${vistaActual === 'cuadricula' ? styles.active : ''}`}
                             onClick={() => onCambiarVista('cuadricula')}
@@ -113,11 +156,10 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                     </div>
 
                     {/* Separador */}
-                    <div className={styles.navSeparador} />
+                    <div className={`${styles.navSeparador} ${styles.navSeparadorDesktop}`} />
 
-                    {/* Usuario + Salir */}
+                    {/* Usuario + Salir (siempre visible) */}
                     <div className={styles.navbarUsuarioWrap}>
-                        {/* Botón de perfil — abre el panel lateral */}
                         <button
                             type="button"
                             className={styles.navbarUsuarioBtn}
@@ -133,7 +175,7 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                             </svg>
                         </button>
 
-                        <button type="button" className={styles.navBtn + ' ' + styles.navBtnSalir} onClick={handleLogout}>
+                        <button type="button" className={`${styles.navBtn} ${styles.navBtnSalir} ${styles.btnSalirDesktop}`} onClick={handleLogout}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
                                 <polyline points="16 17 21 12 16 7"/>
@@ -143,9 +185,113 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         </button>
                     </div>
                 </div>
+
+                {/* ── Menú hamburguesa (móvil) ── */}
+                <div className={styles.navbarMobile} ref={menuRef}>
+                    {/* Vista switcher compacta en móvil */}
+                    <div className={styles.viewSwitcherMobile}>
+                        <button
+                            className={`${styles.switchBtnMobile} ${vistaActual === 'cuadricula' ? styles.active : ''}`}
+                            onClick={() => onCambiarVista('cuadricula')}
+                            title="Tarjetas"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                            </svg>
+                        </button>
+                        <button
+                            className={`${styles.switchBtnMobile} ${vistaActual === 'lista' ? styles.active : ''}`}
+                            onClick={() => onCambiarVista('lista')}
+                            title="Lista"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
+                                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/>
+                                <circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {/* Avatar (abre perfil) */}
+                    <button
+                        type="button"
+                        className={styles.navbarAvatarBtn}
+                        onClick={() => { setMenuAbierto(false); setPanelAbierto(true); }}
+                        title="Mi perfil"
+                    >
+                        <span className={styles.navbarAvatar}>
+                            {nombre.charAt(0).toUpperCase()}
+                        </span>
+                    </button>
+
+                    {/* Botón hamburguesa */}
+                    <button
+                        type="button"
+                        className={`${styles.hamburger} ${menuAbierto ? styles.hamburgerOpen : ''}`}
+                        onClick={() => setMenuAbierto(v => !v)}
+                        aria-label="Menú"
+                    >
+                        <span /><span /><span />
+                    </button>
+
+                    {/* Dropdown del menú */}
+                    {menuAbierto && (
+                        <div className={styles.mobileMenu}>
+                            {puedeEditar && (
+                                <button className={`${styles.mobileMenuItem} ${styles.mobileMenuItemNaranja}`} onClick={accion(onCrearAnuncio)}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="15" height="15">
+                                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    Nuevo Anuncio
+                                </button>
+                            )}
+
+                            {rol === 'admin' && (
+                                <button className={styles.mobileMenuItem} onClick={accion(onGestionUsuarios)}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="15" height="15">
+                                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 010 7.75"/>
+                                    </svg>
+                                    Gestión de Usuarios
+                                </button>
+                            )}
+
+                            {rol === 'admin' && (
+                                <button className={styles.mobileMenuItem} onClick={accion(() => navigate('/estado-conexion'))}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="15" height="15">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <circle cx="12" cy="12" r="6" fill="currentColor"/>
+                                    </svg>
+                                    Estado de Conexión
+                                </button>
+                            )}
+
+                            <button className={styles.mobileMenuItem} onClick={accion(() => navigate('/display'))}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="15" height="15">
+                                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                                    <path d="M8 21h8M12 17v4"/>
+                                </svg>
+                                Modo Visualización
+                            </button>
+
+                            <div className={styles.mobileMenuDivider} />
+
+                            <button className={`${styles.mobileMenuItem} ${styles.mobileMenuItemSalir}`} onClick={handleLogout}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="15" height="15">
+                                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                                    <polyline points="16 17 21 12 16 7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Cerrar Sesión
+                            </button>
+                        </div>
+                    )}
+                </div>
             </nav>
 
-            {/* Panel de perfil */}
             <UserProfilePanel
                 open={panelAbierto}
                 onClose={() => setPanelAbierto(false)}

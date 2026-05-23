@@ -246,7 +246,7 @@ const GestionUsuarios = ({ onVolver }) => {
                                                 {u.rol.charAt(0).toUpperCase() + u.rol.slice(1)}
                                             </span>
                                         </td>
-                                        <td className={s.idCell}>#{i}</td>
+                                        <td className={s.idCell}>#{u.id}</td>
                                         <td>
                                             <div className={s.acciones}>
                                                 <button type="button" className={s.btnEditar} onClick={() => abrirEditar(u)} title="Editar">
