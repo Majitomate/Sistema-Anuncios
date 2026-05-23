@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFullscreen } from '../components/FullscreenContext';
+import ModalDocumento from '../components/ModalDocumento';
+import MiniaturaPDF from '../components/MiniaturaPDF';
 import s from '../styles/KioscoDetalle.module.css';
 
-const API = 'http://localhost:3001';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IMAGEN_DEFAULT = '/imagen_default.jpg';
 
 const TIPO_LABEL = {
@@ -42,8 +44,7 @@ const KioscoDetalle = () => {
         const cargarAnuncio = async () => {
             try {
                 setLoading(true);
-                // 1. Intentamos consultar al servidor remoto
-                const response = await fetch(`${API}/api/anuncios/${id}`);
+                const response = await fetch(`${API}/anuncios/${id}`);
                 if (!response.ok) throw new Error('Error de conexión');
 
                 const data = await response.json();
@@ -181,17 +182,10 @@ const KioscoDetalle = () => {
 
             {/* Visor Documento */}
             {visorDoc && documentoUrl && (
-                <div className={`${s.lightboxOverlay} ${s.soloDoc}`}>
-                    <div className={s.visorDocWrap}>
-                        <button type="button" className={s.visorDocCerrarFlotante} onClick={() => setVisorDoc(false)}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                            Cerrar
-                        </button>
-                        <iframe src={documentoUrl} className={s.visorDocIframe} title="Documento adjunto" />
-                    </div>
-                </div>
+                <ModalDocumento
+                    urlDocumento={documentoUrl}
+                    alCerrar={() => setVisorDoc(false)}
+                />
             )}
 
             <aside className={s.panelIzq}>
@@ -256,29 +250,68 @@ const KioscoDetalle = () => {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                         ARCHIVOS ADJUNTOS Y GALERÍA
                     </h3>
-                    <div className={s.archivosGrid}>
+
+                    <div className={s.mediaGrid}>
+                        {/* ── Galería de imágenes ── */}
                         {imagenActual && (
-                            <button type="button" className={s.imagenThumb} onClick={() => setLightboxImg(true)}>
-                                <img src={imagenActual} alt={anuncio.titulo} />
-                                <div className={s.imagenThumbOverlay}>Ampliar</div>
-                            </button>
-                        )}
-                        {imagenesUrls.length > 1 && (
-                            <div className={s.imagenNavegacion}>
-                                <button type="button" onClick={() => setIndiceImagen((i) => (i - 1 + imagenesUrls.length) % imagenesUrls.length)} className={s.navBoton}>‹ Anterior</button>
-                                <span className={s.navIndicador}>{indiceImagen + 1} de {imagenesUrls.length}</span>
-                                <button type="button" onClick={() => setIndiceImagen((i) => (i + 1) % imagenesUrls.length)} className={s.navBoton}>Siguiente ›</button>
+                            <div className={s.galeriaBloque}>
+                                <button
+                                    type="button"
+                                    className={s.galeriaImgPrincipal}
+                                    onClick={() => setLightboxImg(true)}
+                                >
+                                    <img src={imagenActual} alt={anuncio.titulo} onError={(e) => { e.target.src = IMAGEN_DEFAULT; }} />
+                                    <div className={s.galeriaZoomHint}>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                            <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                                        </svg>
+                                        Ampliar
+                                    </div>
+                                </button>
+
+                                {imagenesUrls.length > 1 && (
+                                    <div className={s.galeriaTira}>
+                                        {imagenesUrls.map((url, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                className={`${s.galeriaMiniBtn} ${i === indiceImagen ? s.galeriaMiniActiva : ''}`}
+                                                onClick={() => setIndiceImagen(i)}
+                                            >
+                                                <img src={url} alt={`Imagen ${i + 1}`} onError={(e) => { e.target.src = IMAGEN_DEFAULT; }} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
+
+                        {/* ── Documento adjunto ── */}
                         {documentoUrl && (
-                            <div className={s.docCard}>
-                                <div className={s.docPreview}>
-                                    <iframe src={documentoUrl} className={s.docPreviewIframe} title="Vista previa" scrolling="no" />
+                            <div className={s.docBloque}>
+                                <div className={s.docBloqueHeader}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                        <line x1="16" y1="13" x2="8" y2="13"/>
+                                        <line x1="16" y1="17" x2="8" y2="17"/>
+                                        <polyline points="10 9 9 9 8 9"/>
+                                    </svg>
+                                    <span>Documento adjunto</span>
+                                    <span className={s.docTipoBadge}>{anuncio.documento_tipo?.toUpperCase() ?? 'PDF'}</span>
+                                </div>
+                                <div className={s.docBloquePreview}>
+                                    <MiniaturaPDF url={documentoUrl} />
                                     <div className={s.docPreviewMask} />
                                 </div>
-                                <div className={s.docAcciones}>
-                                    <button type="button" className={s.docBotonVer} onClick={() => setVisorDoc(true)}>Ver documento</button>
-                                </div>
+                                <button type="button" className={s.docBotonVer} onClick={() => setVisorDoc(true)}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    Ver documento
+                                </button>
                             </div>
                         )}
                     </div>

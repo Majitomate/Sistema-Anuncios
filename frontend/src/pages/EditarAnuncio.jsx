@@ -10,6 +10,8 @@ import { useAnuncios } from '../hooks/useAnuncios';
 import { obtenerAnuncioPorId } from '../services/anuncios.services';
 import { validarRegla3Dias } from '../utils/validarRegla3Dias';
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 const splitDateTime = (timestamp) => {
   if (!timestamp) return { date: '', time: '' };
   const d = new Date(timestamp);
@@ -66,6 +68,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
   const [archivos, setArchivos] = useState([]);
   const [archivosActuales, setArchivosActuales] = useState({ imagenes: [], documento: null });
   const [documentoAbierto, setDocumentoAbierto] = useState(null);
+  const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   useEffect(() => {
     const cargarDatosBD = async () => {
@@ -73,7 +76,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
         const data = await obtenerAnuncioPorId(anuncio.id);
         setArchivosActuales({
           imagenes: data.imagenes || [],
-          documento: data.tiene_documento ? { tipo: data.documento_tipo, url: `http://localhost:3001/anuncios/${data.id}/documento` } : null,
+          documento: data.tiene_documento ? { tipo: data.documento_tipo, url: `${API}/anuncios/${data.id}/documento` } : null,
         });
       } catch (err) {
         console.error('Error al cargar archivos:', err);
@@ -200,7 +203,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
                       <span className="archivo-actual-label">Imágenes actuales</span>
                       <div className="imagenes-lista">
                         {archivosActuales.imagenes.map(img => (
-                          <img key={img.id} src={`http://localhost:3001/anuncios/imagen/${img.id}`} alt="Imagen" className="archivo-actual-imagen" />
+                          <img key={img.id} src={`${API}/anuncios/imagen/${img.id}`} alt="Imagen" className="archivo-actual-imagen" />
                         ))}
                       </div>
                     </div>

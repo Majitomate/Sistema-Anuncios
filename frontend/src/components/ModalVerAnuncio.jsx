@@ -41,11 +41,11 @@ const formatFecha = (timestamp) => {
 const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
   const [documentoAbierto, setDocumentoAbierto] = useState(null);
   const [indiceImagen, setIndiceImagen] = useState(0);
-  const API_BASE_URL = 'http://localhost:3001';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const { anuncio: detalleAnuncio, loading: cargandoArchivos } = useAnuncioDetalle(anuncio?.id);
 
-  const imagenesUrls = detalleAnuncio?.imagenes ? detalleAnuncio.imagenes.map(img => `${API_BASE_URL}/anuncios/imagen/${img.id}`) : [];
-  const documentoUrl = detalleAnuncio?.tiene_documento ? `${API_BASE_URL}/anuncios/${detalleAnuncio.id}/documento` : null;
+  const imagenesUrls = detalleAnuncio?.imagenes ? detalleAnuncio.imagenes.map(img => `${API}/anuncios/imagen/${img.id}`) : [];
+  const documentoUrl = detalleAnuncio?.tiene_documento ? `${API}/anuncios/${detalleAnuncio.id}/documento` : null;
 
   // Funciones limpias para el carrusel
   const nextImagen = () => setIndiceImagen((i) => (i + 1) % imagenesUrls.length);

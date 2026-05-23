@@ -9,16 +9,16 @@ const PRIORIDAD_ESTILOS = {
 };
 
 const IMAGEN_DEFAULT = '/imagen_default.jpg';
-
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const TarjetaAnuncio = ({ id, titulo, tipo, id_imagen_principal, prioridad, estado, onEditar, onEliminar, onAbrirDocumento, onVerAuditoria, puedeEditar }) => {
   const estilo = PRIORIDAD_ESTILOS[prioridad] ?? PRIORIDAD_ESTILOS[2];
   const { anuncio, loading } = useAnuncioDetalle(id);
 
   const imagenUrl = anuncio?.imagenes && anuncio.imagenes.length > 0
-    ? `http://localhost:3001/anuncios/imagen/${anuncio.imagenes[0].id}`
+    ? `${API}/anuncios/imagen/${anuncio.imagenes[0].id}`
     : IMAGEN_DEFAULT;
-  const documentoUrl = anuncio?.tiene_documento ? `http://localhost:3001/anuncios/${anuncio.id}/documento` : null;
+  const documentoUrl = anuncio?.tiene_documento ? `${API}/anuncios/${anuncio.id}/documento` : null;
 
   return (
     <div className={styles.announcementCard}>
