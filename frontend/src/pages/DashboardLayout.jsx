@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Swal from 'sweetalert2';
 import Encabezado from '../components/Encabezado.jsx';
 import CuadriculaTarjetas from '../components/CuadriculaTarjetas.jsx';
@@ -36,6 +36,7 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
   const [vistaActual,       setVistaActual]        = useState('cuadricula');
   const [indiceCarrusel,    setIndiceCarrusel]     = useState(0);
   const [documentoAbierto,  setDocumentoAbierto]   = useState(null);
+  const [pantallasOnline, setPantallasOnline] = useState(0);
 
   const {
     auditoriaData,
@@ -67,6 +68,23 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
     setAuditoriaAbierta(false);
     limpiarAuditoria();
   }, [limpiarAuditoria]);
+
+  const cargarEstadoDispositivos = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('sutus_token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch(`${API}/dispositivos/estadisticas`, { headers });
+      if (!res.ok) return;
+      const data = await res.json();
+      setPantallasOnline(data.dispositivos_conectados ?? 0);
+    } catch (error) {
+      console.error('[Error cargar estado dispositivos]:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarEstadoDispositivos();
+  }, [cargarEstadoDispositivos]);
 
   const handleEliminar = async (id) => {
     const result = await Swal.fire({
@@ -145,7 +163,7 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
           <Encabezado
               activos={anunciosActivos.length}
               total={anuncios.length}
-              pantallas={1}
+              pantallas={pantallasOnline}
               ultimaActualizacion={new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
           />
 
