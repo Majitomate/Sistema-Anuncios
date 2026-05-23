@@ -87,7 +87,12 @@ const ListaAnuncios = ({
                                         <button className={styles.btnVer} onClick={() => onVer(anuncio)}>
                                             👁 Ver
                                         </button>
-                                        <button className={styles.btnAuditoria} onClick={() => onVerAuditoria(anuncio.id)} title="Ver registro de cambios">
+                                        <button
+                                            className={styles.btnAuditoria}
+                                            onClick={() => typeof onVerAuditoria === 'function' && onVerAuditoria(anuncio.id)}
+                                            title="Ver registro de cambios"
+                                            disabled={!onVerAuditoria}
+                                        >
                                             📋 Cambios
                                         </button>
                                         {puedeEditar && (

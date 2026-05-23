@@ -9,9 +9,13 @@ import CrearAnuncio from '../pages/CrearAnuncio.jsx';
 import EditarAnuncio from '../pages/EditarAnuncio.jsx';
 import ModalDocumento from '../components/ModalDocumento.jsx';
 import ModalVerAnuncio from '../components/ModalVerAnuncio.jsx';
+import ModalAuditoria from '../components/ModalAuditoria.jsx';
 import GestionUsuarios from '../pages/GestionUsuarios.jsx';
 import styles from '../styles/dashboard.module.css';
 import { useAnuncios } from '../hooks/useAnuncios';
+import { useAnuncioAuditoria } from '../hooks/useAnunciosAuditoria';
+
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const bufferToUrl = (bufferObj, mimeType) => {
   if (!bufferObj?.data) return null;
@@ -28,18 +32,41 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
   const [vista,             setVista]             = useState(null);
   const [anuncioAEditar,    setAnuncioAEditar]     = useState(null);
   const [anuncioVer,        setAnuncioVer]         = useState(null);
+  const [auditoriaAbierta,  setAuditoriaAbierta]   = useState(false);
   const [vistaActual,       setVistaActual]        = useState('cuadricula');
   const [indiceCarrusel,    setIndiceCarrusel]     = useState(0);
   const [documentoAbierto,  setDocumentoAbierto]   = useState(null);
 
+  const {
+    auditoriaData,
+    loading: cargandoAuditoria,
+    error: auditoriaError,
+    cargarAuditoria,
+    limpiarAuditoria,
+  } = useAnuncioAuditoria();
+
   const obtenerUrlImagen = useCallback((anuncio) => {
     if (anuncio.imagen?.data) return bufferToUrl(anuncio.imagen, anuncio.imagen_tipo);
-    return `http://localhost:3001/anuncios/${anuncio.id}/imagen`;
+    return `${API}/anuncios/${anuncio.id}/imagen`;
   }, []);
 
   const handleCerrar    = useCallback(() => { setVista(null); setAnuncioAEditar(null); }, []);
   const handleGuardado  = useCallback(() => { handleCerrar(); onAnuncioCreado?.(); }, [handleCerrar, onAnuncioCreado]);
   const handleEditarClick = useCallback((anuncio) => { setAnuncioAEditar(anuncio); setVista('editar'); }, []);
+
+  const handleVerAuditoria = useCallback(async (id) => {
+    try {
+      await cargarAuditoria(id);
+      setAuditoriaAbierta(true);
+    } catch (error) {
+      console.error('[Error abrir auditoría]:', error);
+    }
+  }, [cargarAuditoria]);
+
+  const handleCerrarAuditoria = useCallback(() => {
+    setAuditoriaAbierta(false);
+    limpiarAuditoria();
+  }, [limpiarAuditoria]);
 
   const handleEliminar = async (id) => {
     const result = await Swal.fire({
@@ -68,10 +95,10 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
       const payload = new FormData();
       payload.append('estado', nuevoEstado);
       payload.append('titulo', anuncio.titulo);
-      payload.append('subtitulo', anuncio.subtitulo);
-      payload.append('contenido', anuncio.contenido);
-      payload.append('tipo', anuncio.tipo);
-      payload.append('prioridad', anuncio.prioridad);
+      payload.append('descripcion_corta', anuncio.descripcion_corta || '');
+      payload.append('contenido', anuncio.contenido || '');
+      payload.append('tipo', anuncio.tipo || 'general');
+      payload.append('prioridad', anuncio.prioridad || 1);
       payload.append('esPermanente', anuncio.es_permanente);
       if (!anuncio.es_permanente) {
         if (anuncio.fecha_inicio) payload.append('fechaInicio', anuncio.fecha_inicio);
@@ -154,6 +181,7 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
                         onEditar={handleEditarClick}
                         onEliminar={handleEliminar}
                         onAbrirDocumento={setDocumentoAbierto}
+                        onVerAuditoria={handleVerAuditoria}
                         puedeEditar={puedeEditar}
                     />
                 )
@@ -165,6 +193,7 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
                     onEditar={handleEditarClick}
                     onEliminar={handleEliminar}
                     onVer={setAnuncioVer}
+                    onVerAuditoria={handleVerAuditoria}
                     onToggleEstado={handleToggleEstado}
                 />
             )}
@@ -173,6 +202,13 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
 
         <ModalDocumento urlDocumento={documentoAbierto} alCerrar={() => setDocumentoAbierto(null)} />
         <ModalVerAnuncio anuncio={anuncioVer} alCerrar={() => setAnuncioVer(null)} />
+        <ModalAuditoria
+          isOpen={auditoriaAbierta}
+          data={auditoriaData}
+          loading={cargandoAuditoria}
+          error={auditoriaError}
+          onClose={handleCerrarAuditoria}
+        />
       </div>
   );
 };
