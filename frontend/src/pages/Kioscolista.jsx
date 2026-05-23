@@ -28,21 +28,21 @@ const esAnuncioVigente = (anuncio) => {
     if (!anuncio) return false;
 
     const ahora = new Date();
-    
+
     if (anuncio.fecha_inicio) {
         const fechaInicio = new Date(anuncio.fecha_inicio);
         if (!isNaN(fechaInicio.getTime()) && ahora < fechaInicio) {
             return false;
         }
     }
-    
+
     if (anuncio.fecha_fin) {
         const fechaFin = new Date(anuncio.fecha_fin);
         if (!isNaN(fechaFin.getTime()) && ahora > fechaFin) {
             return false;
         }
     }
-    
+
     return true;
 };
 
@@ -84,6 +84,50 @@ const KioscoLista = () => {
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
     }, [rol]);
+
+    // REINICIO NOCTURNO PROGRAMADO
+    useEffect(() => {
+        // Calculamos la hora actual
+        const ahora = new Date();
+
+        // Configuramos la hora objetivo: 3:00 AM
+        const proximoReinicio = new Date();
+        proximoReinicio.setHours(3, 0, 0, 0);
+
+        if (ahora.getHours() >= 3) {
+            proximoReinicio.setDate(proximoReinicio.getDate() + 1);
+        }
+
+        // Calculamos los milisegundos que faltan
+        const tiempoFaltante = proximoReinicio.getTime() - ahora.getTime();
+
+        const timerReinicio = setTimeout(() => {
+            console.log("🔄 Ejecutando reinicio nocturno de mantenimiento...");
+            window.location.reload(true);
+        }, tiempoFaltante);
+
+        return () => clearTimeout(timerReinicio);
+    }, []);
+
+    // FUNCIÓN PARA GUARDAR IMÁGENES EN EL DISCO DURO (OFFLINE)
+    const precargarImagenes = async (anunciosData) => {
+        try {
+            const cache = await caches.open('sutus-kiosco-imagenes');
+            for (const anuncio of anunciosData) {
+                if (anuncio.imagenes && anuncio.imagenes.length > 0) {
+                    const url = `${API}/anuncios/imagen/${anuncio.imagenes[0].id}`;
+
+                    // Verifica si la imagen ya está guardada
+                    const respuestaCache = await cache.match(url);
+                    if (!respuestaCache) {
+                        await cache.add(url);
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('[Caché] No se pudieron precargar algunas imágenes', err);
+        }
+    };
 
     const fetchAnuncios = useCallback(async () => {
         setLoading(true);
@@ -145,6 +189,7 @@ const KioscoLista = () => {
                     setError(null);
                     localStorage.setItem('kiosco_cache_unisierra', JSON.stringify(data));
                     localStorage.setItem('kiosco_ultima_sync', new Date().toISOString());
+                    precargarImagenes(filtrados);
                 }
             } catch (err) {
                 console.warn('Sin conexión al servidor. Cargando caché local...');
@@ -170,7 +215,7 @@ const KioscoLista = () => {
         const intervalo = setInterval(cargarAnuncios, 5 * 60 * 1000);
 
         dispositivoIdRef.current = generarObtenerIdDispositivo();
-        enviarHeartbeat(); 
+        enviarHeartbeat();
         heartbeatTimerRef.current = setInterval(enviarHeartbeat, 2 * 60 * 1000);
 
         return () => {
@@ -230,10 +275,10 @@ const KioscoLista = () => {
         const ultimaSync = localStorage.getItem('kiosco_ultima_sync');
         const cacheOriginal = localStorage.getItem('kiosco_cache_unisierra');
         const hayAnunciosEnCache = cacheOriginal ? JSON.parse(cacheOriginal).length > 0 : false;
-        const mensajeVacio = hayAnunciosEnCache 
+        const mensajeVacio = hayAnunciosEnCache
             ? 'Todos los anuncios han vencido o aún no están vigentes.'
             : 'No hay anuncios disponibles en este momento.';
-        
+
         return (
             <div className={`${s.pantalla} ${s.pantallaVacia}`}>
                 {isOffline && (
@@ -264,9 +309,9 @@ const KioscoLista = () => {
                             <line x1="16" y1="2" x2="16" y2="6" />
                             <line x1="8" y1="2" x2="8" y2="6" />
                             <line x1="3" y1="10" x2="21" y2="10" />
-                            <line x1="8" y1="14" x2="8" y2="14" strokeWidth="2" strokeLinecap="round"/>
+                            <line x1="8" y1="14" x2="8" y2="14" strokeWidth="2" strokeLinecap="round" />
                             <line x1="12" y1="14" x2="16" y2="14" />
-                            <line x1="8" y1="18" x2="8" y2="18" strokeWidth="2" strokeLinecap="round"/>
+                            <line x1="8" y1="18" x2="8" y2="18" strokeWidth="2" strokeLinecap="round" />
                             <line x1="12" y1="18" x2="16" y2="18" />
                         </svg>
                     </div>
@@ -313,20 +358,38 @@ const KioscoLista = () => {
             onMouseEnter={() => setPausado(true)}
             onMouseLeave={() => setPausado(false)}
         >
-            <img 
+            <img
                 key={actual?.id || indice}
                 src={imagenUrl}
                 alt="Fondo Anuncio"
                 className={`${s.fondo} ${animando ? s.fondoSaliendo : ''}`}
-                onError={(e) => {
-                    if (!e.target.src.includes(IMAGEN_DEFAULT)) {
+                onError={async (e) => {
+                    const originalSrc = e.target.src;
+
+                    try {
+                        // Si falla, buscamos en el disco duro de la tablet
+                        const cache = await caches.open('sutus-kiosco-imagenes');
+                        const cachedRes = await cache.match(originalSrc);
+
+                        if (cachedRes) {
+                            // Convertimos a formato visible
+                            const blob = await cachedRes.blob();
+                            e.target.src = URL.createObjectURL(blob);
+                            return;
+                        }
+                    } catch (err) {
+                        console.warn('Fallo al recuperar imagen de caché', err);
+                    }
+
+                    // Si no está, mostramos la imagen genérica gris
+                    if (!originalSrc.includes(IMAGEN_DEFAULT)) {
                         e.target.src = IMAGEN_DEFAULT;
                     } else {
                         e.target.style.display = 'none';
                     }
                 }}
             />
-            
+
             <div className={s.overlay} />
 
             <header className={s.header}>
