@@ -1421,3 +1421,186 @@
   flex-shrink: 0;
   font-family: 'Georgia', serif;
 }
+
+/* ══════════════════════════════════════════════════════
+   NAVBAR RESPONSIVE — adaptación móvil con hamburguesa
+   ══════════════════════════════════════════════════════ */
+
+/* Título corto (solo móvil) */
+.navbarTitleCorto {
+  display: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Contenedor hamburguesa: oculto en desktop */
+.navbarMobile {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+/* Separadores solo visibles en desktop */
+.navSeparadorDesktop { display: flex; }
+.viewSwitcherDesktop { display: flex; }
+.btnSalirDesktop     { display: inline-flex; }
+
+/* ── Botón avatar en móvil ── */
+.navbarAvatarBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* ── View switcher compacto para móvil ── */
+.viewSwitcherMobile {
+  display: flex;
+  background: rgba(0,0,0,0.20);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.switchBtnMobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  border-radius: 5px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  transition: color var(--t), background-color var(--t);
+}
+.switchBtnMobile:hover  { color: rgba(255,255,255,0.9); }
+.switchBtnMobile.active {
+  background: var(--naranja);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(255,98,36,0.35);
+}
+
+/* ── Hamburguesa ── */
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  background: rgba(255,255,255,0.10);
+  border: 1.5px solid rgba(255,255,255,0.22);
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--t), border-color var(--t);
+}
+.hamburger:hover {
+  background: rgba(255,255,255,0.20);
+  border-color: rgba(255,255,255,0.40);
+}
+.hamburger span {
+  display: block;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transform-origin: center;
+  transition: transform 0.22s ease, opacity 0.22s ease, width 0.22s ease;
+}
+
+/* Animación X al abrir */
+.hamburgerOpen span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburgerOpen span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburgerOpen span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Menú dropdown ── */
+.mobileMenu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 220px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10);
+  overflow: hidden;
+  z-index: 200;
+  animation: menuSlideIn 0.18s ease;
+}
+
+@keyframes menuSlideIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+.mobileMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--texto);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--t), color var(--t);
+}
+.mobileMenuItem:hover { background: #f4f6f4; }
+.mobileMenuItem svg   { color: var(--verde-medio); flex-shrink: 0; }
+
+.mobileMenuItemNaranja       { color: var(--naranja); }
+.mobileMenuItemNaranja svg   { color: var(--naranja); }
+.mobileMenuItemNaranja:hover { background: #fff4f0; }
+
+.mobileMenuItemSalir       { color: var(--rojo); }
+.mobileMenuItemSalir svg   { color: var(--rojo); }
+.mobileMenuItemSalir:hover { background: #fff5f5; }
+
+.mobileMenuDivider {
+  height: 1px;
+  background: var(--borde);
+  margin: 4px 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   BREAKPOINTS
+   ══════════════════════════════════════════════════════ */
+
+/* Tablet: ocultar textos de botones, mantener iconos */
+@media (max-width: 900px) {
+  .navBtnText { display: none; }
+  .navBtn     { padding: 0 10px; }
+}
+
+/* Móvil: mostrar hamburguesa, ocultar acciones desktop */
+@media (max-width: 768px) {
+  .navbar { padding: 0 16px; height: 58px; }
+
+  .navbarTitle     { display: none; }
+  .navbarTitleCorto { display: block; }
+  .navbarLogo       { width: 34px; height: 34px; }
+
+  /* Ocultar toda la barra de acciones desktop */
+  .navbarActions { display: none !important; }
+
+  /* Mostrar el bloque móvil */
+  .navbarMobile { display: flex; }
+}
+
+/* Teléfono pequeño */
+@media (max-width: 420px) {
+  .navbar { padding: 0 12px; }
+  .navbarTitleCorto { display: none; }
+  .mobileMenu { min-width: 190px; }
+}
