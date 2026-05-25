@@ -90,9 +90,42 @@
     margin: 0 auto;
 }
 
+/* ── Texto de ayuda (ForgotPassword / ResetPassword) ─────────────────────── */
+.textoAyuda {
+    font-size: 0.88rem;
+    color: var(--texto-suave);
+    text-align: center;
+    line-height: 1.55;
+    margin: -8px 0 20px;
+    font-family: system-ui, sans-serif;
+}
+
 /* ── Formulario ──────────────────────────────────────────────────────────── */
 .form  { display: flex; flex-direction: column; gap: 20px; }
 .campo { display: flex; flex-direction: column; gap: 6px; }
+
+/* Fila label + link "¿Olvidaste…?" */
+.labelRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+/* Botón-link "¿Olvidaste tu contraseña?" */
+.olvideLinkBtn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    color: var(--verde-medio);
+    cursor: pointer;
+    font-family: system-ui, sans-serif;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s;
+}
+.olvideLinkBtn:hover:not(:disabled) { color: var(--naranja); }
+.olvideLinkBtn:disabled             { opacity: 0.5; cursor: not-allowed; }
 
 .label {
     font-size: 0.8rem;
@@ -162,7 +195,7 @@
     font-family: system-ui, sans-serif;
 }
 
-/* ── Botón login (primario) ──────────────────────────────────────────────── */
+/* ── Botón primario ──────────────────────────────────────────────────────── */
 .botonLogin {
     margin-top: 4px;
     padding: 13px;
@@ -188,7 +221,7 @@
 .botonLogin:active:not(:disabled) { transform: translateY(0); }
 .botonLogin:disabled               { opacity: 0.7; cursor: not-allowed; }
 
-/* ── Botón secundario (cancelar en el panel) ─────────────────────────────── */
+/* ── Botón secundario (volver / cancelar) ────────────────────────────────── */
 .botonSecundario {
     padding: 11px;
     background: none;

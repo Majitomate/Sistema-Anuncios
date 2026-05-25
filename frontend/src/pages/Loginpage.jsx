@@ -113,7 +113,17 @@ const LoginPage = ({ onLoginSuccess }) => {
 
                     {/* Contraseña */}
                     <div className={s.campo}>
-                        <label className={s.label} htmlFor="password">Contraseña</label>
+                        <div className={s.labelRow}>
+                            <label className={s.label} htmlFor="password">Contraseña</label>
+                            <button
+                                type="button"
+                                className={s.olvideLinkBtn}
+                                onClick={() => navigate('/forgot-password')}
+                                disabled={loading}
+                            >
+                                ¿Olvidaste tu contraseña?
+                            </button>
+                        </div>
                         <div className={s.inputWrap}>
                             <span className={s.inputIcono}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

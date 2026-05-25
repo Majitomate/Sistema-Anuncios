@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage';
 import KioscoLista from './pages/KioscoLista';
 import KioscoDetalle from './pages/KioscoDetalle';
 import EstadoConexion from './pages/EstadoConexion';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage  from './pages/ResetPasswordPage';
 
 import { FullscreenProvider } from './components/FullscreenContext';
 
@@ -94,6 +96,10 @@ const App = () => {
                     <Route path="/display" element={<KioscoLista />} />
                     <Route path="/display/:id" element={<KioscoDetalle />} />
 
+                    {/* Ruta de Olvide mi contraseña */}
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/reset-password"  element={<ResetPasswordPage />} />
+
                     {/* 🔴 RUTAS PRIVADAS (Para Administradores y Editores) */}
                     <Route
                         path="/dashboard"
@@ -120,6 +126,9 @@ const App = () => {
 
                     {/* Ruta de escape: Si escriben cualquier cosa errónea, los manda al inicio */}
                     <Route path="*" element={<Navigate to="/" replace />} />
+
+
+
                 </Routes>
             </BrowserRouter>
         </FullscreenProvider>
