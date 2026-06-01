@@ -675,6 +675,8 @@
 /* ── Botón ver detalle completo ──────────────────────────────────────────── */
 .verDetalleWrap {
     margin-top: 32px;
+    position: relative;
+    z-index: 50;
 }
 
 .botonVerDetalle {
@@ -682,7 +684,8 @@
     align-items: center;
     gap: 10px;
     padding: 13px 28px;
-    background: transparent;
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.05); /* Ligeramente visible de base */
     border: 1.5px solid rgba(255,255,255,0.6);
     border-radius: 40px;
     color: #fff;
@@ -693,6 +696,9 @@
     transition: background 0.2s, border-color 0.2s, transform 0.15s;
     backdrop-filter: blur(6px);
     text-transform: uppercase;
+    position: relative;
+    z-index: 20;
+    
 }
 
 .botonVerDetalle:hover {

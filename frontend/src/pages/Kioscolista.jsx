@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { useFullscreen } from '../components/FullscreenContext';
 import s from '../styles/KioscoLista.module.css';
+import boton from '../styles/BotonLecturaKiosco.module.css'
+import BotonLectura from '../components/BotonLectura';
 
 // Importamos framer-motion para las transiciones
 import { motion, AnimatePresence } from 'framer-motion';
@@ -72,6 +74,7 @@ const KioscoLista = () => {
     const [pausado, setPausado] = useState(false);
     const timerRef = useRef(null);
     const [isOffline, setIsOffline] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
     const heartbeatTimerRef = useRef(null);
     const dispositivoIdRef = useRef(null);
     const rol = localStorage.getItem('sutus_rol');
@@ -235,7 +238,7 @@ const KioscoLista = () => {
     }, [generarObtenerIdDispositivo, enviarHeartbeat]);
 
     useEffect(() => {
-        if (anuncios.length <= 1 || pausado) return;
+        if (anuncios.length <= 1 || pausado || isSpeaking) return;
         const actual = anuncios[indice];
         let tiempoEspera = 8000;
         if (actual.prioridad === 3) tiempoEspera = 15000;
@@ -246,7 +249,7 @@ const KioscoLista = () => {
         }, tiempoEspera);
 
         return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-    }, [anuncios, indice, pausado]);
+    }, [anuncios, indice, pausado, isSpeaking]);
 
     const cambiarCon = (fn) => {
         if (animando) return;
@@ -465,7 +468,14 @@ const KioscoLista = () => {
                     <h1 className={s.titulo}>{actual?.titulo}</h1>
                     <p className={s.descripcion_corta}>{actual?.descripcion_corta}</p>
                     <div className={s.verDetalleWrap}>
-                        <button className={s.botonVerDetalle} onClick={() => navigate(`/display/${actual.id}`)}>
+                        <button
+                            type="button"
+                            className={s.botonVerDetalle}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/display/${actual.id}`);
+                            }}
+                        >
                             VER DETALLE COMPLETO
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                                 <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
@@ -484,6 +494,12 @@ const KioscoLista = () => {
 
             <footer className={s.footer}>
                 <div className={s.footerIzq}>
+                    <BotonLectura 
+                        texto={`${actual?.titulo || ''}. ${actual?.descripcion_corta || ''}. ${actual?.contenido || ''}`}
+                        onStateChange={setIsSpeaking}
+                        className={boton.botonLectura}
+                        speakingClassName={boton.botonLecturaSpeaking}
+                    />
                     {(fechaInicio || fechaFin) && (
                         <div className={s.fechasRow}>
                             {fechaInicio && (

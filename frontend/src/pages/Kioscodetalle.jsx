@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFullscreen } from '../components/FullscreenContext';
+import BotonLectura from '../components/BotonLectura';
 import ModalDocumento from '../components/ModalDocumento';
 import MiniaturaPDF from '../components/MiniaturaPDF';
 import s from '../styles/KioscoDetalle.module.css';
+import boton from '../styles/BotonLectura.module.css';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IMAGEN_DEFAULT = '/imagen_default.jpg';
@@ -32,10 +34,11 @@ const KioscoDetalle = () => {
     const [anuncio, setAnuncio] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [lightboxImg, setLightboxImg] = useState(false);
     const [visorDoc, setVisorDoc] = useState(false);
-    const [indiceImagen, setIndiceImagen] = useState(0);
-    const [isSpeaking, setIsSpeaking] = useState(false);
+    
+    // Restauramos el estado del recuadro del lightbox
+    const [lightboxImg, setLightboxImg] = useState(false);
+    
     const [isOffline, setIsOffline] = useState(false);
 
     useEffect(() => {
@@ -63,7 +66,6 @@ const KioscoDetalle = () => {
 
                     if (cache) {
                         const anunciosGuardados = JSON.parse(cache);
-                        // Buscamos el anuncio específico
                         const anuncioEncontrado = anunciosGuardados.find(a => String(a.id) === String(id));
 
                         if (anuncioEncontrado) {
@@ -88,50 +90,21 @@ const KioscoDetalle = () => {
         };
     }, [id]);
 
+    // Restauramos el listener para cerrar el recuadro con la tecla Escape
     useEffect(() => {
         const handler = (e) => {
             if (e.key === 'Escape') {
-                setLightboxImg(false);
                 setVisorDoc(false);
+                setLightboxImg(false);
             }
         };
         document.addEventListener('keydown', handler);
         return () => {
             document.removeEventListener('keydown', handler);
-            window.speechSynthesis.cancel();
         };
     }, []);
 
-    const handleVoz = () => {
-        if (isSpeaking) {
-            window.speechSynthesis.cancel();
-            setIsSpeaking(false);
-            return;
-        }
-
-        if (!anuncio) return;
-
-        const tipoLabel = TIPO_LABEL[anuncio.tipo] || anuncio.tipo;
-
-        const textoALeer = `
-            ${anuncio.titulo}. 
-            ${anuncio.descripcion_corta || ''}. 
-            ${anuncio.contenido}
-        `;
-
-        const utterance = new SpeechSynthesisUtterance(textoALeer);
-        utterance.lang = 'es-MX';
-        utterance.rate = 1.0;
-
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
-        utterance.onerror = () => setIsSpeaking(false);
-
-        window.speechSynthesis.speak(utterance);
-    };
-
     const handleVolver = () => {
-        window.speechSynthesis.cancel();
         navigate('/display');
     };
 
@@ -153,16 +126,16 @@ const KioscoDetalle = () => {
 
     const imagenesUrls = anuncio?.imagenes && anuncio.imagenes.length > 0
         ? anuncio.imagenes.map(img => `${API}/anuncios/imagen/${img.id}`)
-        : [IMAGEN_DEFAULT]; // Si no hay imágenes, creamos un array con la default
+        : [IMAGEN_DEFAULT]; 
     const documentoUrl = anuncio?.documento_tipo ? `${API}/anuncios/${anuncio.id}/documento` : null;
     const fechaInicio = formatFechaLarga(anuncio?.fecha_inicio);
     const fechaFin = formatFechaLarga(anuncio?.fecha_fin);
-    const imagenActual = imagenesUrls[indiceImagen];
+    
+    // Usamos la primera imagen para el recuadro (visor)
+    const imagenActual = imagenesUrls[0]; 
 
     return (
         <div className={s.pantalla}>
-
-            {/* Lightbox Imagen */}
             {lightboxImg && imagenActual && (
                 <div className={s.lightboxOverlay} onClick={() => setLightboxImg(false)}>
                     <button type="button" className={s.lightboxCerrar} onClick={() => setLightboxImg(false)}>
@@ -188,8 +161,12 @@ const KioscoDetalle = () => {
                 />
             )}
 
-            <aside className={s.panelIzq}>
-                {/* Imagen de fondo (Blur) */}
+            <aside 
+                className={s.panelIzq}
+                onClick={() => setLightboxImg(true)}
+                style={{ cursor: 'zoom-in' }}
+                title="Ampliar imagen"
+            >
                 <div
                     className={s.imagenFondo}
                     style={{ backgroundImage: `url(${imagenActual})` }}
@@ -197,7 +174,14 @@ const KioscoDetalle = () => {
 
                 <div className={s.imagenOverlay} />
 
-                <button type="button" className={s.botonCerrar} onClick={handleVolver}>
+                <button 
+                    type="button" 
+                    className={s.botonCerrar} 
+                    onClick={(e) => {
+                        e.stopPropagation(); // Evita que se abra el recuadro al dar clic en cerrar
+                        handleVolver();
+                    }}
+                >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                         <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
@@ -245,50 +229,15 @@ const KioscoDetalle = () => {
                     <p>{anuncio.contenido}</p>
                 </div>
 
-                <section className={s.archivos}>
-                    <h3 className={s.archivosTitulo}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
-                        ARCHIVOS ADJUNTOS Y GALERÍA
-                    </h3>
+                {/* Si hay documento, mostramos la sección de Archivos */}
+                {documentoUrl && (
+                    <section className={s.archivos}>
+                        <h3 className={s.archivosTitulo}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                            DOCUMENTO ADJUNTO
+                        </h3>
 
-                    <div className={s.mediaGrid}>
-                        {/* ── Galería de imágenes ── */}
-                        {imagenActual && (
-                            <div className={s.galeriaBloque}>
-                                <button
-                                    type="button"
-                                    className={s.galeriaImgPrincipal}
-                                    onClick={() => setLightboxImg(true)}
-                                >
-                                    <img src={imagenActual} alt={anuncio.titulo} onError={(e) => { e.target.src = IMAGEN_DEFAULT; }} />
-                                    <div className={s.galeriaZoomHint}>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                                            <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-                                        </svg>
-                                        Ampliar
-                                    </div>
-                                </button>
-
-                                {imagenesUrls.length > 1 && (
-                                    <div className={s.galeriaTira}>
-                                        {imagenesUrls.map((url, i) => (
-                                            <button
-                                                key={i}
-                                                type="button"
-                                                className={`${s.galeriaMiniBtn} ${i === indiceImagen ? s.galeriaMiniActiva : ''}`}
-                                                onClick={() => setIndiceImagen(i)}
-                                            >
-                                                <img src={url} alt={`Imagen ${i + 1}`} onError={(e) => { e.target.src = IMAGEN_DEFAULT; }} />
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* ── Documento adjunto ── */}
-                        {documentoUrl && (
+                        <div className={s.mediaGrid}>
                             <div className={s.docBloque}>
                                 <div className={s.docBloqueHeader}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -313,26 +262,16 @@ const KioscoDetalle = () => {
                                     Ver documento
                                 </button>
                             </div>
-                        )}
-                    </div>
-                </section>
+                        </div>
+                    </section>
+                )}
 
-                <button
-                    type="button"
-                    className={`${s.botonHelp} ${isSpeaking ? s.botonSpeaking : ''}`}
-                    onClick={handleVoz}
-                    title={isSpeaking ? "Detener lectura" : "Escuchar anuncio"}
-                >
-                    {isSpeaking ? (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />
-                        </svg>
-                    ) : (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                            <path d="M11 5L6 9H2V15H6L11 19V5Z" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                        </svg>
-                    )}
-                </button>
+                {/* Botón TTS Modular */}
+                <BotonLectura 
+                    texto={`${anuncio.titulo}. ${anuncio.descripcion_corta || ''}. ${anuncio.contenido || ''}`}
+                    className={boton.botonLectura}
+                    speakingClassName={boton.botonLecturaSpeaking}
+                />
             </main>
         </div>
     );
