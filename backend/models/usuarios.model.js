@@ -73,7 +73,13 @@ export const obtenerUsuarioPorId = async (id) => {
 
 // Actualizar la contraseña por el nuevo hash
 export const actualizarPasswordUsuario = async (id, nuevoHash) => {
-  const query = 'UPDATE usuarios SET password = $1 WHERE id = $2 RETURNING id';
-  const result = await pool.query(query, [nuevoHash, id]);
-  return result.rows[0];
+  const query = 'UPDATE usuarios SET password = $1 WHERE id = $2;';
+  await pool.query(query, [nuevoHash, id]);
+};
+
+// Obtener un usuario a partir del Email
+export const obtenerUsuarioPorEmail = async (email) => {
+  const query = 'SELECT id, nombre, email, password, rol FROM usuarios WHERE email = $1';
+  const result = await pool.query(query, [email]);
+  return result.rows[0]; 
 };

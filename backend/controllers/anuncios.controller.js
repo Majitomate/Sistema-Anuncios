@@ -121,29 +121,11 @@ export const actualizar = async (req, res) => {
     // OPTIMIZAMOS LAS IMÁGENES NUEVAS
     const imagenes = await optimizarImagenes(imagenesOriginales);
 
-    const nuevoEstadoSolicitado = datos.estado === 'true' || datos.estado === true;
-    const esPermanente = datos.esPermanente === 'true' || datos.esPermanente === true;
     const fechaInicio = datos.fechaInicio || anuncioActualBD.fecha_inicio;
     const fechaFin = datos.fechaFin || anuncioActualBD.fecha_fin;
 
-    const estaDentroDeFechas = () => {
-      if (esPermanente) return true;
-      if (!fechaInicio) return false;
-
-      const inicio = new Date(fechaInicio);
-      const fin = fechaFin ? new Date(fechaFin) : null;
-      const ahora = new Date();
-
-      if (Number.isNaN(inicio.getTime())) return false;
-      if (fin && Number.isNaN(fin.getTime())) return false;
-
-      return inicio <= ahora && (!fin || ahora <= fin);
-    };
-
-    if (nuevoEstadoSolicitado && !estaDentroDeFechas()) {
-      datos.estado = false;
-    }
-
+    // Conservamos el estado que el usuario envía durante la edición.
+    // No forzamos desactivarlo solo porque las fechas actuales no estén vigentes.
     const fila = await editarAnuncio(id, datos, imagenes, documento, usuarioId);
 
     if (!fila) {

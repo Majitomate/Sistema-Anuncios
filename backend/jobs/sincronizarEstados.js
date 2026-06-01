@@ -11,6 +11,7 @@ const sincronizarEstados = async () => {
       WHERE estado = TRUE
         AND es_permanente = FALSE
         AND fecha_fin < NOW()
+        AND fecha_actualizacion <= fecha_fin
       RETURNING id, titulo
     `);
 
