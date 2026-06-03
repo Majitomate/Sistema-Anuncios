@@ -1,6 +1,6 @@
 // componentes/ModalAuditoria.jsx
 import React from 'react';
-import styles from '../styles/modalAuditoria.module.css';
+import styles from '../styles/ModalAuditoria.module.css';
 
 const ModalAuditoria = ({ isOpen, data, loading, error, onClose }) => {
   if (!isOpen) return null;
