@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import s from '../styles/PanelControl.module.css';
-import { obtenerAnuncioPorId } from '../services/anuncios.services';
+import { useAnuncioDetalle } from '../hooks/useAnuncioDetalle';
+import ModalDocumento from '../components/ModalDocumento.jsx';
 
 /* ── Constantes ── */
 const PRIORIDAD_LABELS = { 1: 'Baja', 2: 'Media', 3: 'Alta' };
@@ -11,28 +12,22 @@ const PRIORIDAD_CLASES = {
 };
 
 const TIPO_LABELS = {
-  general:      'General',
-  evento:       'Evento',
+  general: 'General',
+  evento: 'Evento',
   convocatoria: 'Convocatoria',
-  votacion:     'Votación',
-  resultado:    'Resultado',
+  votacion: 'Votación',
+  resultado: 'Resultado',
 };
 
 const TIPO_CLASES = {
-  general:      s.tipoGeneral,
-  evento:       s.tipoEvento,
+  general: s.tipoGeneral,
+  evento: s.tipoEvento,
   convocatoria: s.tipoConvocatoria,
-  votacion:     s.tipoVotacion,
-  resultado:    s.tipoResultado,
+  votacion: s.tipoVotacion,
+  resultado: s.tipoResultado,
 };
 
 /* ── Helpers ── */
-const bufferToUrl = (bufferObj, mimeType) => {
-  if (!bufferObj?.data) return null;
-  const blob = new Blob([new Uint8Array(bufferObj.data)], { type: mimeType });
-  return URL.createObjectURL(blob);
-};
-
 const formatFecha = (timestamp) => {
   if (!timestamp) return '—';
   return new Date(timestamp).toLocaleDateString('es-MX', {
@@ -44,39 +39,22 @@ const formatFecha = (timestamp) => {
 
 /* ── Componente ── */
 const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
-  const [archivos, setArchivos] = useState({ imagenUrl: null, documentoUrl: null });
-  const [cargandoArchivos, setCargandoArchivos] = useState(false);
+  const [documentoAbierto, setDocumentoAbierto] = useState(null);
+  const [indiceImagen, setIndiceImagen] = useState(0);
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const { anuncio: detalleAnuncio, loading: cargandoArchivos } = useAnuncioDetalle(anuncio?.id);
 
-  useEffect(() => {
-    if (!anuncio) {
-      setArchivos({ imagenUrl: null, documentoUrl: null });
-      return;
-    }
-    const cargar = async () => {
-      setCargandoArchivos(true);
-      try {
-        const data = await obtenerAnuncioPorId(anuncio.id);
-        setArchivos({
-          imagenUrl: data.imagen
-            ? bufferToUrl(data.imagen, data.imagen_tipo)
-            : null,
-          documentoUrl: data.documento
-            ? bufferToUrl(data.documento, data.documento_tipo)
-            : null,
-        });
-      } catch {
-        setArchivos({ imagenUrl: null, documentoUrl: null });
-      } finally {
-        setCargandoArchivos(false);
-      }
-    };
-    cargar();
-  }, [anuncio?.id]);
+  const imagenesUrls = detalleAnuncio?.imagenes ? detalleAnuncio.imagenes.map(img => `${API}/anuncios/imagen/${img.id}`) : [];
+  const documentoUrl = detalleAnuncio?.tiene_documento ? `${API}/anuncios/${detalleAnuncio.id}/documento` : null;
+
+  // Funciones limpias para el carrusel
+  const nextImagen = () => setIndiceImagen((i) => (i + 1) % imagenesUrls.length);
+  const prevImagen = () => setIndiceImagen((i) => (i - 1 + imagenesUrls.length) % imagenesUrls.length);
 
   if (!anuncio) return null;
 
   const prioridadLabel = PRIORIDAD_LABELS[anuncio.prioridad] || '—';
-  const tipoLabel      = TIPO_LABELS[anuncio.tipo] || anuncio.tipo;
+  const tipoLabel = TIPO_LABELS[anuncio.tipo] || anuncio.tipo;
 
   return (
     <div
@@ -114,8 +92,8 @@ const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
         <div className={s.modalCuerpo}>
 
           {/* Subtítulo */}
-          {anuncio.subtitulo && (
-            <p className={s.modalSubtitulo}>{anuncio.subtitulo}</p>
+          {anuncio.descripcion_corta && (
+            <p className={s.modaldescripcion_corta}>{anuncio.descripcion_corta}</p>
           )}
 
           {/* Badges */}
@@ -132,19 +110,65 @@ const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
             )}
           </div>
 
-          {/* Imagen */}
+          {/* ── SECCIÓN DE IMÁGENES / CARRUSEL MEJORADO ── */}
           {cargandoArchivos ? (
             <div className={s.modalSkeleton} aria-label="Cargando imagen..." />
-          ) : archivos.imagenUrl ? (
+          ) : imagenesUrls.length > 0 ? (
             <div className={s.modalSeccion}>
-              <span className={s.modalEtiqueta}>Imagen</span>
-              <div className={s.modalImagenWrap}>
-                <img
-                  src={archivos.imagenUrl}
-                  alt={anuncio.titulo}
-                  className={s.modalImagen}
-                />
-              </div>
+              <span className={s.modalEtiqueta}>
+                {imagenesUrls.length > 1 ? `Imágenes de la galería (${imagenesUrls.length})` : 'Imagen principal'}
+              </span>
+              
+              {imagenesUrls.length === 1 ? (
+                <div className={s.modalImagenWrap}>
+                  <img
+                    src={imagenesUrls[0]}
+                    alt={anuncio.titulo}
+                    className={s.modalImagen}
+                  />
+                </div>
+              ) : (
+                <div className={s.carruselContainer}>
+                  {/* Flecha Izquierda */}
+                  <button type="button" className={`${s.carruselBtn} ${s.carruselBtnPrev}`} onClick={prevImagen} aria-label="Anterior">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  
+                  <div className={s.carruselImagenWrapper}>
+                    <img 
+                      src={imagenesUrls[indiceImagen]} 
+                      alt={`Imagen ${indiceImagen + 1} de ${imagenesUrls.length}`} 
+                      className={s.modalImagen} 
+                    />
+                    {/* Contador flotante estilo cristal */}
+                    <div className={s.carruselContador}>
+                      {indiceImagen + 1} / {imagenesUrls.length}
+                    </div>
+                  </div>
+
+                  {/* Flecha Derecha */}
+                  <button type="button" className={`${s.carruselBtn} ${s.carruselBtnNext}`} onClick={nextImagen} aria-label="Siguiente">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+
+                  {/* Puntitos interactivos (Dots) */}
+                  <div className={s.carruselIndicadores}>
+                    {imagenesUrls.map((_, idx) => (
+                      <button 
+                        key={idx} 
+                        type="button"
+                        aria-label={`Ir a la imagen ${idx + 1}`}
+                        onClick={() => setIndiceImagen(idx)}
+                        className={`${s.indicador} ${idx === indiceImagen ? s.indicadorActivo : ''}`} 
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : null}
 
@@ -183,23 +207,22 @@ const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
           </div>
 
           {/* Documento adjunto */}
-          {!cargandoArchivos && archivos.documentoUrl && (
+          {!cargandoArchivos && documentoUrl && (
             <div className={s.modalSeccion}>
               <span className={s.modalEtiqueta}>Documento adjunto</span>
-              <a
-                href={archivos.documentoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button" 
+                onClick={() => setDocumentoAbierto(documentoUrl)}
                 className={s.modalDocumentoBtn}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/>
-                  <line x1="9" y1="15" x2="15" y2="15"/>
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <line x1="9" y1="15" x2="15" y2="15" />
                 </svg>
                 Ver documento
-              </a>
+              </button>
             </div>
           )}
 
@@ -217,6 +240,10 @@ const ModalVerAnuncio = ({ anuncio, alCerrar }) => {
         </div>
 
       </div>
+      <ModalDocumento
+        urlDocumento={documentoAbierto}
+        alCerrar={() => setDocumentoAbierto(null)}
+      />
     </div>
   );
 };

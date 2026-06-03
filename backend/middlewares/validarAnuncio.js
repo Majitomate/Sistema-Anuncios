@@ -1,4 +1,4 @@
-const { check, validationResult } = require('express-validator');
+import { check, validationResult } from 'express-validator';
 
 /* ── Middleware ejecutor ─────────────────────────────────────────────────── */
 const ejecutarValidacion = (req, res, next) => {
@@ -15,7 +15,7 @@ const reglasBase = [
     .notEmpty().withMessage('El título es obligatorio')
     .isLength({ max: 150 }).withMessage('El título no puede exceder 150 caracteres'),
 
-  check('subtitulo')
+  check('descripcion_corta')
     .notEmpty().withMessage('El subtítulo es obligatorio')
     .isLength({ max: 150 }).withMessage('El subtítulo no puede exceder 150 caracteres'),
 
@@ -47,8 +47,8 @@ const diasHabilesEntre = (inicio, fin) => {
   return count;
 };
 
-/* ── Regla de 10 días hábiles (votación o prioridad alta) ────────────────── */
-const regla10DiasHabiles = [
+/* ── Regla de 3 días hábiles (votación o prioridad alta) ────────────────── */
+const regla3DiasHabiles = [
   check('fechaFin').custom((value, { req }) => {
     const esPermanente =
       req.body.esPermanente === 'true' || req.body.esPermanente === true;
@@ -62,14 +62,15 @@ const regla10DiasHabiles = [
     if (!requiere) return true;
 
     const dias = diasHabilesEntre(req.body.fechaInicio, value);
-    if (dias < 10) {
+    if (dias < 3) {
       throw new Error(
-        `Los anuncios de votación o prioridad alta requieren al menos 10 días hábiles de vigencia. Vigencia actual: ${dias} día(s) hábil(es).`
+        `Los anuncios de votación o prioridad alta requieren al menos 3 días hábiles de vigencia. Vigencia actual: ${dias} día(s) hábil(es).`
       );
     }
     return true;
   }),
 ];
+
 const reglaFechasCreacion = [
   check('fechaInicio').custom((value, { req }) => {
     const esPermanente =
@@ -98,7 +99,7 @@ const reglaFechasCreacion = [
   }),
 ];
 
-/* ── Regla de fechas para edición (opcionales — se conservan las anteriores) */
+/* ── Regla de fechas para edición */
 const reglaFechasEdicion = [
   check('fechaFin').optional().custom((value, { req }) => {
     if (value && req.body.fechaInicio) {
@@ -110,23 +111,17 @@ const reglaFechasEdicion = [
   }),
 ];
 
-/* ── Validador para POST /anuncios ──────────────────────────────────────── */
-const validarCreacionAnuncio = [
+/* ── Validadores exportados ─────────────────────────────────────────────── */
+export const validarCreacionAnuncio = [
   ...reglasBase,
   ...reglaFechasCreacion,
-  ...regla10DiasHabiles,
+  ...regla3DiasHabiles,
   ejecutarValidacion,
 ];
 
-/* ── Validador para PUT /anuncios/:id ───────────────────────────────────── */
-// Las fechas son opcionales al editar — si no se mandan se conservan las
-// que ya tiene el anuncio en la BD (lógica COALESCE en el modelo).
-// Esto permite cambiar solo el estado sin tener que mandar fechas.
-const validarEdicionAnuncio = [
+export const validarEdicionAnuncio = [
   ...reglasBase,
   ...reglaFechasEdicion,
-  ...regla10DiasHabiles,
+  ...regla3DiasHabiles,
   ejecutarValidacion,
 ];
-
-module.exports = { validarCreacionAnuncio, validarEdicionAnuncio };

@@ -1,42 +1,68 @@
-const express = require('express');
-const multer  = require('multer');
-const { validarCreacionAnuncio, validarEdicionAnuncio } = require('../middlewares/validarAnuncio');
-const {
+import express from 'express';
+import multer from 'multer';
+import { validarCreacionAnuncio, validarEdicionAnuncio } from '../middlewares/validarAnuncio.js';
+import { verifyToken } from '../middlewares/auth.js'; // Importamos el middleware de JWT
+import {
   listar,
+  listarKiosco,
   crear,
   obtenerPorId,
   descargarImagen,
+  descargarImagenEspecifica,
   descargarDocumento,
   actualizar,
   eliminar,
-} = require('../controllers/anuncios.controller');
+  consultarAuditoria,
+} from '../controllers/anuncios.controller.js';
 
-const router  = express.Router();
+const router = express.Router();
 const storage = multer.memoryStorage();
-const upload  = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 } 
+});
 
 const archivos = upload.fields([
-  { name: 'imagen',    maxCount: 1 },
+  { name: 'imagen', maxCount: 5 },
   { name: 'documento', maxCount: 1 },
 ]);
 
-// Obtener todos los anuncios
+
+// ==========================================
+// RUTAS PÚBLICAS (No requieren token)
+// ==========================================
+
+// Kiosco (Solo activos, ordenados por prioridad)
+router.get('/kiosco', listarKiosco);
+
+// Descargar imagen / documento
+router.get('/:id/imagen', descargarImagen);
+router.get('/imagen/:idImagen', descargarImagenEspecifica);
+router.get('/:id/documento', descargarDocumento);
+
+
+// ==========================================
+// RUTAS PROTEGIDAS (Requieren token)
+// ==========================================
+
+router.use(verifyToken);
+
+// Obtener todos los anuncios (Dashboard)
 router.get('/', listar);
+
+// Obetener auditoría para un anuncio específico
+router.get('/:id/auditoria', consultarAuditoria);
 
 // Obtener un anuncio por id
 router.get('/:id', obtenerPorId);
 
-// Descargar imagen / documento
-router.get('/:id/imagen',    descargarImagen);
-router.get('/:id/documento', descargarDocumento);
-
 // Crear anuncio
 router.post('/', archivos, validarCreacionAnuncio, crear);
 
-// Editar anuncio — usa validarEdicionAnuncio (fechas opcionales)
+// Editar anuncio
 router.put('/:id', archivos, validarEdicionAnuncio, actualizar);
 
 // Eliminar anuncio
 router.delete('/:id', eliminar);
 
-module.exports = router;
+export default router;

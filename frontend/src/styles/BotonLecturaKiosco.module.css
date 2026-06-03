@@ -1,0 +1,48 @@
+/* ── Botón de Accesibilidad de Lectura ───────────────────────────────────── */
+.botonLectura {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 24px;
+    margin-bottom: 14px;
+    background-color: #1b5e20;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50px;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease-in-out;
+}
+
+.botonLectura:hover {
+    background-color: #144517;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    border-color: #ffffff;
+}
+
+.botonLectura:active {
+    transform: translateY(0);
+}
+
+/* Estado Activo (Hablando) */
+.botonLecturaSpeaking {
+    background-color: #d32f2f !important; /* Rojo llamativo de detención */
+    border-color: #ffffff;
+    animation: latidoLectura 1.2s ease-in-out infinite;
+}
+
+@keyframes latidoLectura {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+    }
+    50% {
+        transform: scale(1.04);
+        box-shadow: 0 6px 20px rgba(211, 47, 47, 0.6);
+    }
+}

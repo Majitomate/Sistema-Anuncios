@@ -1,0 +1,741 @@
+/* ── Reset base ──────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+/* ── Pantalla fullscreen ─────────────────────────────────────────────────── */
+.pantalla {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: #0a0a0a;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #fff;
+    cursor: default;
+}
+
+.pantallaCargando {
+    background-color: #1b5e20;
+}
+
+/* ── Pantalla Vacía ──────────────────────────────────────────────────────── */
+.pantallaVacia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 60% 40%, #1b5e20 0%, #0d3b12 55%, #091f0a 100%);
+    padding: 28px;
+    text-align: center;
+    gap: 0;
+}
+
+/* Header con botón volver y marca */
+.vacioHeader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 10;
+}
+
+/* Tarjeta central */
+.vacioCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: clamp(32px, 5vw, 56px) clamp(28px, 6vw, 72px);
+    max-width: 580px;
+    width: 100%;
+}
+
+/* Ícono decorativo */
+.vacioIcono {
+    width: clamp(56px, 7vw, 80px);
+    height: clamp(56px, 7vw, 80px);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.vacioIcono svg {
+    width: clamp(28px, 3.5vw, 40px);
+    height: clamp(28px, 3.5vw, 40px);
+    color: rgba(255,255,255,0.55);
+}
+
+.vacioTitulo {
+    color: #ffffff;
+    font-size: clamp(1.1rem, 2.2vw, 1.55rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    margin: 0;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+.vacioTexto {
+    color: rgba(255,255,255,0.55);
+    font-size: clamp(0.82rem, 1.3vw, 1rem);
+    max-width: 420px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Pie de página con marca */
+.vacioPie {
+    position: absolute;
+    bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.25);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+}
+
+.vacioPieMarca {
+    font-weight: 800;
+    letter-spacing: 0.15em;
+}
+
+.vacioPieSep {
+    opacity: 0.4;
+}
+
+.vacioPieTexto {
+    font-weight: 400;
+}
+
+/* ── Contenedor de imagen ────────────────────────────────────────────────── */
+.imagenWrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;          /* hereda el border-radius del padre    */
+    background: #111;                /* fallback mientras carga              */
+}
+
+.imagenResponsive {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;               /* llena el espacio sin distorsionar    */
+    object-position: center center;  /* centra la imagen en ambos ejes       */
+    display: block;
+    transition: opacity 0.4s ease, transform 0.6s ease;
+    will-change: transform;
+}
+
+/* Zoom sutil al hacer hover sobre el card/pantalla */
+.imagenWrap:hover .imagenResponsive {
+    transform: scale(1.04);
+}
+
+/* Estado de carga: oculta la imagen hasta que esté lista */
+.imagenResponsive[data-loaded="false"] {
+    opacity: 0;
+}
+.imagenResponsive[data-loaded="true"] {
+    opacity: 1;
+}
+
+.offlineBadge {
+    background-color: #ff9800;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-right: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* ── Fondo con imagen y blur ─────────────────────────────────────────────── */
+.fondo {
+    position: absolute;
+    inset: -8%;
+    width: calc(100% + 16%);   /* compensa el inset negativo */
+    height: calc(100% + 16%);
+    object-fit: cover;
+    object-position: center center;
+    filter: blur(6px) brightness(0.55);
+    transition: opacity 0.4s ease;
+}
+
+.fondoSaliendo {
+    opacity: 0;
+}
+
+/* Fondo sólido oscuro cuando no hay imagen */
+.pantalla:not(:has(.fondo[style])) .fondo {
+    background: #111;
+    filter: none;
+}
+
+/* ── Overlay oscuro sobre la imagen ──────────────────────────────────────── */
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+            to bottom,
+            rgba(0,0,0,0.35) 0%,
+            rgba(0,0,0,0.15) 40%,
+            rgba(0,0,0,0.55) 80%,
+            rgba(0,0,0,0.80) 100%
+    );
+    pointer-events: none;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 28px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.headerIzq {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.botonVolver {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: clamp(8px, 1vw, 12px) clamp(14px, 1.5vw, 20px);
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    color: #fff;
+    font-size: clamp(0.82rem, 1.1vw, 1rem);
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: background 0.2s;
+}
+
+.botonVolver:hover { background: rgba(255,255,255,0.25); }
+.botonVolver svg   { width: clamp(16px, 1.8vw, 22px); height: clamp(16px, 1.8vw, 22px); }
+
+.marca {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.marcaNombre {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #fff;
+}
+
+.marcaSub {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.6);
+    margin-top: 2px;
+}
+
+/* ── Badge prioridad ─────────────────────────────────────────────────────── */
+.badgePrio {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    cursor: default;
+}
+
+.badgeDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulsar 1.2s ease-in-out infinite;
+}
+
+@keyframes pulsar {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.7); }
+}
+
+.badgeUrgente {
+    background: #c62828;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(198, 40, 40, 0.5);
+}
+
+.badgeAlta {
+    background: #e65100;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(230, 81, 0, 0.4);
+}
+
+/* ── Contenido central ───────────────────────────────────────────────────── */
+.contenido {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 10%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    transition: opacity 0.3s ease;
+    z-index: 5;
+}
+
+.contenido:focus-visible {
+    outline: 2px solid rgba(255,255,255,0.5);
+    outline-offset: -4px;
+}
+
+.contenidoSaliendo {
+    opacity: 0;
+}
+
+.titulo {
+    font-size: clamp(1.5rem, 4vw, 3.2rem);
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 20px;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+    max-width: 880px;
+    width: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+}
+
+.subtitulo {
+    font-size: clamp(0.85rem, 1.8vw, 1.15rem);
+    font-weight: 400;
+    color: rgba(255,255,255,0.82);
+    margin: 0;
+    max-width: 650px;
+    width: 100%;
+    line-height: 1.5;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+}
+
+/* ── Flechas ─────────────────────────────────────────────────────────────── */
+.flecha {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: clamp(52px, 5vw, 70px);
+    height: clamp(52px, 5vw, 70px);
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.flecha:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-50%) scale(1.08);
+}
+
+.flechaIzq { 
+    left: 20px; 
+    z-index: 20;
+}
+.flechaDer { 
+    right: 20px; 
+    z-index: 20;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 28px 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.footerIzq {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ── Chips de fecha ──────────────────────────────────────────────────────── */
+.fechasRow {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.fechaChip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 8px 14px;
+    color: #fff;
+}
+
+.fechaChip svg {
+    width: clamp(16px, 1.8vw, 22px);
+    height: clamp(16px, 1.8vw, 22px);
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+.fechaLabel {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.55);
+}
+
+.fechaValor {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #fff;
+    text-transform: capitalize;
+}
+
+/* ── Wrapper de múltiples cards próximas ────────────────────────────────── */
+.proximosWrap {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 600px;
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+
+/* ── Card próximo urgente ─────────────────────────────────────────────────── */
+.cardProximo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(12px);
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: none;
+    border-left: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    text-align: left;
+    max-width: 220px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.cardProximo:hover { background: rgba(0,0,0,0.8); }
+
+.cardProximo.esUrgente {
+    border-left-color:   #ef5350;
+    border-bottom-color: #ef5350;
+    box-shadow: -2px 2px 12px rgba(239, 83, 80, 0.25);
+}
+
+.cardProximo.esAlta {
+    border-left-color:   #ff9800;
+    border-bottom-color: #ff9800;
+    box-shadow: -2px 2px 12px rgba(255, 152, 0, 0.25);
+}
+
+.cardProximo.esNormal {
+    border-left-color:   rgba(255,255,255,0.25);
+    border-bottom-color: rgba(255,255,255,0.25);
+}
+
+.cardProximoLabel {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+
+.labelUrgente { color: #ef5350; }
+.labelAlta    { color: #ff9800; }
+.labelNormal  { color: rgba(255,255,255,0.55); }
+.labelNormal  { color: rgba(255,255,255,0.55); }
+
+.cardProximoTitulo {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ── Dots ────────────────────────────────────────────────────────────────── */
+.dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    z-index: 20;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s, transform 0.2s, width 0.25s;
+}
+
+.dotActivo {
+    background: #fff;
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* ── Estados (loading/error/vacío) ───────────────────────────────────────── */
+.estadoCentro {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.9rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255,255,255,0.15);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.botonReintentar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 11px 26px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 24px;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.botonReintentar:hover {
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.45);
+    transform: translateY(-1px);
+}
+
+.botonReintentar svg {
+    width: 15px;
+    height: 15px;
+    opacity: 0.85;
+}
+
+/* =========================================
+   EFECTOS DE PRIORIDAD (KIOSCO)
+========================================= */
+
+/* Nivel 3: Urgente (Rojo) */
+.contenidoUrgente {
+    box-shadow: inset 0 0 20px rgba(211, 47, 47, 0.1) !important;
+    background-color: transparent !important;
+}
+
+/* Nivel 2: Alta (Naranja) */
+.contenidoAlta {
+    /* sin borde — el contenido cubre toda la pantalla */
+}
+
+/* Animación de Latido para el Badge "URGENTE" */
+.animacionPulso {
+    animation: latidoUrgente 1.5s infinite;
+}
+
+@keyframes latidoUrgente {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7);
+    }
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 0 8px rgba(211, 47, 47, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(211, 47, 47, 0);
+    }
+}
+/* ── Header derecho: badge + fullscreen ─────────────────────────────────── */
+.headerDer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ── Botón pantalla completa ─────────────────────────────────────────────── */
+.botonFullscreen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(42px, 4vw, 52px);
+    height: clamp(42px, 4vw, 52px);
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    flex-shrink: 0;
+}
+
+.botonFullscreen:hover {
+    background: rgba(255,255,255,0.28);
+    transform: scale(1.08);
+}
+
+.botonFullscreen svg {
+    width: clamp(18px, 2vw, 24px);
+    height: clamp(18px, 2vw, 24px);
+}
+
+/* ── Botón ver detalle completo ──────────────────────────────────────────── */
+.verDetalleWrap {
+    margin-top: 32px;
+    position: relative;
+    z-index: 50;
+}
+
+.botonVerDetalle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 28px;
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.05); /* Ligeramente visible de base */
+    border: 1.5px solid rgba(255,255,255,0.6);
+    border-radius: 40px;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    backdrop-filter: blur(6px);
+    text-transform: uppercase;
+    position: relative;
+    z-index: 20;
+    
+}
+
+.botonVerDetalle:hover {
+    background: rgba(255,255,255,0.18);
+    border-color: #fff;
+    transform: translateY(-2px);
+}
+
+.botonVerDetalle svg {
+    width: clamp(14px, 1.6vw, 20px);
+    height: clamp(14px, 1.6vw, 20px);
+    transition: transform 0.2s;
+}
+
+.botonVerDetalle:hover svg {
+    transform: translateX(4px);
+}
+
+/* Añadir a KioscoLista.module.css */
+.offlineBanner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ff9800; /* Naranja de advertencia (Material Design) */
+    color: #ffffff;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 9999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    letter-spacing: 0.5px;
+    animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}

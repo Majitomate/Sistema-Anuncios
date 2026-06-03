@@ -1,63 +1,131 @@
 import { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
-import DashboardLayout from './pages/DashboardLayout';
 
-const ROLES = [
-  { value: 'editor',       label: 'Editor o Revisor — CRUD completo'        },
-  { value: 'visualizador', label: 'Visualizador — solo lectura'    },
-];
+import DashboardLayout from './pages/DashboardLayout';
+import LoginPage from './pages/LoginPage';
+import KioscoLista from './pages/KioscoLista';
+import KioscoDetalle from './pages/KioscoDetalle';
+import EstadoConexion from './pages/EstadoConexion';
+import { FullscreenProvider } from './components/FullscreenContext';
+
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+const ROLES_DASHBOARD = ['admin', 'editor', 'revisor'];
+const ROLES_KIOSCO = ['visualizador'];
+
+const rutaPorRol = (rol) =>
+    ROLES_KIOSCO.includes(rol) ? '/display' : '/dashboard';
+
+const RutaProtegida = ({ children, rolesPermitidos }) => {
+    const token = localStorage.getItem('sutus_token');
+    const rol = localStorage.getItem('sutus_rol');
+
+    if (!token) return <Navigate to="/login" replace />;
+
+    if (rolesPermitidos && !rolesPermitidos.includes(rol)) {
+        return <Navigate to={rutaPorRol(rol)} replace />;
+    }
+
+    return children;
+};
 
 const App = () => {
-  const [anuncios, setAnuncios]       = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [rolSimulado, setRolSimulado] = useState('editor');
+    const [anuncios, setAnuncios] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [rolUsuario, setRolUsuario] = useState(localStorage.getItem('sutus_rol'));
 
-  const fetchAnuncios = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('http://localhost:3001/anuncios');
-      if (!response.ok) throw new Error('Error en la respuesta del servidor');
-      setAnuncios(await response.json());
-    } catch (err) {
-      console.error('Error al obtener anuncios:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const fetchAnuncios = useCallback(async () => {
+        const token = localStorage.getItem('sutus_token');
 
-  useEffect(() => { fetchAnuncios(); }, [fetchAnuncios]);
+        // Si no hay token, no intentamos la petición y marcamos que terminó de cargar
+        if (!token) {
+            setLoading(false);
+            return;
+        }
 
-  useEffect(() => {
-    document.title = 'SUTUS — Sistema de Anuncios';
-  }, []);
+        setLoading(true);
+        try {
+            const headers = { Authorization: `Bearer ${token}` };
+            const res = await fetch(`${API}/anuncios`, { headers });
 
-  return (
-    <div className="app-container">
+            if (!res.ok) throw new Error('Error al cargar anuncios');
 
-      {/* Banner de simulación de roles — solo para el Sprint 1 demo */}
-      <div className="rol-simulador-banner">
-        <span className="rol-simulador-label">
-          🔧 Simulador de permisos (Sprint 1 demo)
-        </span>
-        <select
-          className="rol-simulador-select"
-          value={rolSimulado}
-          onChange={(e) => setRolSimulado(e.target.value)}
-        >
-          {ROLES.map((r) => (
-            <option key={r.value} value={r.value}>{r.label}</option>
-          ))}
-        </select>
-      </div>
+            const data = await res.json();
+            setAnuncios(data);
+        } catch (err) {
+            console.error("Error fetching ads:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-      <DashboardLayout
-        anuncios={anuncios}
-        onAnuncioCreado={fetchAnuncios}
-        rolUsuario={rolSimulado}
-        loading={loading}
-      />
-    </div>
-  );
+    useEffect(() => {
+        fetchAnuncios();
+
+        // Sincronización automática cada minuto para activar anuncios por hora
+        const intervalo = setInterval(() => {
+            fetchAnuncios();
+        }, 60000);
+
+        return () => clearInterval(intervalo);
+    }, [fetchAnuncios]);
+
+    const alIniciarSesion = () => {
+        setRolUsuario(localStorage.getItem('sutus_rol'));
+        fetchAnuncios();
+    };
+
+    return (
+        <FullscreenProvider>
+            <BrowserRouter>
+                <Routes>
+                    {/* Ruta raíz: Redirecciona automáticamente según la sesión */}
+                    <Route
+                        path="/"
+                        element={<Navigate to={rolUsuario ? rutaPorRol(rolUsuario) : "/login"} replace />}
+                    />
+
+                    {/* Login del sistema */}
+                    <Route path="/login" element={<LoginPage onLoginSuccess={alIniciarSesion} />} />
+
+                    {/* 🟢 RUTAS PÚBLICAS PARA LA TABLET (Sin protección de contraseña) */}
+                    <Route path="/display" element={<KioscoLista />} />
+                    <Route path="/display/:id" element={<KioscoDetalle />} />
+
+                    {/* 🔴 RUTAS PRIVADAS (Para Administradores y Editores) */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <RutaProtegida rolesPermitidos={ROLES_DASHBOARD}>
+                                <DashboardLayout
+                                    anuncios={anuncios}
+                                    onAnuncioCreado={fetchAnuncios}
+                                    rolUsuario={rolUsuario}
+                                    loading={loading}
+                                />
+                            </RutaProtegida>
+                        }
+                    />
+
+                    <Route
+                        path="/estado-conexion"
+                        element={
+                            <RutaProtegida rolesPermitidos={['admin']}>
+                                <EstadoConexion />
+                            </RutaProtegida>
+                        }
+                    />
+
+                    {/* Ruta de escape: Si escriben cualquier cosa errónea, los manda al inicio */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+
+
+
+                </Routes>
+            </BrowserRouter>
+        </FullscreenProvider>
+    );
 };
 
 export default App;

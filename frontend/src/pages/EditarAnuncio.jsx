@@ -8,7 +8,9 @@ import Archivos from '../components/NuevoAnuncio/Archivos.jsx';
 import ModalDocumento from '../components/ModalDocumento.jsx';
 import { useAnuncios } from '../hooks/useAnuncios';
 import { obtenerAnuncioPorId } from '../services/anuncios.services';
-import { validarRegla10Dias } from '../utils/validarRegla10Dias';
+import { validarRegla3Dias } from '../utils/validarRegla3Dias';
+
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const splitDateTime = (timestamp) => {
   if (!timestamp) return { date: '', time: '' };
@@ -23,7 +25,7 @@ const splitDateTime = (timestamp) => {
 const mapErroresToFields = (erroresArray) => {
   const fieldMap = {
     'título': 'titulo',
-    'descripción corta': 'subtitulo',
+    'descripción corta': 'descripcion_corta',
     'contenido': 'contenido',
     'prioridad': 'prioridad',
     'tipo': 'tipo',
@@ -54,7 +56,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
 
   const [formData, setFormData] = useState({
     titulo: anuncio.titulo || '', tipo: anuncio.tipo || '',
-    prioridad: anuncio.prioridad || '', subtitulo: anuncio.subtitulo || '',
+    prioridad: anuncio.prioridad || '', descripcion_corta: anuncio.descripcion_corta || '',
     contenido: anuncio.contenido || '',
     fechaInicio: inicio.date, horaInicio: inicio.time,
     fechaFin: fin.date,     horaFin: fin.time,
@@ -64,16 +66,17 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
 
   const [errores, setErrores] = useState({});
   const [archivos, setArchivos] = useState([]);
-  const [archivosActuales, setArchivosActuales] = useState({ imagenUrl: null, documentoUrl: null });
+  const [archivosActuales, setArchivosActuales] = useState({ imagenes: [], documento: null });
   const [documentoAbierto, setDocumentoAbierto] = useState(null);
+  const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   useEffect(() => {
     const cargarDatosBD = async () => {
       try {
         const data = await obtenerAnuncioPorId(anuncio.id);
         setArchivosActuales({
-          imagenUrl: data.imagen_tipo ? `http://localhost:3001/anuncios/${data.id}/imagen` : null,
-          documentoUrl: data.documento_tipo ? `http://localhost:3001/anuncios/${data.id}/documento` : null,
+          imagenes: data.imagenes || [],
+          documento: data.tiene_documento ? { tipo: data.documento_tipo, url: `${API}/anuncios/${data.id}/documento` } : null,
         });
       } catch (err) {
         console.error('Error al cargar archivos:', err);
@@ -101,7 +104,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
 
   const handleEditarAnuncio = async () => {
     /* Validación de 10 días hábiles en el frontend */
-    const errorRegla = validarRegla10Dias(formData);
+    const errorRegla = validarRegla3Dias(formData);
     if (errorRegla) {
       return Swal.fire({
         icon: 'warning',
@@ -171,7 +174,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
         </button>
         <div className={s.headerInfo}>
           <h1 className={s.tituloHeaderBlanco}>Editar Anuncio</h1>
-          <p className={s.subtituloHeaderBlanco}>{anuncio.titulo}</p>
+          <p className={s.descripcion_cortaHeaderBlanco}>{anuncio.titulo}</p>
         </div>
       </header>
 
@@ -185,7 +188,7 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
             <FormFechas formData={formData} esPermanente={formData.esPermanente} onChange={handleChange} errores={errores} />
 
             {/* Archivos actualmente guardados */}
-            {(archivosActuales.imagenUrl || archivosActuales.documentoUrl) && (
+            {(archivosActuales.imagenes.length > 0 || archivosActuales.documento) && (
               <section className="tarjeta-referencia">
                 <div className="archivos-actuales-header">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1b5e20" strokeWidth="2.5" strokeLinecap="round">
@@ -195,31 +198,35 @@ const EditarAnuncio = ({ anuncio, alCerrar, onActualizado }) => {
                   <h3>Archivos guardados</h3>
                 </div>
                 <div className="archivos-actuales-cuerpo">
-                  {archivosActuales.imagenUrl && (
+                  {archivosActuales.imagenes.length > 0 && (
                     <div>
-                      <span className="archivo-actual-label">Imagen actual</span>
-                      <img src={archivosActuales.imagenUrl} alt="Imagen actual" className="archivo-actual-imagen" />
+                      <span className="archivo-actual-label">Imágenes actuales</span>
+                      <div className="imagenes-lista">
+                        {archivosActuales.imagenes.map(img => (
+                          <img key={img.id} src={`${API}/anuncios/imagen/${img.id}`} alt="Imagen" className="archivo-actual-imagen" />
+                        ))}
+                      </div>
                     </div>
                   )}
-                  {archivosActuales.documentoUrl && (
+                  {archivosActuales.documento && (
                     <div>
                       <span className="archivo-actual-label">Documento actual</span>
                       <button
                         type="button"
                         className="archivo-actual-doc"
-                        onClick={() => setDocumentoAbierto(archivosActuales.documentoUrl)}
+                        onClick={() => setDocumentoAbierto(archivosActuales.documento.url)}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                           <circle cx="12" cy="12" r="3"/>
                         </svg>
-                        Ver documento
+                        Ver documento ({archivosActuales.documento.tipo})
                       </button>
                     </div>
                   )}
                 </div>
                 <p className="archivos-actuales-aviso">
-                  Si subes un nuevo archivo reemplazará al actual. Si lo dejas vacío, se conservará.
+                  Al subir nuevas imágenes, se agregarán a la galería. Si subes un nuevo documento, reemplazará al actual.
                 </p>
               </section>
             )}

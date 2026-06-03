@@ -91,7 +91,7 @@ body, html {
   line-height: 1;
 }
 
-.subtituloHeaderBlanco {
+.descripcion_cortaHeaderBlanco {
   font-size: 11.5px;
   color: rgba(255,255,255,0.60);
   margin: 0;
@@ -623,6 +623,18 @@ body, html {
   border-radius: 8px;
   border: 1px solid var(--borde);
   display: block;
+}
+
+:global(.imagenes-lista) {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+:global(.imagenes-lista .archivo-actual-imagen) {
+  width: 120px;
+  height: 80px;
+  flex-shrink: 0;
 }
 
 :global(.archivo-actual-doc) {

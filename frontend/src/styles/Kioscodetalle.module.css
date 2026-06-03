@@ -1,0 +1,808 @@
+/* ── Pantalla ─────────────────────────────────────────────────────────────── */
+.pantalla {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #fff;
+    overflow: hidden;
+}
+
+/* ── Estado centro ───────────────────────────────────────────────────────── */
+.estadoCentro {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #1b5e20;
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.botonVolver {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.botonVolver:hover { background: rgba(255,255,255,0.25); }
+
+/* ── Panel izquierdo ─────────────────────────────────────────────────────── */
+.panelIzq {
+    position: relative;
+    width: 40%;
+    flex-shrink: 0;
+    background: #111;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+/* Imagen de fondo con blur */
+.imagenFondo {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(0px) brightness(0.7);
+    transform: scale(1.02);
+}
+
+.imagenOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+            to bottom,
+            rgba(0,0,0,0.2) 0%,
+            rgba(0,0,0,0.1) 40%,
+            rgba(0,0,0,0.75) 100%
+    );
+}
+
+/* Botón cerrar */
+.botonCerrar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.02em;
+}
+
+.botonCerrar:hover { background: rgba(0,0,0,0.8); }
+.botonCerrar svg   { width: 13px; height: 13px; }
+
+/* Texto sobre imagen */
+.imagenTexto {
+    position: relative;
+    z-index: 5;
+    padding: 24px 28px 32px;
+    color: #fff;
+}
+
+.imagenTipo {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 10px;
+}
+
+.imagenTitulo {
+    font-size: clamp(1.2rem, 3vw, 2.2rem);
+    font-weight: 900;
+    line-height: 1.15;
+    margin: 0 0 12px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+}
+
+.imagendescripcion_corta {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.75);
+    margin: 0;
+    line-height: 1.5;
+    border-left: 3px solid #1b5e20;
+    padding-left: 10px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+/* ── Panel derecho ───────────────────────────────────────────────────────── */
+.panelDer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px 44px 60px;
+    background: #fff;
+    position: relative;
+}
+
+/* ── Fechas ──────────────────────────────────────────────────────────────── */
+.fechasRow {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.fechaItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1b5e20;
+}
+
+.fechaItem svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.fechaLabel {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #888;
+}
+
+.fechaValor {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-transform: capitalize;
+}
+
+/* ── Cuerpo ──────────────────────────────────────────────────────────────── */
+.cuerpo {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 36px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.cuerpo p {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* ── Archivos ────────────────────────────────────────────────────────────── */
+.archivos {
+    border-top: 1px solid #e8ece8;
+    padding-top: 28px;
+    margin-top: 4px;
+}
+
+.archivosTitulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #1b5e20;
+    margin: 0 0 20px;
+    text-transform: uppercase;
+}
+
+.archivosTitulo svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Media Grid: galería + doc lado a lado ───────────────────────────────── */
+.mediaGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 600px) {
+    .mediaGrid {
+        grid-template-columns: auto 1fr;
+        align-items: start;
+    }
+}
+
+/* ── Bloque galería ──────────────────────────────────────────────────────── */
+.galeriaBloque {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.galeriaImgPrincipal {
+    position: relative;
+    width: 260px;
+    height: 180px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: none;
+    padding: 0;
+    cursor: zoom-in;
+    background: #f0f4f0;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.galeriaImgPrincipal:hover {
+    transform: scale(1.015);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+}
+
+.galeriaImgPrincipal img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.galeriaZoomHint {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.42);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    opacity: 0;
+    transition: opacity 0.2s;
+    backdrop-filter: blur(2px);
+}
+
+.galeriaZoomHint svg { width: 20px; height: 20px; }
+
+.galeriaImgPrincipal:hover .galeriaZoomHint { opacity: 1; }
+
+/* ── Tira de thumbnails ──────────────────────────────────────────────────── */
+.galeriaTira {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    width: 260px;
+}
+
+.galeriaMiniBtn {
+    width: 56px;
+    height: 42px;
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+    border: 2px solid transparent;
+    opacity: 0.55;
+    transition: opacity 0.18s, border-color 0.18s, transform 0.15s;
+    flex-shrink: 0;
+}
+
+.galeriaMiniBtn:hover {
+    opacity: 0.85;
+    transform: scale(1.06);
+}
+
+.galeriaMiniActiva {
+    opacity: 1 !important;
+    border-color: #1b5e20;
+}
+
+.galeriaMiniBtn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ── Bloque documento ────────────────────────────────────────────────────── */
+.docBloque {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: #f7faf7;
+    border: 1.5px solid #d4e4d4;
+    border-radius: 14px;
+    overflow: hidden;
+    min-width: 0;
+    flex: 1;
+}
+
+.docBloqueHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #edf4ed;
+    border-bottom: 1px solid #d4e4d4;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1b5e20;
+    letter-spacing: 0.04em;
+}
+
+.docBloqueHeader svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.docBloqueHeader span:nth-child(2) {
+    flex: 1;
+}
+
+.docTipoBadge {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: #fff;
+    background: #1b5e20;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.docBloquePreview {
+    position: relative;
+    width: 100%;
+    height: 160px;
+    overflow: hidden;
+    background: #e8f0e8;
+}
+
+.docBloquePreview > * {
+    width: 100%;
+    height: 100%;
+}
+
+.docBotonVer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px 16px;
+    background: #1b5e20;
+    color: #fff;
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.docBotonVer:hover { background: #2e7d32; }
+
+.docBotonVer svg { width: 16px; height: 16px; }
+
+/* ── Responsive: móvil ───────────────────────────────────────────────────── */
+@media (max-width: 599px) {
+    .galeriaImgPrincipal { width: 100%; height: 200px; }
+    .galeriaTira { width: 100%; }
+    .docBloque { width: 100%; }
+}
+
+/* ── Lightbox ────────────────────────────────────────────────────────────── */
+.lightboxOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    animation: fadeIn 0.2s ease;
+}
+
+/* Visor documento sin overlay oscuro */
+.lightboxOverlay.soloDoc {
+    background: transparent;
+    padding: 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.lightboxImg {
+    max-width: 90vw;
+    max-height: 88vh;
+    border-radius: 8px;
+    object-fit: contain;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+}
+
+.lightboxCerrar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.lightboxCerrar:hover { background: rgba(255,255,255,0.25); }
+.lightboxCerrar svg   { width: 16px; height: 16px; }
+
+/* ── docPreviewMask (still used inside docBloquePreview) ─────────────────── */
+.docPreviewMask {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(247,250,247,0.95) 100%);
+}
+
+.docBotonAbrir {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    background: #f4f7f4;
+    border: 1px solid #c8d5c8;
+    border-radius: 6px;
+    color: #1b5e20;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.docBotonAbrir:hover { background: #e8f5e9; }
+
+/* ── Visor documento fullscreen ──────────────────────────────────────────── */
+.visorDocWrap {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: #fff;
+    border-radius: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+}git
+
+.visorDocCerrar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.visorDocCerrar:hover { background: #e0e0e0; }
+.visorDocCerrar svg   { width: 14px; height: 14px; }
+
+/* Botón cerrar flotante sobre el iframe */
+.visorDocCerrarFlotante {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.visorDocCerrarFlotante:hover { background: rgba(0,0,0,0.85); }
+.visorDocCerrarFlotante svg   { width: 14px; height: 14px; }
+
+.visorDocIframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+}
+
+.docBoton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    background: #f4f7f4;
+    border: 1.5px solid #c8d5c8;
+    border-radius: 8px;
+    color: #1b5e20;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+    align-self: flex-start;
+}
+
+.docBoton:hover {
+    background: #e8f5e9;
+    border-color: #1b5e20;
+}
+
+.docBoton svg {
+    width: 15px;
+    height: 15px;
+}
+
+/* ── Botón help flotante ─────────────────────────────────────────────────── */
+.botonHelp {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1b5e20;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(27,94,32,0.35);
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.botonHelp:hover { opacity: 1; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .pantalla      { flex-direction: column; }
+    .panelIzq      { width: 100%; height: 45vh; }
+    .panelDer      { padding: 24px 20px 48px; }
+    .imagenTitulo  { font-size: 1.3rem; }
+}
+/* ── Lightbox: flechas de navegación ────────────────────────────────────── */
+.lightboxFlecha {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.lightboxFlecha:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.lightboxFlechaIzq { left: 24px; }
+.lightboxFlechaDer { right: 24px; }
+
+/* ── Lightbox: contador ──────────────────────────────────────────────────── */
+.lightboxContador {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 6px 16px;
+}
+
+/* ── Lightbox: dots ──────────────────────────────────────────────────────── */
+.lightboxDots {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.lightboxDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s, transform 0.2s, width 0.25s;
+}
+
+.lightboxDotActivo {
+    background: #fff;
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* ── Galería con tira de miniaturas ─────────────────────────────────────── */
+.galeriaWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 220px;
+}
+
+.galeriaTira {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.galeriaMini {
+    width: 52px;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.2s, border-color 0.2s, transform 0.15s;
+    flex-shrink: 0;
+}
+
+.galeriaMini:hover {
+    opacity: 0.85;
+    transform: scale(1.05);
+}
+
+.galeriaMiniActiva {
+    opacity: 1;
+    border-color: #1b5e20;
+}
+
+.galeriaMini img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+/* ── Botón TTS speaking ──────────────────────────────────────────────────── */
+.botonSpeaking {
+    background: #c62828 !important;
+    animation: latidoBoton 1s ease-in-out infinite;
+}
+
+@keyframes latidoBoton {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.1); }
+}
+
+/* ==========================================================================
+   Extensiones para Modo Offline (HU-17 - SUTUS Unisierra)
+   ========================================================================== */
+
+.offlineBannerDetalle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f57c00; /* Naranja de advertencia corporativo */
+    color: #ffffff;
+    text-align: center;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    animation: slideDownDetalle 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes slideDownDetalle {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Ajuste opcional para dispositivos táctiles (Tablets) */
+@media (max-width: 1024px) {
+    .offlineBannerDetalle {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+    }
+}

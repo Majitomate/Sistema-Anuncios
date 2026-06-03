@@ -1,0 +1,28 @@
+.botonLectura {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background-color: #1b5e20;
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(27, 94, 32, 0.2);
+    transition: background-color 0.2s, transform 0.15s;
+    width: 45%;
+    margin-top: 16px;
+}
+
+.botonLectura:hover {
+    background-color: #144517;
+    transform: translateY(-1px);
+}
+
+.botonLecturaSpeaking {
+    background-color: #c62828 !important;
+    animation: latidoBoton 1s ease-in-out infinite;
+}

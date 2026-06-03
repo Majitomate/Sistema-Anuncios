@@ -17,7 +17,7 @@ const OPCIONES_PRIORIDAD = [
 
 const FormInfo = ({ formData, errores, onChange, modoEdicion = false }) => {
   const contTitulo = (formData.titulo || '').length;
-  const contSubtitulo = (formData.subtitulo || '').length;
+  const contdescripcion_corta = (formData.descripcion_corta || '').length;
 
   return (
     <section className="tarjeta-referencia">
@@ -89,23 +89,23 @@ const FormInfo = ({ formData, errores, onChange, modoEdicion = false }) => {
           </div>
         </div>
 
-        {/* Subtítulo */}
+        {/* Descripción Corta */}
         <div className="campo-referencia">
-          <label htmlFor="subtitulo">Subtítulo</label>
+          <label htmlFor="descripcion_corta">Descripción Corta</label>
           <input
-            id="subtitulo"
-            name="subtitulo"
+            id="descripcion_corta"
+            name="descripcion_corta"
             type="text"
             placeholder="Descripción breve del anuncio"
-            value={formData.subtitulo}
+            value={formData.descripcion_corta}
             onChange={onChange}
             maxLength={150}
-            className={errores.subtitulo ? 'input-error' : ''}
+            className={errores.descripcion_corta ? 'input-error' : ''}
           />
-          <span className={`campo-contador${contSubtitulo >= 120 ? ' campo-contador-warn' : ''}`}>
-            {contSubtitulo} / 150
+          <span className={`campo-contador${contdescripcion_corta >= 120 ? ' campo-contador-warn' : ''}`}>
+            {contdescripcion_corta} / 150
           </span>
-          {errores.subtitulo && <span className="campo-error-msg">Este campo es obligatorio</span>}
+          {errores.descripcion_corta && <span className="campo-error-msg">Este campo es obligatorio</span>}
         </div>
 
         {/* Contenido */}
@@ -124,11 +124,11 @@ const FormInfo = ({ formData, errores, onChange, modoEdicion = false }) => {
           {errores.contenido && <span className="campo-error-msg">El contenido es obligatorio</span>}
         </div>
 
-        {/* Switch — Anuncio Permanente */}
+        {/* Switch — Contenido Alternativo */}
         <div className="switch-container">
           <div className="switch-info">
-            <span className="switch-label">Anuncio permanente</span>
-            <span className="switch-desc">Sin fecha de expiración</span>
+            <span className="switch-label">Contenido Alternativo</span>
+            <span className="switch-desc">Se mostrará si no hay anuncios activos. Sin fecha de expiración</span>
           </div>
           <label className="switch">
             <input
@@ -141,14 +141,6 @@ const FormInfo = ({ formData, errores, onChange, modoEdicion = false }) => {
           </label>
         </div>
 
-        {formData.esPermanente && (
-          <div className="alerta-info alerta-azul">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-            </svg>
-            <span>Los anuncios permanentes comparten el carrusel en formato reducido. Evita mantener demasiados activos simultáneamente.</span>
-          </div>
-        )}
 
         {/* Switch — Estado solo esta disponible para editar */}
         {modoEdicion && (
