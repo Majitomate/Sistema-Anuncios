@@ -115,14 +115,6 @@ const LoginPage = ({ onLoginSuccess }) => {
                     <div className={s.campo}>
                         <div className={s.labelRow}>
                             <label className={s.label} htmlFor="password">Contraseña</label>
-                            <button
-                                type="button"
-                                className={s.olvideLinkBtn}
-                                onClick={() => navigate('/forgot-password')}
-                                disabled={loading}
-                            >
-                                ¿Olvidaste tu contraseña?
-                            </button>
                         </div>
                         <div className={s.inputWrap}>
                             <span className={s.inputIcono}>

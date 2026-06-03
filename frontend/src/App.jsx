@@ -7,9 +7,6 @@ import LoginPage from './pages/LoginPage';
 import KioscoLista from './pages/KioscoLista';
 import KioscoDetalle from './pages/KioscoDetalle';
 import EstadoConexion from './pages/EstadoConexion';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage  from './pages/ResetPasswordPage';
-
 import { FullscreenProvider } from './components/FullscreenContext';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -95,10 +92,6 @@ const App = () => {
                     {/* 🟢 RUTAS PÚBLICAS PARA LA TABLET (Sin protección de contraseña) */}
                     <Route path="/display" element={<KioscoLista />} />
                     <Route path="/display/:id" element={<KioscoDetalle />} />
-
-                    {/* Ruta de Olvide mi contraseña */}
-                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                    <Route path="/reset-password"  element={<ResetPasswordPage />} />
 
                     {/* 🔴 RUTAS PRIVADAS (Para Administradores y Editores) */}
                     <Route

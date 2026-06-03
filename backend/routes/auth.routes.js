@@ -5,7 +5,5 @@ const router = express.Router();
 
 // Rutas públicas
 router.post('/login', login);
-router.post('/forgot-password', solicitarRecuperacion);
-router.post('/reset-password', restablecerPassword);
 
 export default router;
