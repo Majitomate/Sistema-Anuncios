@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import s from '../styles/GestionUsuarios.module.css';
-import NavbarDashboard from '../components/Navbardashboard';
+import NavbarDashboard from '../components/NavbarDashboard';
 
 import {
     obtenerUsuarios,
