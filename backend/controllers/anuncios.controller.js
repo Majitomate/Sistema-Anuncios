@@ -121,11 +121,8 @@ export const actualizar = async (req, res) => {
     // OPTIMIZAMOS LAS IMÁGENES NUEVAS
     const imagenes = await optimizarImagenes(imagenesOriginales);
 
-    const fechaInicio = datos.fechaInicio || anuncioActualBD.fecha_inicio;
-    const fechaFin = datos.fechaFin || anuncioActualBD.fecha_fin;
-
-    // Conservamos el estado que el usuario envía durante la edición.
-    // No forzamos desactivarlo solo porque las fechas actuales no estén vigentes.
+    // Se conserva el estado enviado por el usuario; la expiración por fechas
+    // se resuelve en la sincronización automática del cron.
     const fila = await editarAnuncio(id, datos, imagenes, documento, usuarioId);
 
     if (!fila) {
