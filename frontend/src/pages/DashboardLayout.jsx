@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Encabezado from '../components/Encabezado.jsx';
 import CuadriculaTarjetas from '../components/CuadriculaTarjetas.jsx';
@@ -24,6 +25,9 @@ const bufferToUrl = (bufferObj, mimeType) => {
 };
 
 const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => {
+  const location = useLocation(); 
+  const navigate = useNavigate();
+
   useEffect(() => {
     document.title = "Sistema de Anuncios - SUTUS";
   }, []);
@@ -33,15 +37,23 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
 
   const [vistaUsuarios,     setVistaUsuarios]     = useState(false);
   const [vista,             setVista]             = useState(null);
-  const [anuncioAEditar,    setAnuncioAEditar]     = useState(null);
-  const [anuncioVer,        setAnuncioVer]         = useState(null);
-  const [auditoriaAbierta,  setAuditoriaAbierta]   = useState(false);
-  const [vistaActual,       setVistaActual]        = useState('cuadricula');
-  const [indiceCarrusel,    setIndiceCarrusel]     = useState(0);
-  const [documentoAbierto,  setDocumentoAbierto]   = useState(null);
-  const [pantallasOnline,   setPantallasOnline]    = useState(0);
-  const [isMobile,          setIsMobile]           = useState(() => window.innerWidth < 768);
+  const [anuncioAEditar,    setAnuncioAEditar]    = useState(null);
+  const [anuncioVer,        setAnuncioVer]        = useState(null);
+  const [auditoriaAbierta,  setAuditoriaAbierta]  = useState(false);
+  const [vistaActual,       setVistaActual]       = useState('cuadricula');
+  const [indiceCarrusel,    setIndiceCarrusel]    = useState(0);
+  const [documentoAbierto,  setDocumentoAbierto]  = useState(null);
+  const [pantallasOnline,   setPantallasOnline]   = useState(0);
+  const [isMobile,          setIsMobile]          = useState(() => window.innerWidth < 768);
 
+useEffect(() => {
+    if (location.state && location.state.vista === 'crear') {
+      setVista('crear');
+      
+      // Limpiamos el estado usando React Router en lugar de window.history
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');

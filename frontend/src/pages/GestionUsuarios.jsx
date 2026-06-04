@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom'; // 👈 Importamos useNavigate
 import Swal from 'sweetalert2';
 import s from '../styles/GestionUsuarios.module.css';
 import NavbarDashboard from '../components/NavbarDashboard';
@@ -27,6 +28,15 @@ const ROL_CONFIG = {
 const FORM_INICIAL = { nombre: '', email: '', password: '', rol: 'visualizador' };
 
 const GestionUsuarios = ({ onVolver }) => {
+    const navigate = useNavigate(); // 👈 Inicializamos navigate
+
+    // ── ESTADOS PARA EL NAVBAR ───────────────────────────────────────────────
+    const rol = localStorage.getItem('sutus_rol');
+    const puedeEditar = rol === 'admin' || rol === 'editor';
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [vistaActual, setVistaActual] = useState('usuarios');
+
+    // ── ESTADOS PROPIOS DE LA VISTA ──────────────────────────────────────────
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [vista, setVista] = useState('lista');
@@ -36,13 +46,25 @@ const GestionUsuarios = ({ onVolver }) => {
     const [guardando, setGuardando] = useState(false);
     const [verPass, setVerPass] = useState(false);
 
+    // 👇 Función mágica: Cierra este panel y manda a abrir el formulario
+    const handleCrearAnuncio = () => {
+        onVolver(); 
+        navigate('/dashboard', { state: { vista: 'crear' } });
+    };
+
     const token = localStorage.getItem('sutus_token');
     const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const fetchUsuarios = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await obtenerUsuarios(); // <-- ABSTRAÍDO
+            const data = await obtenerUsuarios();
             setUsuarios(data);
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Error', text: err.message });
@@ -76,13 +98,8 @@ const GestionUsuarios = ({ onVolver }) => {
         if (!validar()) return;
         setGuardando(true);
         try {
-            await agregarUsuario(form); // <-- ABSTRAÍDO
-            Swal.fire({
-                icon: 'success',
-                title: 'Creado',
-                text: 'Usuario registrado exitosamente',
-                confirmButtonColor: '#2e7d32'
-            });
+            await agregarUsuario(form);
+            Swal.fire({ icon: 'success', title: 'Creado', text: 'Usuario registrado exitosamente', confirmButtonColor: '#2e7d32' });
             fetchUsuarios();
             handleCancelar();
         } catch (err) {
@@ -96,18 +113,8 @@ const GestionUsuarios = ({ onVolver }) => {
         if (!validar()) return;
         setGuardando(true);
         try {
-            await actualizarUsuario(usuarioEdit.id, {
-                nombre: form.nombre,
-                email: form.email,
-                rol: form.rol
-            }); // <-- ABSTRAÍDO
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Actualizado',
-                text: 'Cambios guardados correctamente',
-                confirmButtonColor: '#2e7d32'
-            });
+            await actualizarUsuario(usuarioEdit.id, { nombre: form.nombre, email: form.email, rol: form.rol });
+            Swal.fire({ icon: 'success', title: 'Actualizado', text: 'Cambios guardados correctamente', confirmButtonColor: '#2e7d32' });
             fetchUsuarios();
             handleCancelar();
         } catch (err) {
@@ -119,25 +126,15 @@ const GestionUsuarios = ({ onVolver }) => {
 
     const handleEliminar = async (id, nombre) => {
         const result = await Swal.fire({
-            title: `¿Eliminar a ${nombre}?`,
-            text: "Esta acción no se puede deshacer.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#c62828',
-            cancelButtonColor: '#757575',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
+            title: `¿Eliminar a ${nombre}?`, text: "Esta acción no se puede deshacer.", icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#c62828', cancelButtonColor: '#757575',
+            confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
         });
 
         if (result.isConfirmed) {
             try {
-                await eliminarUsuario(id); // <-- ABSTRAÍDO
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Eliminado',
-                    text: 'El usuario ha sido removido.',
-                    confirmButtonColor: '#2e7d32'
-                });
+                await eliminarUsuario(id);
+                Swal.fire({ icon: 'success', title: 'Eliminado', text: 'El usuario ha sido removido.', confirmButtonColor: '#2e7d32' });
                 fetchUsuarios();
             } catch (err) {
                 Swal.fire({ icon: 'error', title: 'Error', text: err.message });
@@ -167,9 +164,7 @@ const GestionUsuarios = ({ onVolver }) => {
 
     const esCrear = vista === 'crear';
 
-    // ── Render lista ─────────────────────────────────────────────────────────
     const renderLista = () => (
-
         <div className={s.pagina}>
             <div className={s.topBar}>
                 <div className={s.topBarIzq}>
@@ -209,18 +204,12 @@ const GestionUsuarios = ({ onVolver }) => {
                 {loading ? (
                     <div className={s.estadoCentro}><div className={s.spinner} /><p>Cargando usuarios...</p></div>
                 ) : usuarios.length === 0 ? (
-                    <div className={s.estadoCentro}>
-                        <p>No hay usuarios registrados.</p>
-                    </div>
+                    <div className={s.estadoCentro}><p>No hay usuarios registrados.</p></div>
                 ) : (
                     <table className={s.tabla}>
                         <thead>
                             <tr>
-                                <th>USUARIO</th>
-                                <th>CORREO</th>
-                                <th>ROL</th>
-                                <th>ID</th>
-                                <th>ACCIONES</th>
+                                <th>USUARIO</th><th>CORREO</th><th>ROL</th><th>ID</th><th>ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -277,10 +266,8 @@ const GestionUsuarios = ({ onVolver }) => {
         </div>
     );
 
-    // ── Render formulario ────────────────────────────────────────────────────
     const renderForm = () => (
         <div className={s.paginaForm}>
-            {/* Header verde sticky — igual que CrearAnuncio */}
             <header className={s.headerVerde}>
                 <button type="button" className={s.botonRegresarBlanco} onClick={handleCancelar}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="16" height="16">
@@ -288,106 +275,44 @@ const GestionUsuarios = ({ onVolver }) => {
                     </svg>
                 </button>
                 <div className={s.headerInfo}>
-                    <h1 className={s.headerTitulo}>
-                        {esCrear ? 'Nuevo Usuario' : `Editar Usuario`}
-                    </h1>
-                    <p className={s.headerSubtitulo}>
-                        {esCrear ? 'Los campos marcados con * son obligatorios' : `Editando: ${usuarioEdit?.nombre}`}
-                    </p>
+                    <h1 className={s.headerTitulo}>{esCrear ? 'Nuevo Usuario' : `Editar Usuario`}</h1>
+                    <p className={s.headerSubtitulo}>{esCrear ? 'Los campos marcados con * son obligatorios' : `Editando: ${usuarioEdit?.nombre}`}</p>
                 </div>
             </header>
 
-            {/* Contenido del formulario */}
             <main className={s.formContenido}>
                 <div className={s.formColumnas}>
-
-                    {/* ── Columna izquierda: datos personales ── */}
                     <div className={s.tarjeta}>
                         <div className={s.tarjetaHeader}>
                             <div className={s.tarjetaIcono} style={{ background: 'rgba(46,125,50,0.12)', color: '#2e7d32' }}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
-                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                    <circle cx="12" cy="7" r="4" />
-                                </svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                             </div>
                             <h2 className={s.tarjetaTitulo}>DATOS DE ACCESO</h2>
                         </div>
                         <div className={s.tarjetaCuerpo}>
-                            {/* Nombre */}
                             <div className={s.campo}>
-                                <label className={s.label}>
-                                    NOMBRE COMPLETO <span className={s.req}>*</span>
-                                </label>
+                                <label className={s.label}>NOMBRE COMPLETO <span className={s.req}>*</span></label>
                                 <div className={s.inputWrap}>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={s.inputIcon} width="15" height="15">
-                                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                        <circle cx="12" cy="7" r="4" />
-                                    </svg>
-                                    <input
-                                        name="nombre"
-                                        type="text"
-                                        placeholder="Nombre completo"
-                                        value={form.nombre}
-                                        onChange={handleChange}
-                                        className={`${s.input} ${errores.nombre ? s.inputError : ''}`}
-                                    />
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={s.inputIcon} width="15" height="15"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                                    <input name="nombre" type="text" placeholder="Nombre completo" value={form.nombre} onChange={handleChange} className={`${s.input} ${errores.nombre ? s.inputError : ''}`} />
                                 </div>
                                 {errores.nombre && <span className={s.errorMsg}>{errores.nombre}</span>}
                             </div>
-
-                            {/* Email */}
                             <div className={s.campo}>
-                                <label className={s.label}>
-                                    CORREO ELECTRÓNICO <span className={s.req}>*</span>
-                                </label>
+                                <label className={s.label}>CORREO ELECTRÓNICO <span className={s.req}>*</span></label>
                                 <div className={s.inputWrap}>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={s.inputIcon} width="15" height="15">
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                                        <polyline points="22,6 12,13 2,6" />
-                                    </svg>
-                                    <input
-                                        name="email"
-                                        type="email"
-                                        placeholder="usuario@unisierra.edu.mx"
-                                        value={form.email}
-                                        onChange={handleChange}
-                                        className={`${s.input} ${errores.email ? s.inputError : ''}`}
-                                    />
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={s.inputIcon} width="15" height="15"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                                    <input name="email" type="email" placeholder="usuario@unisierra.edu.mx" value={form.email} onChange={handleChange} className={`${s.input} ${errores.email ? s.inputError : ''}`} />
                                 </div>
                                 {errores.email && <span className={s.errorMsg}>{errores.email}</span>}
                             </div>
-
-                            {/* Contraseña */}
                             <div className={s.campo}>
-                                <label className={s.label}>
-                                    CONTRASEÑA {esCrear && <span className={s.req}>*</span>}
-                                    {!esCrear && <span className={s.labelHint}> (dejar vacío para no cambiar)</span>}
-                                </label>
+                                <label className={s.label}>CONTRASEÑA {esCrear && <span className={s.req}>*</span>} {!esCrear && <span className={s.labelHint}> (dejar vacío para no cambiar)</span>}</label>
                                 <div className={s.inputWrap}>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={s.inputIcon} width="15" height="15">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" />
-                                        <path d="M7 11V7a5 5 0 0110 0v4" />
-                                    </svg>
-                                    <input
-                                        name="password"
-                                        type={verPass ? 'text' : 'password'}
-                                        placeholder="••••••••"
-                                        value={form.password}
-                                        onChange={handleChange}
-                                        className={`${s.input} ${errores.password ? s.inputError : ''}`}
-                                    />
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={s.inputIcon} width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
+                                    <input name="password" type={verPass ? 'text' : 'password'} placeholder="••••••••" value={form.password} onChange={handleChange} className={`${s.input} ${errores.password ? s.inputError : ''}`} />
                                     <button type="button" className={s.togglePass} onClick={() => setVerPass((v) => !v)}>
-                                        {verPass ? (
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
-                                                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
-                                                <line x1="1" y1="1" x2="23" y2="23" />
-                                            </svg>
-                                        ) : (
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                                <circle cx="12" cy="12" r="3" />
-                                            </svg>
-                                        )}
+                                        {verPass ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></svg> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>}
                                     </button>
                                 </div>
                                 {errores.password && <span className={s.errorMsg}>{errores.password}</span>}
@@ -395,31 +320,20 @@ const GestionUsuarios = ({ onVolver }) => {
                         </div>
                     </div>
 
-                    {/* ── Columna derecha: rol + footer ── */}
                     <div className={s.columnaDerecha}>
                         <div className={s.tarjeta}>
                             <div className={s.tarjetaHeader}>
                                 <div className={s.tarjetaIcono} style={{ background: 'rgba(255,98,36,0.12)', color: '#ff6224' }}>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
-                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                    </svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                                 </div>
                                 <h2 className={s.tarjetaTitulo}>TIPO DE PERMISO</h2>
                             </div>
                             <div className={s.tarjetaCuerpo}>
                                 <div className={s.rolesGrid}>
                                     {ROLES.map((r) => (
-                                        <button
-                                            key={r.value}
-                                            type="button"
-                                            className={`${s.rolCard} ${form.rol === r.value ? s.rolCardActivo : ''}`}
-                                            onClick={() => { setForm((p) => ({ ...p, rol: r.value })); setErrores((p) => ({ ...p, rol: undefined })); }}
-                                            style={form.rol === r.value ? { borderColor: r.color, background: `${r.color}18` } : {}}
-                                        >
+                                        <button key={r.value} type="button" className={`${s.rolCard} ${form.rol === r.value ? s.rolCardActivo : ''}`} onClick={() => { setForm((p) => ({ ...p, rol: r.value })); setErrores((p) => ({ ...p, rol: undefined })); }} style={form.rol === r.value ? { borderColor: r.color, background: `${r.color}18` } : {}}>
                                             <div className={s.rolIcono} style={{ background: `${r.color}20`, color: r.color }}>
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20">
-                                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                                </svg>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                                             </div>
                                             <span className={s.rolNombre}>{r.label}</span>
                                             <span className={s.rolDesc}>{r.desc}</span>
@@ -430,49 +344,30 @@ const GestionUsuarios = ({ onVolver }) => {
                             </div>
                         </div>
 
-                        {/* Footer de acciones integrado en columna derecha */}
                         <div className={s.footerAcciones}>
-                            <button type="button" className={s.botonCancelar} onClick={handleCancelar}>
-                                Cancelar
-                            </button>
-                            <button
-                                type="button"
-                                className={s.botonGuardar}
-                                onClick={esCrear ? handleCrear : handleEditar}
-                                disabled={guardando}
-                            >
-                                {guardando ? (
-                                    <><span className={s.spinnerBtn} />{esCrear ? 'Creando...' : 'Guardando...'}</>
-                                ) : (
-                                    <>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="15" height="15">
-                                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-                                            <polyline points="17 21 17 13 7 13 7 21" />
-                                            <polyline points="7 3 7 8 15 8" />
-                                        </svg>
-                                        {esCrear ? 'Crear Usuario' : 'Guardar Cambios'}
-                                    </>
-                                )}
+                            <button type="button" className={s.botonCancelar} onClick={handleCancelar}>Cancelar</button>
+                            <button type="button" className={s.botonGuardar} onClick={esCrear ? handleCrear : handleEditar} disabled={guardando}>
+                                {guardando ? <><span className={s.spinnerBtn} />{esCrear ? 'Creando...' : 'Guardando...'}</> : <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="15" height="15"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>{esCrear ? 'Crear Usuario' : 'Guardar Cambios'}</>}
                             </button>
                         </div>
                     </div>
-
                 </div>
             </main>
         </div>
     );
 
-return (
+    return (
         <>
-            {/* El Navbar se mostrará ÚNICAMENTE si la vista actual es 'lista' */}
             {vista === 'lista' && (
-                <NavbarDashboard 
-                    puedeEditar={true} 
-                    vistaActual="usuarios" 
+                <NavbarDashboard
+                    puedeEditar={puedeEditar}
+                    vistaActual={vistaActual}
+                    isMobile={isMobile}
+                    mostrarSelectorVista={false} 
+                    onCrearAnuncio={handleCrearAnuncio}
                 />
             )}
             
-            {/* Aquí se renderiza el contenido dependiendo del estado */}
             {vista === 'lista' ? renderLista() : renderForm()}
         </>
     );

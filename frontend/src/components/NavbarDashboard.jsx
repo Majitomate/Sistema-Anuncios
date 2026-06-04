@@ -5,8 +5,15 @@ import styles from '../styles/dashboard.module.css';
 import UserProfilePanel from '../pages/UserProfilePanel';
 import { obtenerUsuarioActivo } from '../services/usuarios.services';
 
-const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnuncio, onGestionUsuarios }) => {
+// 👇 Agregamos mostrarSelectorVista = true por defecto
+const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnuncio, onGestionUsuarios, mostrarSelectorVista = true }) => {
     const navigate = useNavigate();
+
+    // 🛡️ FUNCIONES SEGURAS:
+    const safeCambiarVista = onCambiarVista || (() => navigate('/dashboard'));
+    const safeCrearAnuncio = onCrearAnuncio || (() => navigate('/dashboard', { state: { vista: 'crear' } }));
+    const safeGestionUsuarios = onGestionUsuarios || (() => navigate('/dashboard'));
+
     const [usuarioActivo, setUsuarioActivo] = useState({
         nombre: localStorage.getItem('sutus_nombre') || 'Usuario',
         email: localStorage.getItem('sutus_email') || '',
@@ -20,14 +27,12 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
     const [isMobile,      setIsMobile]      = useState(() => window.innerWidth < 768);
     const menuRef = useRef(null);
 
-    /* Detecta cambios de tamaño de pantalla */
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    /* Cierra el menú al hacer click fuera */
     useEffect(() => {
         const handler = (e) => {
             if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -57,7 +62,6 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
         fetchUsuario();
     }, []);
 
-    /* Cierra el menú al cambiar de ruta o hacer una acción */
     const accion = (fn) => () => { setMenuAbierto(false); fn && fn(); };
 
     const handleLogout = async () => {
@@ -83,7 +87,6 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
     return (
         <>
             <nav className={styles.navbar}>
-                {/* ── Logo + Título ── */}
                 <div className={styles.navbarTitleGroup}>
                     <img 
                     src="/logo-sutus.svg" 
@@ -96,13 +99,11 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                     <span className={styles.navbarTitleCorto}>SUTUS</span>
                 </div>
 
-                {/* ── Acciones desktop ── */}
                 <div className={styles.navbarActions}>
-
-                    {/* Grupo izquierdo */}
                     <div className={styles.navbarGrupo}>
                         {puedeEditar && (
-                            <button type="button" className={`${styles.navBtn} ${styles.navBtnNaranja}`} onClick={onCrearAnuncio}>
+                            // 👇 Botón Desktop - usa safeCrearAnuncio
+                            <button type="button" className={`${styles.navBtn} ${styles.navBtnNaranja}`} onClick={safeCrearAnuncio}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="14" height="14">
                                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                                 </svg>
@@ -111,7 +112,8 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         )}
 
                         {rol === 'admin' && (
-                            <button type="button" className={`${styles.navBtn} ${styles.navBtnGhost}`} onClick={onGestionUsuarios}>
+                            // 👇 Botón Desktop - usa safeGestionUsuarios
+                            <button type="button" className={`${styles.navBtn} ${styles.navBtnGhost}`} onClick={safeGestionUsuarios}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                     <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
                                     <circle cx="9" cy="7" r="4"/>
@@ -141,13 +143,13 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         </button>
                     </div>
 
-                    {/* Selector de vista + separadores — ocultos en móvil */}
-                    {!isMobile && <>
+                    {/* 👇 Ocultar el selector si mostrarSelectorVista es false */}
+                    {!isMobile && mostrarSelectorVista && <>
                         <div className={`${styles.navSeparador} ${styles.navSeparadorDesktop}`} />
                         <div className={`${styles.viewSwitcher} ${styles.viewSwitcherDesktop}`}>
                             <button
                                 className={`${styles.switchBtn} ${vistaActual === 'cuadricula' ? styles.active : ''}`}
-                                onClick={() => onCambiarVista('cuadricula')}
+                                onClick={() => safeCambiarVista('cuadricula')}
                             >
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="13" height="13">
                                     <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -157,7 +159,7 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                             </button>
                             <button
                                 className={`${styles.switchBtn} ${vistaActual === 'lista' ? styles.active : ''}`}
-                                onClick={() => onCambiarVista('lista')}
+                                onClick={() => safeCambiarVista('lista')}
                             >
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="13" height="13">
                                     <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
@@ -170,23 +172,14 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         <div className={`${styles.navSeparador} ${styles.navSeparadorDesktop}`} />
                     </>}
 
-                    {/* Usuario + Salir (siempre visible) */}
                     <div className={styles.navbarUsuarioWrap}>
-                        <button
-                            type="button"
-                            className={styles.navbarUsuarioBtn}
-                            onClick={() => setPanelAbierto(true)}
-                            title="Ver mi perfil"
-                        >
-                            <span className={styles.navbarAvatar}>
-                                {nombre.charAt(0).toUpperCase()}
-                            </span>
+                        <button type="button" className={styles.navbarUsuarioBtn} onClick={() => setPanelAbierto(true)}>
+                            <span className={styles.navbarAvatar}>{nombre.charAt(0).toUpperCase()}</span>
                             <span className={styles.navbarUsuarioNombre}>{nombre}</span>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="12" height="12" style={{ opacity: 0.5 }}>
                                 <polyline points="6 9 12 15 18 9"/>
                             </svg>
                         </button>
-
                         <button type="button" className={`${styles.navBtn} ${styles.navBtnSalir} ${styles.btnSalirDesktop}`} onClick={handleLogout}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
@@ -198,26 +191,17 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                     </div>
                 </div>
 
-                {/* ── Menú hamburguesa (móvil) ── */}
                 <div className={styles.navbarMobile} ref={menuRef}>
-                    {/* Vista switcher compacta en móvil — oculta en móvil */}
-                    {!isMobile && (
+                    {/* 👇 Ocultar el selector en móvil si mostrarSelectorVista es false */}
+                    {!isMobile && mostrarSelectorVista && (
                         <div className={styles.viewSwitcherMobile}>
-                            <button
-                                className={`${styles.switchBtnMobile} ${vistaActual === 'cuadricula' ? styles.active : ''}`}
-                                onClick={() => onCambiarVista('cuadricula')}
-                                title="Tarjetas"
-                            >
+                            <button className={`${styles.switchBtnMobile} ${vistaActual === 'cuadricula' ? styles.active : ''}`} onClick={() => safeCambiarVista('cuadricula')}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                     <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                                     <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
                                 </svg>
                             </button>
-                            <button
-                                className={`${styles.switchBtnMobile} ${vistaActual === 'lista' ? styles.active : ''}`}
-                                onClick={() => onCambiarVista('lista')}
-                                title="Lista"
-                            >
+                            <button className={`${styles.switchBtnMobile} ${vistaActual === 'lista' ? styles.active : ''}`} onClick={() => safeCambiarVista('lista')}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                     <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
                                     <line x1="8" y1="18" x2="21" y2="18"/>
@@ -227,33 +211,19 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         </div>
                     )}
 
-                    {/* Avatar (abre perfil) */}
-                    <button
-                        type="button"
-                        className={styles.navbarAvatarBtn}
-                        onClick={() => { setMenuAbierto(false); setPanelAbierto(true); }}
-                        title="Mi perfil"
-                    >
-                        <span className={styles.navbarAvatar}>
-                            {nombre.charAt(0).toUpperCase()}
-                        </span>
+                    <button type="button" className={styles.navbarAvatarBtn} onClick={() => { setMenuAbierto(false); setPanelAbierto(true); }}>
+                        <span className={styles.navbarAvatar}>{nombre.charAt(0).toUpperCase()}</span>
                     </button>
 
-                    {/* Botón hamburguesa */}
-                    <button
-                        type="button"
-                        className={`${styles.hamburger} ${menuAbierto ? styles.hamburgerOpen : ''}`}
-                        onClick={() => setMenuAbierto(v => !v)}
-                        aria-label="Menú"
-                    >
+                    <button type="button" className={`${styles.hamburger} ${menuAbierto ? styles.hamburgerOpen : ''}`} onClick={() => setMenuAbierto(v => !v)}>
                         <span /><span /><span />
                     </button>
 
-                    {/* Dropdown del menú */}
                     {menuAbierto && (
                         <div className={styles.mobileMenu}>
                             {puedeEditar && (
-                                <button className={`${styles.mobileMenuItem} ${styles.mobileMenuItemNaranja}`} onClick={accion(onCrearAnuncio)}>
+                                // 👇 Botón Móvil - usa safeCrearAnuncio
+                                <button className={`${styles.mobileMenuItem} ${styles.mobileMenuItemNaranja}`} onClick={accion(safeCrearAnuncio)}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="15" height="15">
                                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                                     </svg>
@@ -262,7 +232,8 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                             )}
 
                             {rol === 'admin' && (
-                                <button className={styles.mobileMenuItem} onClick={accion(onGestionUsuarios)}>
+                                // 👇 Botón Móvil - usa safeGestionUsuarios
+                                <button className={styles.mobileMenuItem} onClick={accion(safeGestionUsuarios)}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="15" height="15">
                                         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
                                         <circle cx="9" cy="7" r="4"/>
@@ -306,10 +277,7 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                 </div>
             </nav>
 
-            <UserProfilePanel
-                open={panelAbierto}
-                onClose={() => setPanelAbierto(false)}
-            />
+            <UserProfilePanel open={panelAbierto} onClose={() => setPanelAbierto(false)} />
         </>
     );
 };

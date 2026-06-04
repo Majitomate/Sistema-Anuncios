@@ -22,27 +22,23 @@ const EstadoConexion = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [navigate, rol]);
 
-  const handleCrearAnuncio = () => {
-    navigate('/dashboard'); // Lo regresamos al dashboard para crear
-  };
-
-  const handleGestionUsuarios = () => {
-    navigate('/dashboard');
-  };
-
   return (
     <div className={styles.dashboardLayout}>
+
 
       <NavbarDashboard
         puedeEditar={puedeEditar}
         vistaActual={vistaActual}
+        isMobile={isMobile}
         onCambiarVista={(v) => { if (!isMobile || v === 'cuadricula') setVistaActual(v); }}
-        onCrearAnuncio={handleCrearAnuncio}
-        onGestionUsuarios={handleGestionUsuarios}
+        mostrarSelectorVista={false}
       />
 
       {/* ── Contenido ── */}
-      <EstadoDispositivos />
+      <main className={styles.dashboardMain} style={{ padding: '20px' }}>
+        <EstadoDispositivos />
+      </main>
+
     </div>
   );
 };
