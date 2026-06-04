@@ -36,7 +36,21 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
   const [vistaActual,       setVistaActual]        = useState('cuadricula');
   const [indiceCarrusel,    setIndiceCarrusel]     = useState(0);
   const [documentoAbierto,  setDocumentoAbierto]   = useState(null);
-  const [pantallasOnline, setPantallasOnline] = useState(0);
+  const [pantallasOnline,   setPantallasOnline]    = useState(0);
+  const [isMobile,          setIsMobile]           = useState(() => window.innerWidth < 768);
+
+  // Detecta cambios de tamaño: en móvil fuerza siempre la vista cuadrícula
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onChange = (e) => {
+      setIsMobile(e.matches);
+      if (e.matches) setVistaActual('cuadricula');
+    };
+    // Aplicar estado inicial al montar
+    if (mq.matches) setVistaActual('cuadricula');
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   const {
     auditoriaData,
@@ -142,7 +156,8 @@ const DashboardLayout = ({ anuncios, onAnuncioCreado, rolUsuario, loading }) => 
         <NavbarDashboard
             puedeEditar={puedeEditar}
             vistaActual={vistaActual}
-            onCambiarVista={setVistaActual}
+            isMobile={isMobile}
+            onCambiarVista={(v) => { if (!isMobile || v === 'cuadricula') setVistaActual(v); }}
             onCrearAnuncio={() => setVista('crear')}
             onGestionUsuarios={() => setVistaUsuarios(true)}
         />

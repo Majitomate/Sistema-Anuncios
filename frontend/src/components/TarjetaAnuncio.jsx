@@ -53,19 +53,19 @@ const TarjetaAnuncio = ({ id, titulo, tipo, id_imagen_principal, prioridad, esta
           <div className={styles.acciones}>
             {documentoUrl && (
               <button type="button" className={`${styles.editButton} ${styles.viewDocButton}`} onClick={() => onAbrirDocumento?.(documentoUrl)}>
-                📄 Ver Doc
+                Doc
               </button>
             )}
             <button type="button" className={styles.auditoriaButton} onClick={() => onVerAuditoria(id)} title="Ver registro de cambios">
-              📋 Cambios
+              Cambios
             </button>
             {puedeEditar && (
               <>
                 <button type="button" className={styles.editButton} onClick={onEditar}>
-                  ✎ Editar
+                  Editar
                 </button>
                 <button type="button" className={styles.deleteButton} onClick={onEliminar}>
-                  🗑 Eliminar
+                  Eliminar
                 </button>
               </>
             )}

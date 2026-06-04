@@ -576,52 +576,67 @@
   margin-top: auto;
   padding-top: 10px;
   border-top: 1px solid var(--borde);
+  gap: 8px;
 }
 
 .prioridad {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font-size: 10.5px;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 6px;
   border: 1px solid;
   letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ─── Botones de acción en tarjeta ─── */
-.acciones { display: flex; gap: 4px; flex-wrap: wrap; }
+.acciones {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 
 /* Base compartida */
 .editButton,
 .deleteButton,
-.viewDocButton {
+.viewDocButton,
+.auditoriaButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   border: none;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  padding: 5px 10px;
+  padding: 6px 11px;
   border-radius: 6px;
   font-family: inherit;
   white-space: nowrap;
+  min-height: 32px;
   transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 .editButton:hover,
 .deleteButton:hover,
-.viewDocButton:hover {
+.viewDocButton:hover,
+.auditoriaButton:hover {
   opacity: 0.88;
   transform: translateY(-1px);
   box-shadow: 0 3px 8px rgba(0,0,0,0.18);
 }
 .editButton:active,
 .deleteButton:active,
-.viewDocButton:active { transform: translateY(0); }
+.viewDocButton:active,
+.auditoriaButton:active { transform: translateY(0); }
 
-.editButton    { background-color: var(--verde);  color: #fff; }
-.deleteButton  { background-color: var(--rojo);   color: #fff; }
-.viewDocButton { background-color: #0d47a1;       color: #fff; }
+.editButton      { background-color: var(--verde);         color: #fff; }
+.deleteButton    { background-color: var(--rojo);          color: #fff; }
+.viewDocButton   { background-color: #0d47a1;              color: #fff; }
+.auditoriaButton { background-color: rgba(0,0,0,0.07); color: var(--texto-suave); border: 1px solid var(--borde); }
 
 /* ─── Tabla (vista lista) ─── */
 .announcementsTableContainer {
@@ -1596,6 +1611,11 @@
 
   /* Mostrar el bloque móvil */
   .navbarMobile { display: flex; }
+
+  /* En móvil nunca se muestra el switcher de vista (ni desktop ni mobile) */
+  .viewSwitcher,
+  .viewSwitcherMobile,
+  .viewSwitcherDesktop { display: none !important; }
 }
 
 /* Teléfono pequeño */
@@ -1603,4 +1623,126 @@
   .navbar { padding: 0 12px; }
   .navbarTitleCorto { display: none; }
   .mobileMenu { min-width: 190px; }
+}
+/* ══════════════════════════════════════════════════════════════
+   TABLA / VISTA LISTA — RESPONSIVE COMPLETO
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤1024px): scroll horizontal para la tabla ── */
+@media (max-width: 1024px) {
+  .announcementsTableContainer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .announcementsTable {
+    min-width: 680px;
+  }
+}
+
+/* ── Tablet chica (≤900px): celdas más compactas ── */
+@media (max-width: 900px) {
+  .announcementsTable th,
+  .announcementsTable td {
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+  .btnEditTable,
+  .btnVer,
+  .btnDeleteTable {
+    padding: 6px 10px;
+    font-size: 11.5px;
+  }
+  .accionesGroupTable { gap: 4px; }
+  .listaTitleRow      { padding: 14px 16px; }
+}
+
+/* ── Móvil (≤768px): tabla nunca se muestra, pero por si acaso ── */
+@media (max-width: 768px) {
+  /* mainContent con menos padding */
+  .mainContent {
+    padding: 16px 12px 40px;
+  }
+
+  /* Tarjetas: 2 columnas si caben, si no 1 */
+  .announcementsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  /* Footer con wrapping cómodo en pantallas medianas */
+  .cardFooter {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .acciones {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .editButton,
+  .deleteButton,
+  .viewDocButton,
+  .auditoriaButton {
+    min-height: 34px;
+  }
+}
+
+/* ── Teléfono (≤520px): una sola columna de tarjetas ── */
+@media (max-width: 520px) {
+  .mainContent {
+    padding: 12px 10px 32px;
+  }
+  .announcementsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .cardThumbnail { height: 130px; }
+  .cardBody      { padding: 11px 12px 14px; }
+
+  /* Footer apilado: prioridad arriba, botones abajo */
+  .cardFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .prioridad {
+    align-self: flex-start;
+    font-size: 11px;
+    padding: 5px 12px;
+  }
+
+  /* Botones ocupan todo el ancho disponible en fila */
+  .acciones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+  .editButton,
+  .deleteButton,
+  .viewDocButton,
+  .auditoriaButton {
+    width: 100%;
+    justify-content: center;
+    min-height: 36px;
+    font-size: 12px;
+    padding: 7px 8px;
+  }
+}
+
+/* ── Carrusel en móvil ── */
+@media (max-width: 768px) {
+  .carouselContainer { min-height: 180px; }
+  .carouselContent   { padding: 28px 48px 0; }
+  .carouselText h2   { font-size: 18px; }
+  .carouselText p    { font-size: 12.5px; }
+  .carouselNavBtnAnt { left: 10px; }
+  .carouselNavBtnSig { right: 10px; }
+}
+
+/* ── Métricas del encabezado en móvil ── */
+@media (max-width: 600px) {
+  .dashboardHeader { gap: 10px; }
+  .metricCard      { min-width: 130px; }
+  .metricValue     { font-size: 24px; }
+  .metricLabel     { font-size: 10px; }
 }

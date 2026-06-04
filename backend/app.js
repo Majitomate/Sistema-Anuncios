@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
 // TAREAS AUTOMÁTICAS
 iniciarCronEstados();
 
-// 6RUTAS DEL SISTEMA
+// RUTAS DEL SISTEMA
 app.post('/login', login);
 app.use('/anuncios', anunciosRoutes);
 app.use('/dispositivos', dispositivosRoutes);
