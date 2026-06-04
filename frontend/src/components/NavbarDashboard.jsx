@@ -84,13 +84,14 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
         <>
             <nav className={styles.navbar}>
                 {/* ── Logo + Título ── */}
-                <div
-                    className={styles.navbarTitleGroup}
-                    onClick={() => navigate('/dashboard')}
+                <div className={styles.navbarTitleGroup}>
+                    <img 
+                    src="/logo-sutus.svg" 
+                    alt="SUTUS" 
+                    className={styles.navbarLogo}
+                    onClick={() => navigate('/')} 
                     style={{ cursor: 'pointer' }}
-                    title="Ir al Dashboard"
-                >
-                    <img src="/logo-sutus.svg" alt="SUTUS" className={styles.navbarLogo} />
+                     />
                     <span className={styles.navbarTitle}>Dashboard de Anuncios SUTUS</span>
                     <span className={styles.navbarTitleCorto}>SUTUS</span>
                 </div>

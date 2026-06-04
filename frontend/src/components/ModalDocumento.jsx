@@ -3,7 +3,6 @@ import styles from '../styles/modal.module.css';
 
 const ModalDocumento = ({ urlDocumento, alCerrar }) => {
   if (!urlDocumento) return null;
-  const urlOptimizadaParaTablet = `https://docs.google.com/gview?url=${encodeURIComponent(urlDocumento)}&embedded=true`;
 
   return (
     <div className={styles.modalOverlay}>
@@ -17,8 +16,9 @@ const ModalDocumento = ({ urlDocumento, alCerrar }) => {
         </div>
         
         <div className={styles.modalIframe} style={{ flex: 1, width: '100%', overflow: 'hidden', padding: 0, backgroundColor: '#f0f0f0' }}>
+          {/* Aquí está la magia: pasamos urlDocumento directo, sin Google */}
           <iframe
-            src={urlOptimizadaParaTablet}
+            src={urlDocumento}
             width="100%"
             height="100%"
             style={{ border: 'none' }}

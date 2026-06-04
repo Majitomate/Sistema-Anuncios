@@ -18,7 +18,7 @@ const TarjetaAnuncio = ({ id, titulo, tipo, id_imagen_principal, prioridad, esta
   const imagenUrl = anuncio?.imagenes && anuncio.imagenes.length > 0
     ? `${API}/anuncios/imagen/${anuncio.imagenes[0].id}`
     : IMAGEN_DEFAULT;
-  const documentoUrl = anuncio?.tiene_documento ? `${API}/anuncios/${anuncio.id}/documento` : null;
+  const documentoUrl = anuncio?.documento_tipo ? `${API}/anuncios/${anuncio.id}/documento` : null;
 
   return (
     <div className={styles.announcementCard}>

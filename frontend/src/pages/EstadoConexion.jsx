@@ -1,43 +1,45 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import EstadoDispositivos from '../components/EstadoDispositivos';
+import NavbarDashboard from '../components/NavbarDashboard';
 import styles from '../styles/dashboard.module.css';
 
 const EstadoConexion = () => {
   const navigate = useNavigate();
+  const rol = localStorage.getItem('sutus_rol');
+  const puedeEditar = rol === 'admin' || rol === 'editor';
+  const [vistaActual, setVistaActual] = useState('cuadricula');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
-    const rol = localStorage.getItem('sutus_rol');
-    if (rol !== 'admin') navigate('/dashboard');
-  }, [navigate]);
+    // Si no es admin, lo sacamos de esta pantalla
+    if (rol !== 'admin') {
+      navigate('/dashboard');
+    }
+
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [navigate, rol]);
+
+  const handleCrearAnuncio = () => {
+    navigate('/dashboard'); // Lo regresamos al dashboard para crear
+  };
+
+  const handleGestionUsuarios = () => {
+    navigate('/dashboard');
+  };
 
   return (
     <div className={styles.dashboardLayout}>
 
-      {/* ── Navbar reutilizando los estilos del dashboard ── */}
-      <nav className={styles.navbar}>
-        <div className={styles.navbarTitleGroup}>
-          <img src="/logo-sutus.svg" alt="SUTUS" className={styles.navbarLogo} />
-          <span className={styles.navbarTitle}>Estado de Conexión</span>
-        </div>
-
-        <div className={styles.navbarActions}>
-          <div className={styles.navbarGrupo}>
-            <button
-              type="button"
-              className={`${styles.navBtn} ${styles.navBtnGhost}`}
-              onClick={() => navigate('/dashboard')}
-            >
-              {/* Flecha izquierda */}
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
-                   strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-              <span className={styles.navBtnText}>Volver al Dashboard</span>
-            </button>
-          </div>
-        </div>
-      </nav>
+      <NavbarDashboard
+        puedeEditar={puedeEditar}
+        vistaActual={vistaActual}
+        onCambiarVista={(v) => { if (!isMobile || v === 'cuadricula') setVistaActual(v); }}
+        onCrearAnuncio={handleCrearAnuncio}
+        onGestionUsuarios={handleGestionUsuarios}
+      />
 
       {/* ── Contenido ── */}
       <EstadoDispositivos />
