@@ -17,7 +17,15 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
 
     const [panelAbierto,  setPanelAbierto]  = useState(false);
     const [menuAbierto,   setMenuAbierto]   = useState(false);
+    const [isMobile,      setIsMobile]      = useState(() => window.innerWidth < 768);
     const menuRef = useRef(null);
+
+    /* Detecta cambios de tamaño de pantalla */
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     /* Cierra el menú al hacer click fuera */
     useEffect(() => {
@@ -76,7 +84,12 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
         <>
             <nav className={styles.navbar}>
                 {/* ── Logo + Título ── */}
-                <div className={styles.navbarTitleGroup}>
+                <div
+                    className={styles.navbarTitleGroup}
+                    onClick={() => navigate('/dashboard')}
+                    style={{ cursor: 'pointer' }}
+                    title="Ir al Dashboard"
+                >
                     <img src="/logo-sutus.svg" alt="SUTUS" className={styles.navbarLogo} />
                     <span className={styles.navbarTitle}>Dashboard de Anuncios SUTUS</span>
                     <span className={styles.navbarTitleCorto}>SUTUS</span>
@@ -127,36 +140,34 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         </button>
                     </div>
 
-                    {/* Separador */}
-                    <div className={`${styles.navSeparador} ${styles.navSeparadorDesktop}`} />
-
-                    {/* Selector de vista */}
-                    <div className={`${styles.viewSwitcher} ${styles.viewSwitcherDesktop}`}>
-                        <button
-                            className={`${styles.switchBtn} ${vistaActual === 'cuadricula' ? styles.active : ''}`}
-                            onClick={() => onCambiarVista('cuadricula')}
-                        >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="13" height="13">
-                                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-                            </svg>
-                            <span className={styles.navBtnText}>Tarjetas</span>
-                        </button>
-                        <button
-                            className={`${styles.switchBtn} ${vistaActual === 'lista' ? styles.active : ''}`}
-                            onClick={() => onCambiarVista('lista')}
-                        >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="13" height="13">
-                                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-                                <line x1="8" y1="18" x2="21" y2="18"/>
-                                <circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/>
-                            </svg>
-                            <span className={styles.navBtnText}>Lista</span>
-                        </button>
-                    </div>
-
-                    {/* Separador */}
-                    <div className={`${styles.navSeparador} ${styles.navSeparadorDesktop}`} />
+                    {/* Selector de vista + separadores — ocultos en móvil */}
+                    {!isMobile && <>
+                        <div className={`${styles.navSeparador} ${styles.navSeparadorDesktop}`} />
+                        <div className={`${styles.viewSwitcher} ${styles.viewSwitcherDesktop}`}>
+                            <button
+                                className={`${styles.switchBtn} ${vistaActual === 'cuadricula' ? styles.active : ''}`}
+                                onClick={() => onCambiarVista('cuadricula')}
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="13" height="13">
+                                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                                </svg>
+                                <span className={styles.navBtnText}>Tarjetas</span>
+                            </button>
+                            <button
+                                className={`${styles.switchBtn} ${vistaActual === 'lista' ? styles.active : ''}`}
+                                onClick={() => onCambiarVista('lista')}
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="13" height="13">
+                                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/>
+                                </svg>
+                                <span className={styles.navBtnText}>Lista</span>
+                            </button>
+                        </div>
+                        <div className={`${styles.navSeparador} ${styles.navSeparadorDesktop}`} />
+                    </>}
 
                     {/* Usuario + Salir (siempre visible) */}
                     <div className={styles.navbarUsuarioWrap}>
@@ -188,30 +199,32 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
 
                 {/* ── Menú hamburguesa (móvil) ── */}
                 <div className={styles.navbarMobile} ref={menuRef}>
-                    {/* Vista switcher compacta en móvil */}
-                    <div className={styles.viewSwitcherMobile}>
-                        <button
-                            className={`${styles.switchBtnMobile} ${vistaActual === 'cuadricula' ? styles.active : ''}`}
-                            onClick={() => onCambiarVista('cuadricula')}
-                            title="Tarjetas"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
-                                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-                            </svg>
-                        </button>
-                        <button
-                            className={`${styles.switchBtnMobile} ${vistaActual === 'lista' ? styles.active : ''}`}
-                            onClick={() => onCambiarVista('lista')}
-                            title="Lista"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
-                                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-                                <line x1="8" y1="18" x2="21" y2="18"/>
-                                <circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/>
-                            </svg>
-                        </button>
-                    </div>
+                    {/* Vista switcher compacta en móvil — oculta en móvil */}
+                    {!isMobile && (
+                        <div className={styles.viewSwitcherMobile}>
+                            <button
+                                className={`${styles.switchBtnMobile} ${vistaActual === 'cuadricula' ? styles.active : ''}`}
+                                onClick={() => onCambiarVista('cuadricula')}
+                                title="Tarjetas"
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
+                                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                                </svg>
+                            </button>
+                            <button
+                                className={`${styles.switchBtnMobile} ${vistaActual === 'lista' ? styles.active : ''}`}
+                                onClick={() => onCambiarVista('lista')}
+                                title="Lista"
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
+                                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                                    <line x1="8" y1="18" x2="21" y2="18"/>
+                                    <circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    )}
 
                     {/* Avatar (abre perfil) */}
                     <button
