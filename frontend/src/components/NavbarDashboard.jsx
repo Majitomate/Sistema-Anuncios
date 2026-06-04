@@ -5,11 +5,8 @@ import styles from '../styles/dashboard.module.css';
 import UserProfilePanel from '../pages/UserProfilePanel';
 import { obtenerUsuarioActivo } from '../services/usuarios.services';
 
-// 👇 Agregamos mostrarSelectorVista = true por defecto
 const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnuncio, onGestionUsuarios, mostrarSelectorVista = true }) => {
     const navigate = useNavigate();
-
-    // 🛡️ FUNCIONES SEGURAS:
     const safeCambiarVista = onCambiarVista || (() => navigate('/dashboard'));
     const safeCrearAnuncio = onCrearAnuncio || (() => navigate('/dashboard', { state: { vista: 'crear' } }));
     const safeGestionUsuarios = onGestionUsuarios || (() => navigate('/dashboard'));
@@ -102,7 +99,6 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                 <div className={styles.navbarActions}>
                     <div className={styles.navbarGrupo}>
                         {puedeEditar && (
-                            // 👇 Botón Desktop - usa safeCrearAnuncio
                             <button type="button" className={`${styles.navBtn} ${styles.navBtnNaranja}`} onClick={safeCrearAnuncio}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="14" height="14">
                                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -112,7 +108,6 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         )}
 
                         {rol === 'admin' && (
-                            // 👇 Botón Desktop - usa safeGestionUsuarios
                             <button type="button" className={`${styles.navBtn} ${styles.navBtnGhost}`} onClick={safeGestionUsuarios}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="14" height="14">
                                     <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
@@ -143,7 +138,6 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                         </button>
                     </div>
 
-                    {/* 👇 Ocultar el selector si mostrarSelectorVista es false */}
                     {!isMobile && mostrarSelectorVista && <>
                         <div className={`${styles.navSeparador} ${styles.navSeparadorDesktop}`} />
                         <div className={`${styles.viewSwitcher} ${styles.viewSwitcherDesktop}`}>
@@ -192,7 +186,6 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                 </div>
 
                 <div className={styles.navbarMobile} ref={menuRef}>
-                    {/* 👇 Ocultar el selector en móvil si mostrarSelectorVista es false */}
                     {!isMobile && mostrarSelectorVista && (
                         <div className={styles.viewSwitcherMobile}>
                             <button className={`${styles.switchBtnMobile} ${vistaActual === 'cuadricula' ? styles.active : ''}`} onClick={() => safeCambiarVista('cuadricula')}>
@@ -222,7 +215,6 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                     {menuAbierto && (
                         <div className={styles.mobileMenu}>
                             {puedeEditar && (
-                                // 👇 Botón Móvil - usa safeCrearAnuncio
                                 <button className={`${styles.mobileMenuItem} ${styles.mobileMenuItemNaranja}`} onClick={accion(safeCrearAnuncio)}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="15" height="15">
                                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -232,7 +224,6 @@ const NavbarDashboard = ({ puedeEditar, vistaActual, onCambiarVista, onCrearAnun
                             )}
 
                             {rol === 'admin' && (
-                                // 👇 Botón Móvil - usa safeGestionUsuarios
                                 <button className={styles.mobileMenuItem} onClick={accion(safeGestionUsuarios)}>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="15" height="15">
                                         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom'; // 👈 Importamos useNavigate
+import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import s from '../styles/GestionUsuarios.module.css';
 import NavbarDashboard from '../components/NavbarDashboard';
@@ -28,7 +28,7 @@ const ROL_CONFIG = {
 const FORM_INICIAL = { nombre: '', email: '', password: '', rol: 'visualizador' };
 
 const GestionUsuarios = ({ onVolver }) => {
-    const navigate = useNavigate(); // 👈 Inicializamos navigate
+    const navigate = useNavigate(); 
 
     // ── ESTADOS PARA EL NAVBAR ───────────────────────────────────────────────
     const rol = localStorage.getItem('sutus_rol');
@@ -46,7 +46,6 @@ const GestionUsuarios = ({ onVolver }) => {
     const [guardando, setGuardando] = useState(false);
     const [verPass, setVerPass] = useState(false);
 
-    // 👇 Función mágica: Cierra este panel y manda a abrir el formulario
     const handleCrearAnuncio = () => {
         onVolver(); 
         navigate('/dashboard', { state: { vista: 'crear' } });
